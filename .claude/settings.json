@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Edit(/.claude/skills/design-system/**)",
+      "Edit(/.claude/skills/robotics-curriculum/**)",
+      "Edit(/.claude/skills/lesson-template/**)",
+      "Edit(/.claude/skills/viz-2d/**)"
+    ]
+  }
+}
