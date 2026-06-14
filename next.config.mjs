@@ -4,6 +4,8 @@ import createMDX from '@next/mdx'
 const nextConfig = {
   // Allow .md / .mdx files to be treated as pages/modules alongside TS.
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
+  // Hide the floating Next.js indicator (we provide our own chrome).
+  devIndicators: false,
 }
 
 const withMDX = createMDX({

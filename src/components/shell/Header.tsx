@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CompassLogo } from "./CompassLogo";
+import { SidebarToggle } from "./SidebarToggle";
 
 /**
  * Slim top bar: compass logo + wordmark linking home. Light theme, sticky.
@@ -10,6 +11,7 @@ export function Header() {
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-border bg-background/90 backdrop-blur">
       <div className="mx-auto flex h-full max-w-7xl items-center gap-2 px-4 sm:px-6">
+        <SidebarToggle />
         <Link
           href="/"
           className="flex items-center gap-2 rounded-md py-1 font-serif text-lg font-semibold tracking-tight"

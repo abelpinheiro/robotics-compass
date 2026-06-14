@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { curriculum } from "@/lib/curriculum";
+import { useSidebar } from "./sidebar-context";
 
 /**
  * Curriculum navigation, grouped by area in taxonomy order, read from
@@ -15,32 +15,21 @@ import { curriculum } from "@/lib/curriculum";
  * populates lessons and the links become live.
  */
 export function Sidebar() {
-  const [open, setOpen] = useState(false);
+  const { open, close } = useSidebar();
   const pathname = usePathname();
 
   const asideClass = open
-    ? "fixed inset-y-0 left-0 z-40 w-72 overflow-y-auto border-r border-border bg-surface p-4 md:sticky md:top-14 md:z-auto md:block md:h-[calc(100dvh-3.5rem)] md:w-64 md:shrink-0"
+    ? "fixed top-14 bottom-0 left-0 z-40 w-72 max-w-[85vw] overflow-y-auto border-r border-border bg-surface p-4 shadow-xl md:sticky md:top-14 md:z-auto md:block md:h-[calc(100dvh-3.5rem)] md:w-64 md:max-w-none md:shrink-0 md:shadow-none"
     : "hidden md:sticky md:top-14 md:block md:h-[calc(100dvh-3.5rem)] md:w-64 md:shrink-0 md:overflow-y-auto border-r border-border bg-surface p-4";
 
   return (
     <>
-      {/* Mobile toggle */}
-      <button
-        type="button"
-        onClick={() => setOpen((o) => !o)}
-        aria-expanded={open}
-        aria-controls="curriculum-nav"
-        className="fixed bottom-5 left-5 z-50 rounded-full border border-border bg-surface px-4 py-2 text-sm font-medium shadow-md md:hidden"
-      >
-        {open ? "Close" : "Menu"}
-      </button>
-
       {/* Mobile backdrop */}
       {open && (
         <div
-          className="fixed inset-0 z-30 bg-black/30 md:hidden"
+          className="fixed top-14 right-0 bottom-0 left-0 z-30 bg-black/30 md:hidden"
           aria-hidden="true"
-          onClick={() => setOpen(false)}
+          onClick={close}
         />
       )}
 
@@ -64,7 +53,7 @@ export function Sidebar() {
                           <Link
                             href={href}
                             aria-current={current ? "page" : undefined}
-                            onClick={() => setOpen(false)}
+                            onClick={close}
                             className={`flex items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors ${
                               current
                                 ? "bg-accent-weak font-medium text-accent"
