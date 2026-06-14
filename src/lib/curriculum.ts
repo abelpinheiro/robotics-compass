@@ -4,9 +4,8 @@
  * This MUST mirror the `robotics-curriculum` skill (areas, slugs, order).
  * Changing the taxonomy requires asking the human first (Golden rule 4).
  *
- * Phase 2 establishes the types and the ordered AREA list (needed by the app
- * shell + Sidebar). Phase 3 populates each area's `lessons` and creates the
- * matching `content/<area>/<slug>.mdx` files and the dynamic lesson route.
+ * Each lesson has a matching content/<area>/<slug>.mdx scaffold and is rendered
+ * by the dynamic route src/app/lessons/[area]/[slug]/.
  */
 
 export type LessonStatus = "draft" | "in-progress" | "published";
@@ -33,19 +32,136 @@ export interface Area {
 
 /**
  * Areas in canonical order. Path planning is intentionally the deepest area.
- * `lessons` are filled in Phase 3.
  */
 export const curriculum: Area[] = [
-  { slug: "foundations", title: "Foundations", order: 1, lessons: [] },
-  { slug: "kinematics", title: "Kinematics", order: 2, lessons: [] },
-  { slug: "dynamics", title: "Dynamics", order: 3, lessons: [] },
-  { slug: "control", title: "Control", order: 4, lessons: [] },
-  { slug: "path-planning", title: "Path planning", order: 5, lessons: [] },
-  { slug: "perception", title: "Perception", order: 6, lessons: [] },
-  { slug: "state-estimation", title: "State estimation", order: 7, lessons: [] },
-  { slug: "slam", title: "SLAM", order: 8, lessons: [] },
-  { slug: "manipulation", title: "Manipulation", order: 9, lessons: [] },
-  { slug: "mobile-robots", title: "Mobile robots", order: 10, lessons: [] },
+  {
+    slug: "foundations",
+    title: "Foundations",
+    order: 1,
+    lessons: [
+      { slug: "vectors-and-frames", title: "Vectors and frames", order: 1, status: "draft" },
+      { slug: "rotations-2d", title: "Rotations in 2D", order: 2, status: "draft" },
+      { slug: "rotations-3d", title: "Rotations in 3D (SO(3))", order: 3, status: "draft" },
+      { slug: "homogeneous-transforms", title: "Homogeneous transforms (SE(3))", order: 4, status: "draft" },
+      { slug: "quaternions", title: "Quaternions", order: 5, status: "draft" },
+      { slug: "twists-and-screws", title: "Twists and screws", order: 6, status: "draft" },
+    ],
+  },
+  {
+    slug: "kinematics",
+    title: "Kinematics",
+    order: 2,
+    lessons: [
+      { slug: "forward-kinematics", title: "Forward kinematics", order: 1, status: "draft" },
+      { slug: "dh-parameters", title: "DH parameters", order: 2, status: "draft" },
+      { slug: "inverse-kinematics", title: "Inverse kinematics", order: 3, status: "draft" },
+      { slug: "velocity-kinematics", title: "Velocity kinematics", order: 4, status: "draft" },
+      { slug: "jacobians", title: "Jacobians", order: 5, status: "draft" },
+      { slug: "singularities", title: "Singularities", order: 6, status: "draft" },
+    ],
+  },
+  {
+    slug: "dynamics",
+    title: "Dynamics",
+    order: 3,
+    lessons: [
+      { slug: "newton-euler", title: "Newton–Euler dynamics", order: 1, status: "draft" },
+      { slug: "lagrangian-dynamics", title: "Lagrangian dynamics", order: 2, status: "draft" },
+      { slug: "equations-of-motion", title: "Equations of motion", order: 3, status: "draft" },
+      { slug: "contact-and-friction", title: "Contact and friction", order: 4, status: "draft" },
+    ],
+  },
+  {
+    slug: "control",
+    title: "Control",
+    order: 4,
+    lessons: [
+      { slug: "pid-control", title: "PID control", order: 1, status: "draft" },
+      { slug: "state-space", title: "State-space control", order: 2, status: "draft" },
+      { slug: "lqr", title: "LQR", order: 3, status: "draft" },
+      { slug: "trajectory-tracking", title: "Trajectory tracking", order: 4, status: "draft" },
+      { slug: "computed-torque", title: "Computed-torque control", order: 5, status: "draft" },
+      { slug: "impedance-control", title: "Impedance control", order: 6, status: "draft" },
+    ],
+  },
+  {
+    slug: "path-planning",
+    title: "Path planning",
+    order: 5,
+    lessons: [
+      { slug: "configuration-space", title: "Configuration space", order: 1, status: "draft" },
+      { slug: "obstacles-and-collision", title: "Obstacles and collision checking", order: 2, status: "draft" },
+      { slug: "graph-search-bfs-dfs", title: "Graph search: BFS and DFS", order: 3, status: "draft" },
+      { slug: "dijkstra", title: "Dijkstra's algorithm", order: 4, status: "draft" },
+      { slug: "a-star", title: "A* search", order: 5, status: "draft" },
+      { slug: "weighted-and-anytime-astar", title: "Weighted and anytime A*", order: 6, status: "draft" },
+      { slug: "d-star-replanning", title: "D* replanning", order: 7, status: "draft" },
+      { slug: "prm", title: "Probabilistic roadmaps (PRM)", order: 8, status: "draft" },
+      { slug: "rrt", title: "Rapidly-exploring random trees (RRT)", order: 9, status: "draft" },
+      { slug: "rrt-connect", title: "RRT-Connect", order: 10, status: "draft" },
+      { slug: "rrt-star", title: "RRT*", order: 11, status: "draft" },
+      { slug: "informed-rrt-star", title: "Informed RRT*", order: 12, status: "draft" },
+      { slug: "potential-fields", title: "Potential fields", order: 13, status: "draft" },
+      { slug: "visibility-graphs", title: "Visibility graphs", order: 14, status: "draft" },
+      { slug: "cell-decomposition", title: "Cell decomposition", order: 15, status: "draft" },
+      { slug: "trajectory-optimization", title: "Trajectory optimization", order: 16, status: "draft" },
+      { slug: "kinodynamic-planning", title: "Kinodynamic planning", order: 17, status: "draft" },
+      { slug: "time-elastic-bands", title: "Time-elastic bands", order: 18, status: "draft" },
+    ],
+  },
+  {
+    slug: "perception",
+    title: "Perception",
+    order: 6,
+    lessons: [
+      { slug: "sensors-overview", title: "Sensors overview", order: 1, status: "draft" },
+      { slug: "camera-models", title: "Camera models", order: 2, status: "draft" },
+      { slug: "point-clouds", title: "Point clouds", order: 3, status: "draft" },
+      { slug: "feature-detection", title: "Feature detection", order: 4, status: "draft" },
+      { slug: "filtering-basics", title: "Filtering basics", order: 5, status: "draft" },
+    ],
+  },
+  {
+    slug: "state-estimation",
+    title: "State estimation",
+    order: 7,
+    lessons: [
+      { slug: "bayes-filter", title: "Bayes filter", order: 1, status: "draft" },
+      { slug: "kalman-filter", title: "Kalman filter", order: 2, status: "draft" },
+      { slug: "extended-kalman-filter", title: "Extended Kalman filter", order: 3, status: "draft" },
+      { slug: "particle-filter", title: "Particle filter", order: 4, status: "draft" },
+    ],
+  },
+  {
+    slug: "slam",
+    title: "SLAM",
+    order: 8,
+    lessons: [
+      { slug: "localization", title: "Localization", order: 1, status: "draft" },
+      { slug: "mapping", title: "Mapping", order: 2, status: "draft" },
+      { slug: "graph-slam", title: "Graph SLAM", order: 3, status: "draft" },
+      { slug: "loop-closure", title: "Loop closure", order: 4, status: "draft" },
+    ],
+  },
+  {
+    slug: "manipulation",
+    title: "Manipulation",
+    order: 9,
+    lessons: [
+      { slug: "grasping-basics", title: "Grasping basics", order: 1, status: "draft" },
+      { slug: "motion-primitives", title: "Motion primitives", order: 2, status: "draft" },
+    ],
+  },
+  {
+    slug: "mobile-robots",
+    title: "Mobile robots",
+    order: 10,
+    lessons: [
+      { slug: "differential-drive", title: "Differential drive", order: 1, status: "draft" },
+      { slug: "odometry", title: "Odometry", order: 2, status: "draft" },
+      { slug: "local-planning", title: "Local planning", order: 3, status: "draft" },
+    ],
+  },
 ];
 
 /** Look up an area by slug. */
