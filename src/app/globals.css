@@ -172,11 +172,30 @@
     text-underline-offset: 2px;
   }
 
-  .lesson-prose :where(code) {
+  /* Inline code only — not the <code> inside Shiki-highlighted <pre>. */
+  .lesson-prose :where(:not(pre) > code) {
     background-color: var(--surface-2);
     padding: 0.1em 0.35em;
     border-radius: 4px;
     font-size: 0.9em;
+  }
+
+  /* Shiki code blocks: framing here, token colors come from the Shiki theme. */
+  .lesson-prose :where(pre) {
+    margin-block: 1.25rem;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 0.875rem 1rem;
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  .lesson-prose :where(pre code) {
+    background: none;
+    padding: 0;
+    border-radius: 0;
+    font-size: inherit;
   }
 
   .lesson-prose :where(blockquote) {

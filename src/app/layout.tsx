@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { Inter, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import { AppShell } from "@/components/shell/AppShell";
+import { SITE_URL } from "@/lib/site";
 import "./globals.css";
+import "katex/dist/katex.min.css";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,6 +24,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(SITE_URL),
   title: {
     default: "Robotics Compass",
     template: "%s · Robotics Compass",

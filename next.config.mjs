@@ -13,9 +13,17 @@ const withMDX = createMDX({
     // Plugins are passed as strings so they stay serializable for Turbopack.
     // remark-frontmatter parses the `---` block; remark-mdx-frontmatter exports
     // it as a `frontmatter` named export the lesson route can read.
+    // remark-math parses $…$ / $$…$$ math.
     remarkPlugins: [
       'remark-frontmatter',
       ['remark-mdx-frontmatter', { name: 'frontmatter' }],
+      'remark-math',
+    ],
+    // rehype-katex renders the parsed math to HTML (needs katex CSS, imported in
+    // the root layout). @shikijs/rehype syntax-highlights fenced code blocks.
+    rehypePlugins: [
+      'rehype-katex',
+      ['@shikijs/rehype', { theme: 'github-light' }],
     ],
   },
 })
