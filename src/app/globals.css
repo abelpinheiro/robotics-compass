@@ -1,7 +1,199 @@
 @import "tailwindcss";
 
-/*
- * Phase 1: Tailwind is wired up but intentionally bare.
- * The design tokens (CSS variables), typography scale, and light/dark theme
- * rules are implemented in Phase 2 — nothing here hardcodes colors yet.
- */
+/* ---------------------------------------------------------------------------
+   Design tokens — single source of truth (Golden rule 3).
+   Light is the default (:root). Dark is SCOPED to .theme-dark / [data-theme]
+   — simulator pages + embedded 3D canvases only — never a global toggle
+   (Golden rule 2).
+   These semantic CSS variables hold the values; visualization code reads the
+   --viz-* roles via getComputedStyle. Tailwind utilities alias them below.
+--------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  --background: #ffffff;
+  --surface: #f7f8fa;
+  --surface-2: #eef1f5;
+  --border: #e3e6eb;
+
+  --foreground: #1a1f2b;
+  --muted: #5b6472;
+  --faint: #9aa1ac;
+
+  --accent: #2563eb;
+  --accent-weak: #eaf1fe;
+
+  --success: #16a34a; /* also "start" */
+  --danger: #e2675f; /* also "goal" */
+  --warning: #d97706;
+
+  /* Visualization color roles. Light derives from the academic palette. */
+  --viz-start: var(--success);
+  --viz-goal: var(--danger);
+  --viz-path: var(--accent);
+  --viz-explored: var(--surface-2);
+  --viz-frontier: var(--accent-weak);
+  --viz-obstacle: var(--foreground);
+  --viz-grid: var(--border);
+
+  --card-radius: 12px;
+}
+
+.theme-dark,
+[data-theme="dark"] {
+  color-scheme: dark;
+
+  --background: #0b0f17;
+  --surface: #0f1620;
+  --surface-2: #16202c;
+  --border: #1e2a38;
+
+  --foreground: #e6edf3;
+  --muted: #8aa0b2;
+  --faint: #56657a;
+
+  --accent: #38bdf8;
+  --accent-weak: #0e2a30;
+
+  --success: #34d399; /* start */
+  --danger: #f472b6; /* goal */
+  --warning: #d97706;
+
+  --viz-start: #34d399;
+  --viz-goal: #f472b6;
+  --viz-path: #38bdf8;
+  --viz-explored: #1e3a4a;
+  --viz-frontier: var(--accent-weak);
+  --viz-obstacle: var(--surface-2);
+  --viz-grid: var(--border);
+}
+
+/* Map tokens into Tailwind's theme so utilities (bg-surface, text-muted,
+   border-border, text-accent, rounded-card, font-serif…) resolve to the live
+   CSS variables and follow the scoped theme. */
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+
+  --color-foreground: var(--foreground);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+
+  --color-accent: var(--accent);
+  --color-accent-weak: var(--accent-weak);
+
+  --color-success: var(--success);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-source-serif), Georgia, "Times New Roman", serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, "SFMono-Regular", monospace;
+
+  --radius-card: var(--card-radius);
+}
+
+@layer base {
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans);
+    line-height: 1.7;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-serif);
+    font-weight: 600;
+    line-height: 1.25;
+    letter-spacing: -0.01em;
+  }
+
+  code,
+  pre,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+  }
+
+  /* Visible focus for keyboard users (Golden rule 5). */
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  ::selection {
+    background-color: var(--accent-weak);
+    color: var(--foreground);
+  }
+}
+
+/* Lesson body typography scale (h2 24 / h3 19, generous rhythm). h1 lives in
+   the LessonLayout header. */
+@layer components {
+  .lesson-prose :where(h2) {
+    font-size: 1.5rem;
+    margin-top: 2.5rem;
+    margin-bottom: 0.75rem;
+  }
+
+  .lesson-prose :where(h3) {
+    font-size: 1.1875rem;
+    margin-top: 1.75rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .lesson-prose :where(p, ul, ol) {
+    margin-block: 1rem;
+  }
+
+  .lesson-prose :where(ul, ol) {
+    padding-left: 1.5rem;
+  }
+
+  .lesson-prose :where(ul) {
+    list-style: disc;
+  }
+
+  .lesson-prose :where(ol) {
+    list-style: decimal;
+  }
+
+  .lesson-prose :where(a) {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .lesson-prose :where(code) {
+    background-color: var(--surface-2);
+    padding: 0.1em 0.35em;
+    border-radius: 4px;
+    font-size: 0.9em;
+  }
+
+  .lesson-prose :where(blockquote) {
+    border-left: 3px solid var(--border);
+    padding-left: 1rem;
+    color: var(--muted);
+  }
+}
+
+/* Honor reduced-motion globally (Golden rule 5). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
