@@ -1,0 +1,25 @@
+import Link from "next/link";
+import { CompassLogo } from "./CompassLogo";
+
+/**
+ * Slim top bar: compass logo + wordmark linking home. Light theme, sticky.
+ * Keyboard reachable with a visible focus ring (handled globally in
+ * globals.css).
+ */
+export function Header() {
+  return (
+    <header className="sticky top-0 z-30 h-14 border-b border-border bg-background/90 backdrop-blur">
+      <div className="mx-auto flex h-full max-w-7xl items-center gap-2 px-4 sm:px-6">
+        <Link
+          href="/"
+          className="flex items-center gap-2 rounded-md py-1 font-serif text-lg font-semibold tracking-tight"
+        >
+          <span className="text-accent">
+            <CompassLogo className="h-6 w-6" />
+          </span>
+          <span>Robotics Compass</span>
+        </Link>
+      </div>
+    </header>
+  );
+}
