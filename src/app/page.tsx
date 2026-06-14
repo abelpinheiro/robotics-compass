@@ -34,7 +34,7 @@ export default function Home() {
         caption="A placeholder frame; real 2D and 3D visualizations are wired in soon."
         textAlternative="A placeholder panel demonstrating the visualization frame: a bordered card with a titled header, a content area, an optional controls row, and this collapsible text description."
       >
-        <div className="grid aspect-video place-items-center rounded-lg bg-surface-2 text-sm text-faint">
+        <div className="grid aspect-video place-items-center rounded-lg bg-surface-2 text-sm text-muted">
           Visualization goes here
         </div>
       </VizFrame>

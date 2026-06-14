@@ -4,21 +4,18 @@ type CalloutVariant = "info" | "warning" | "success";
 
 const VARIANTS: Record<
   CalloutVariant,
-  { container: string; label: string; defaultTitle: string }
+  { container: string; defaultTitle: string }
 > = {
-  info: {
-    container: "border-accent/40 bg-accent-weak",
-    label: "text-accent",
-    defaultTitle: "Note",
-  },
+  // The variant is conveyed by the colored border + the title word, so the
+  // title text stays at foreground color to guarantee AA contrast (the accent/
+  // warning/success tokens are too light for small text on their tints).
+  info: { container: "border-accent/60 bg-accent-weak", defaultTitle: "Note" },
   warning: {
-    container: "border-warning/40 bg-warning/10",
-    label: "text-warning",
+    container: "border-warning/60 bg-warning/10",
     defaultTitle: "Warning",
   },
   success: {
-    container: "border-success/40 bg-success/10",
-    label: "text-success",
+    container: "border-success/60 bg-success/10",
     defaultTitle: "Tip",
   },
 };
@@ -42,9 +39,7 @@ export function Callout({
       role="note"
       className={`my-6 rounded-card border-l-4 px-4 py-3 ${styles.container}`}
     >
-      <p
-        className={`mb-1 font-serif text-sm font-semibold tracking-wide ${styles.label}`}
-      >
+      <p className="mb-1 font-serif text-sm font-semibold tracking-wide text-foreground">
         {title ?? styles.defaultTitle}
       </p>
       <div className="text-sm text-foreground/90">{children}</div>

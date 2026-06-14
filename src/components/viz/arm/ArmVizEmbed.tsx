@@ -7,7 +7,7 @@ import dynamic from "next/dynamic";
 const ArmViz = dynamic(() => import("./ArmViz"), {
   ssr: false,
   loading: () => (
-    <div className="my-8 grid h-72 place-items-center rounded-card border border-border bg-surface text-sm text-faint">
+    <div className="my-8 grid h-72 place-items-center rounded-card border border-border bg-surface text-sm text-muted">
       Loading visualization…
     </div>
   ),

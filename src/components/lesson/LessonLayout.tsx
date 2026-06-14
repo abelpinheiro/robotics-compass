@@ -53,7 +53,7 @@ export function LessonLayout({
             </span>
           )}
           {prerequisites && prerequisites.length > 0 && (
-            <span className="text-faint">
+            <span className="text-muted">
               Prerequisites: {prerequisites.join(", ")}
             </span>
           )}
@@ -72,7 +72,7 @@ function StatusBadge({ status }: { status: LessonFrontmatter["status"] }) {
       ? "bg-success/15 text-success"
       : status === "in-progress"
         ? "bg-warning/15 text-warning"
-        : "bg-surface-2 text-faint";
+        : "bg-surface-2 text-muted";
   return (
     <span
       className={`rounded-full px-2.5 py-1 font-medium tracking-wide uppercase ${tone}`}

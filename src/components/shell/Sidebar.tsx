@@ -38,13 +38,19 @@ export function Sidebar() {
           <ul className="space-y-6">
             {curriculum.map((area) => (
               <li key={area.slug}>
-                <h2 className="mb-2 font-serif text-[0.8125rem] font-semibold tracking-wide text-faint uppercase">
+                <p
+                  id={`area-${area.slug}`}
+                  className="mb-2 font-serif text-[0.8125rem] font-semibold tracking-wide text-muted uppercase"
+                >
                   {area.title}
-                </h2>
+                </p>
                 {area.lessons.length === 0 ? (
-                  <p className="text-xs text-faint italic">Lessons coming soon</p>
+                  <p className="text-xs text-muted italic">Lessons coming soon</p>
                 ) : (
-                  <ul className="space-y-0.5">
+                  <ul
+                    aria-labelledby={`area-${area.slug}`}
+                    className="space-y-0.5"
+                  >
                     {area.lessons.map((lesson) => {
                       const href = `/lessons/${area.slug}/${lesson.slug}`;
                       const current = pathname === href;
@@ -62,7 +68,7 @@ export function Sidebar() {
                           >
                             <span>{lesson.title}</span>
                             {lesson.status === "draft" && (
-                              <span className="rounded-sm bg-surface-2 px-1.5 py-0.5 text-[0.625rem] font-medium tracking-wide text-faint uppercase">
+                              <span className="rounded-sm bg-surface-2 px-1.5 py-0.5 text-[0.625rem] font-medium tracking-wide text-muted uppercase">
                                 draft
                               </span>
                             )}
