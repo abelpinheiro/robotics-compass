@@ -9,17 +9,39 @@ prerequisites: []
 status: draft
 ---
 
+import VectorsFramesVizEmbed from "@/components/viz/frames/VectorsFramesVizEmbed";
+
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+The concept of "space" is relative. If we tell a robot to move 5 meters ahead, the first logical question would be "from where and in which direction?". In robotics, to describe the world we need three basic concepts:
+
+1. Point: the exact location in the three-dimensional space. A point has no size, volume, or direction.
+2. Vector: An entity which has magnitude (size) and direction. It can be used for several things such as velocities and forces... but in kinematics we use it as an arrow which connects the origin of a coordinate system to a given point.
+3. Frame: The point of view. A frame is composed of an origin point three imaginary, mutually perpendiculars axes which that form the coordinate system.
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+1. **Point and the Pose Vector:**
+
+The pose of any given point in robotics is defined as a point in a three-dimensional Euclidean space. Its pose is a column vector $\textbf{p} \in \mathbb{R}^3 $
+
+$$
+    P = [ x, y, z]^T
+$$
+
+2. **Frame:**
+
+A frame $\{B\}$ is composed of an origin and a set of three orthogonal unitary vectors $\hat{X}_A, \hat{Y}_A, \hat{Z}_A$.
+
+The frame $\{B\}$ is described by the rotation matrix $^{A}_{B} R$ and the pose $^{A}P_{BORG}$, where $^{A}P_{BORG}$ is the vector that localizes the origin of the reference system $\{B\}$
+
+$$
+  \{B\} = \{ ^{A}_{B} R, ^{A}P_{BORG} \}
+$$
 
 ## Visualization
 
-{/* TODO(viz): wire the visualization component here via /new-viz. */}
+<VectorsFramesVizEmbed />
 
 ## Worked example
 
@@ -29,10 +51,6 @@ status: draft
 
 {/* TODO(author): list common pitfalls. */}
 
-## Exercises
-
-{/* TODO(author): add exercises. */}
-
 ## Further reading
 
-{/* TODO(author): add references and further reading. */}
+1. Robotics by Craig
