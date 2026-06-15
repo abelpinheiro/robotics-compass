@@ -53,9 +53,28 @@ _Prereqs: dynamics (equations of motion), some linear algebra._
 5. `computed-torque`
 6. `impedance-control`
 
-### 5. path-planning  ← deepest area
+### 5. reinforcement-learning
+_Prereqs: foundations; probability basics. RL theory that feeds the
+DRL-for-planning cluster in path-planning. Research focus: path planning via deep RL._
+1. `mdps`
+2. `value-iteration`
+3. `policy-iteration`
+4. `monte-carlo`
+5. `temporal-difference`
+6. `q-learning`
+7. `function-approximation`
+8. `dqn`
+9. `policy-gradients`
+10. `actor-critic`
+11. `ppo`
+12. `sac`
+13. `exploration-vs-exploitation`
+14. `reward-shaping`
+
+### 6. path-planning  ← deepest area
 _Prereqs: foundations (configuration spaces build on frames); graph topics are
-self-contained but build on each other in order._
+self-contained but build on each other in order. The DRL-for-planning cluster
+(19–23) builds on reinforcement-learning._
 1. `configuration-space`
 2. `obstacles-and-collision`
 3. `graph-search-bfs-dfs`
@@ -74,8 +93,13 @@ self-contained but build on each other in order._
 16. `trajectory-optimization`
 17. `kinodynamic-planning`
 18. `time-elastic-bands`
+19. `rl-for-path-planning`
+20. `learned-heuristics`
+21. `drl-motion-planning`
+22. `neural-motion-planners`
+23. `sim-to-real-for-planning`
 
-### 6. perception
+### 7. perception
 _Prereqs: foundations; basic linear algebra._
 1. `sensors-overview`
 2. `camera-models`
@@ -83,26 +107,26 @@ _Prereqs: foundations; basic linear algebra._
 4. `feature-detection`
 5. `filtering-basics`
 
-### 7. state-estimation
+### 8. state-estimation
 _Prereqs: perception (filtering-basics), probability basics._
 1. `bayes-filter`
 2. `kalman-filter`
 3. `extended-kalman-filter`
 4. `particle-filter`
 
-### 8. slam
+### 9. slam
 _Prereqs: state-estimation, perception._
 1. `localization`
 2. `mapping`
 3. `graph-slam`
 4. `loop-closure`
 
-### 9. manipulation
+### 10. manipulation
 _Prereqs: kinematics, control, path-planning._
 1. `grasping-basics`
 2. `motion-primitives`
 
-### 10. mobile-robots
+### 11. mobile-robots
 _Prereqs: kinematics, state-estimation, path-planning._
 1. `differential-drive`
 2. `odometry`

@@ -31,7 +31,8 @@ export interface Area {
 }
 
 /**
- * Areas in canonical order. Path planning is intentionally the deepest area.
+ * Areas in canonical order. Path planning is intentionally the deepest area;
+ * reinforcement-learning precedes it so RL theory leads into DRL-for-planning.
  */
 export const curriculum: Area[] = [
   {
@@ -85,9 +86,30 @@ export const curriculum: Area[] = [
     ],
   },
   {
+    slug: "reinforcement-learning",
+    title: "Reinforcement learning",
+    order: 5,
+    lessons: [
+      { slug: "mdps", title: "Markov decision processes", order: 1, status: "draft" },
+      { slug: "value-iteration", title: "Value iteration", order: 2, status: "draft" },
+      { slug: "policy-iteration", title: "Policy iteration", order: 3, status: "draft" },
+      { slug: "monte-carlo", title: "Monte Carlo methods", order: 4, status: "draft" },
+      { slug: "temporal-difference", title: "Temporal-difference learning", order: 5, status: "draft" },
+      { slug: "q-learning", title: "Q-learning", order: 6, status: "draft" },
+      { slug: "function-approximation", title: "Function approximation", order: 7, status: "draft" },
+      { slug: "dqn", title: "Deep Q-networks (DQN)", order: 8, status: "draft" },
+      { slug: "policy-gradients", title: "Policy gradients", order: 9, status: "draft" },
+      { slug: "actor-critic", title: "Actor-critic methods", order: 10, status: "draft" },
+      { slug: "ppo", title: "Proximal policy optimization (PPO)", order: 11, status: "draft" },
+      { slug: "sac", title: "Soft actor-critic (SAC)", order: 12, status: "draft" },
+      { slug: "exploration-vs-exploitation", title: "Exploration vs exploitation", order: 13, status: "draft" },
+      { slug: "reward-shaping", title: "Reward shaping", order: 14, status: "draft" },
+    ],
+  },
+  {
     slug: "path-planning",
     title: "Path planning",
-    order: 5,
+    order: 6,
     lessons: [
       { slug: "configuration-space", title: "Configuration space", order: 1, status: "draft" },
       { slug: "obstacles-and-collision", title: "Obstacles and collision checking", order: 2, status: "draft" },
@@ -107,12 +129,17 @@ export const curriculum: Area[] = [
       { slug: "trajectory-optimization", title: "Trajectory optimization", order: 16, status: "draft" },
       { slug: "kinodynamic-planning", title: "Kinodynamic planning", order: 17, status: "draft" },
       { slug: "time-elastic-bands", title: "Time-elastic bands", order: 18, status: "draft" },
+      { slug: "rl-for-path-planning", title: "RL for path planning", order: 19, status: "draft" },
+      { slug: "learned-heuristics", title: "Learned heuristics", order: 20, status: "draft" },
+      { slug: "drl-motion-planning", title: "DRL motion planning", order: 21, status: "draft" },
+      { slug: "neural-motion-planners", title: "Neural motion planners", order: 22, status: "draft" },
+      { slug: "sim-to-real-for-planning", title: "Sim-to-real for planning", order: 23, status: "draft" },
     ],
   },
   {
     slug: "perception",
     title: "Perception",
-    order: 6,
+    order: 7,
     lessons: [
       { slug: "sensors-overview", title: "Sensors overview", order: 1, status: "draft" },
       { slug: "camera-models", title: "Camera models", order: 2, status: "draft" },
@@ -124,7 +151,7 @@ export const curriculum: Area[] = [
   {
     slug: "state-estimation",
     title: "State estimation",
-    order: 7,
+    order: 8,
     lessons: [
       { slug: "bayes-filter", title: "Bayes filter", order: 1, status: "draft" },
       { slug: "kalman-filter", title: "Kalman filter", order: 2, status: "draft" },
@@ -135,7 +162,7 @@ export const curriculum: Area[] = [
   {
     slug: "slam",
     title: "SLAM",
-    order: 8,
+    order: 9,
     lessons: [
       { slug: "localization", title: "Localization", order: 1, status: "draft" },
       { slug: "mapping", title: "Mapping", order: 2, status: "draft" },
@@ -146,7 +173,7 @@ export const curriculum: Area[] = [
   {
     slug: "manipulation",
     title: "Manipulation",
-    order: 9,
+    order: 10,
     lessons: [
       { slug: "grasping-basics", title: "Grasping basics", order: 1, status: "draft" },
       { slug: "motion-primitives", title: "Motion primitives", order: 2, status: "draft" },
@@ -155,7 +182,7 @@ export const curriculum: Area[] = [
   {
     slug: "mobile-robots",
     title: "Mobile robots",
-    order: 10,
+    order: 11,
     lessons: [
       { slug: "differential-drive", title: "Differential drive", order: 1, status: "draft" },
       { slug: "odometry", title: "Odometry", order: 2, status: "draft" },
