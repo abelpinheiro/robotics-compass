@@ -83,7 +83,8 @@ Prerequisites would chain: `foundations` → `reinforcement-learning` (MDPs → 
 `/expand-area reinforcement-learning` once approved.
 
 **Status: approved and scaffolded** as empty draft lessons — `reinforcement-learning` at area
-order 5 (before path-planning) and the path-planning DRL cluster at 19–23. Next steps: author
-prose, then add visualizations (e.g. a gridworld value-iteration / Q-learning viz that pairs
-naturally with the A* grid). Remaining open item: decide whether to also deepen with `imitation-
-learning` / `offline-rl` later.
+order 5 (before path-planning) and the path-planning DRL cluster at 19–23. A gridworld
+**value-iteration / Q-learning** visualization is wired into the `value-iteration` and
+`q-learning` lessons (shared MDP, algorithm toggle, value heatmap + greedy-policy arrows,
+γ/noise/ε/α sliders, Q-learning episode trajectory). Next steps: author prose; possible later
+deepening with `imitation-learning` / `offline-rl`.
