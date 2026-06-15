@@ -10,6 +10,9 @@ the curriculum taxonomy, design tokens, or dependencies need explicit sign-off (
 - [x] **Code highlighting** — `@shikijs/rehype` (Shiki) for fenced code blocks.
 - [x] **SEO** — `app/sitemap.ts` (`/sitemap.xml`) + `app/robots.ts` (`/robots.txt`), driven by
   the curriculum. Set `NEXT_PUBLIC_SITE_URL` in production.
+- [x] **Reinforcement learning scaffolded** — new `reinforcement-learning` area (14 RL
+  fundamentals, order 5, before path-planning) + a DRL-for-planning cluster (path-planning
+  19–23). All empty drafts, awaiting prose and visualizations.
 
 ## v2 backlog
 
@@ -79,5 +82,8 @@ Prerequisites would chain: `foundations` → `reinforcement-learning` (MDPs → 
 `path-planning/rl-for-path-planning`. Each topic ships as an empty draft lesson via
 `/expand-area reinforcement-learning` once approved.
 
-**Open question for sign-off:** approve the `reinforcement-learning` area + topic list above (and
-the path-planning DRL additions), or adjust the taxonomy first?
+**Status: approved and scaffolded** as empty draft lessons — `reinforcement-learning` at area
+order 5 (before path-planning) and the path-planning DRL cluster at 19–23. Next steps: author
+prose, then add visualizations (e.g. a gridworld value-iteration / Q-learning viz that pairs
+naturally with the A* grid). Remaining open item: decide whether to also deepen with `imitation-
+learning` / `offline-rl` later.
