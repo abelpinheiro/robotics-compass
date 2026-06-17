@@ -27,9 +27,10 @@ the curriculum taxonomy, design tokens, or dependencies need explicit sign-off (
   this). Good home for a free-roam planner / robot sandbox, separate from the light lessons.
 
 ### More visualizations (start with foundations, then kinematics)
-- [ ] **Foundations:** interactive `vectors-and-frames`, `rotations-2d`, `rotations-3d` (SO(3)),
-  `homogeneous-transforms` (SE(3)), `quaternions` — build on the `Viz2D`/`Viz3D` patterns.
+- [~] **Foundations:** done — `vectors-and-frames`, `rotations-2d`, `rotations-3d` (SO(3));
+  remaining — `homogeneous-transforms` (SE(3)), `quaternions`.
 - [ ] **Kinematics:** `dh-parameters`, `inverse-kinematics`, `jacobians` — extend `ArmScene`.
+- Reusable `MatrixDisplay` component added for viz matrix readouts.
 
 ### Content metadata + study roadmap  ← (added per request)
 - [x] Fill `difficulty` and `prerequisites` for **all** lessons — now on the `LessonRef` in
