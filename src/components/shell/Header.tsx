@@ -10,7 +10,7 @@ import { SidebarToggle } from "./SidebarToggle";
 export function Header() {
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-border bg-background/90 backdrop-blur">
-      <div className="mx-auto flex h-full max-w-7xl items-center gap-2 px-4 sm:px-6">
+      <div className="flex h-full items-center gap-2 px-4 sm:px-6">
         <SidebarToggle />
         <Link
           href="/"

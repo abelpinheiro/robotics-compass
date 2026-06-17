@@ -21,13 +21,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <Header />
 
-        <div className="mx-auto flex w-full max-w-7xl px-0 sm:px-6">
+        <div className="flex w-full">
           <Sidebar />
           <main
             id="main-content"
             className="min-w-0 flex-1 px-4 pt-8 pb-16 sm:px-8 sm:pt-10"
           >
-            <div className="mx-auto max-w-[68ch]">{children}</div>
+            <div className="mx-auto max-w-[72ch]">{children}</div>
           </main>
         </div>
       </div>
