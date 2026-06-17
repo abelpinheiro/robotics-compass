@@ -24,8 +24,6 @@ area: <area-slug>                               # from robotics-curriculum
 slug: <topic-slug>                              # from robotics-curriculum
 order: <1-based index within the area>          # from robotics-curriculum
 summary: ""                                     # LEAVE EMPTY — author writes this
-difficulty: ""                                  # LEAVE EMPTY — author sets (e.g. intro/core/advanced)
-prerequisites: []                               # LEAVE EMPTY — author lists prereq slugs
 status: draft                                   # always draft on scaffold
 ---
 ```
@@ -33,9 +31,13 @@ status: draft                                   # always draft on scaffold
 Rules:
 - `title`, `area`, `slug`, `order`, `status` are filled from the curriculum (structural, not
   prose).
-- `summary`, `difficulty`, `prerequisites` are **left empty** for the human — these describe
-  the concept and are the author's call.
+- `summary` is **left empty** for the human — it describes the concept and is the author's call.
 - `status` is always `draft` when scaffolding.
+- **`difficulty` and `prerequisites` live in `src/lib/curriculum.ts`** (on the `LessonRef`),
+  not in front-matter — they form the prerequisite graph that powers prereq links, prev/next
+  navigation, and the home-page study roadmap. Set them when registering the lesson in the
+  curriculum (structural metadata, not prose). Existing lessons may still carry empty
+  `difficulty`/`prerequisites` front-matter keys; those are ignored.
 
 ## Section placeholders (fixed order, empty)
 
@@ -82,8 +84,6 @@ area: path-planning
 slug: a-star
 order: 5
 summary: ""
-difficulty: ""
-prerequisites: []
 status: draft
 ---
 

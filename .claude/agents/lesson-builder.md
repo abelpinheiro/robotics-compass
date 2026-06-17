@@ -20,13 +20,15 @@ Process for each lesson:
 2. Create `content/<area>/<slug>.mdx` using the **lesson-template** skill exactly:
    - Front-matter: set `title` (humanized, sentence case), `area`, `slug`, `order` (1-based
      index within the area), `status: draft`.
-   - Leave `summary: ""`, `difficulty: ""`, `prerequisites: []` **empty** for the human.
+   - Leave `summary: ""` **empty** for the human.
    - Body: the seven fixed sections (Intuition · Formal definition · Visualization · Worked
      example · Common pitfalls · Exercises · Further reading), each with only its empty
      author/viz placeholder comment.
 3. Ensure the lesson is reachable: the dynamic route `src/app/lessons/[area]/[slug]/` renders
    `content/`, and the lesson is registered in `src/lib/curriculum.ts` so the **Sidebar** shows
-   it in the correct area and order.
+   it in the correct area and order. Set the lesson's **`difficulty`** (`intro`/`core`/
+   `advanced`) and **`prerequisites`** (prereq lesson slugs) on its `LessonRef` in
+   `curriculum.ts` — these are structural metadata (the prerequisite graph), not prose.
 4. Set **SEO metadata** for the route (title/description derived from front-matter title; keep
    the description empty/generic if `summary` is empty — do not invent a description of the
    concept).
