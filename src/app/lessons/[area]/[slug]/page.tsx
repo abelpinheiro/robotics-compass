@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
 import { LessonLayout } from "@/components/lesson/LessonLayout";
-import { getArea, getAllLessons } from "@/lib/curriculum";
+import {
+  getArea,
+  getAllLessons,
+  getLesson,
+  getPrerequisites,
+  getAdjacentLessons,
+} from "@/lib/curriculum";
 import { loadLesson } from "@/lib/content";
 
 // Only pre-generated lessons exist; unknown area/slug → 404 automatically.
@@ -36,9 +42,16 @@ export default async function LessonPage({
   const { area, slug } = await params;
   const { default: Content, frontmatter } = await loadLesson(area, slug);
   const areaTitle = getArea(area)?.title;
+  const lessonRef = getLesson(area, slug);
 
   return (
-    <LessonLayout frontmatter={frontmatter} areaTitle={areaTitle}>
+    <LessonLayout
+      frontmatter={frontmatter}
+      areaTitle={areaTitle}
+      difficulty={lessonRef?.difficulty}
+      prerequisites={getPrerequisites(slug)}
+      adjacent={getAdjacentLessons(area, slug)}
+    >
       <Content />
     </LessonLayout>
   );
