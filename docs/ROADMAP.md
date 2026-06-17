@@ -32,16 +32,16 @@ the curriculum taxonomy, design tokens, or dependencies need explicit sign-off (
 - [ ] **Kinematics:** `dh-parameters`, `inverse-kinematics`, `jacobians` — extend `ArmScene`.
 
 ### Content metadata + study roadmap  ← (added per request)
-- [ ] Fill `difficulty` and `prerequisites` front-matter for **all** lessons (structural
-  metadata, not prose — can be done with the curriculum-architect).
-- [ ] Once prerequisites exist, build them into a **`prerequisites` graph** in `curriculum.ts`
-  and render a **study-order "roadmap" on the home page** (a recommended path / topological
-  order of topics, with the prerequisite edges visualized). Also surface clickable
-  prerequisite links on each lesson.
+- [x] Fill `difficulty` and `prerequisites` for **all** lessons — now on the `LessonRef` in
+  `curriculum.ts` (the single source of truth / prerequisite graph). _(Proposed values; review
+  and adjust as desired.)_
+- [x] Build the prerequisite graph into `curriculum.ts` and render a **study-order roadmap on
+  the home page** (`StudyRoadmap`, grouped into steps by longest prerequisite chain). Literal
+  edge-drawing between nodes is a possible later refinement.
 
 ### Platform polish
-- [ ] Lesson **prev / next** navigation.
-- [ ] Clickable **prerequisite links** on lessons (pairs with the metadata item above).
+- [x] Lesson **prev / next** navigation.
+- [x] Clickable **prerequisite links** on lessons.
 - [ ] **Search / command palette** over the curriculum.
 - [ ] Optional **reading-progress** indicator.
 - [ ] Keyboard-accessible wall editing in the A* viz (currently mouse-only).
@@ -49,12 +49,11 @@ the curriculum taxonomy, design tokens, or dependencies need explicit sign-off (
 - [ ] **Visual-regression tests** off the existing Playwright setup; **unit tests** for the
   search algorithms.
 
-### Sidebar / navigation UX (to research)
-- [ ] **Collapsible area sections** — toggle e.g. "Foundations" to hide/show its lessons.
-  Evaluate whether this helps or hurts discoverability before committing.
-- [ ] **Large-screen alignment** — on very wide screens the sidebar is not flush-left (the
-  shell is centered at `max-w-7xl`). Decide between a full-width shell with a left-pinned
-  sidebar vs. the current centered measure.
+### Sidebar / navigation UX
+- [x] **Collapsible area sections** — each area toggles open/closed (collapsed set persisted to
+  localStorage; the current lesson's area is always shown).
+- [x] **Large-screen alignment** — sidebar is now pinned flush-left (full-width shell; the
+  reading column is centered within the main area).
 
 ### Reinforcement learning (research line: path planning via deep RL)
 See the proposal below. **Scaffolding the topics needs taxonomy sign-off (Golden rule 4).**
