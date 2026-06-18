@@ -6,10 +6,11 @@ order: 1
 summary: ""
 difficulty: ""
 prerequisites: []
-status: draft
+status: published
 ---
 
 import VectorsFramesVizEmbed from "@/components/viz/frames/VectorsFramesVizEmbed";
+import VectorAdditionVizEmbed from "@/components/viz/frames/VectorAdditionVizEmbed";
 
 ## Intuition
 
@@ -17,23 +18,23 @@ The concept of "space" is relative. If we tell a robot to move 5 meters ahead, t
 
 1. Point: the exact location in the three-dimensional space. A point has no size, volume, or direction.
 2. Vector: An entity which has magnitude (size) and direction. It can be used for several things such as velocities and forces... but in kinematics we use it as an arrow which connects the origin of a coordinate system to a given point.
-3. Frame: The point of view. A frame is composed of an origin point three imaginary, mutually perpendiculars axes which that form the coordinate system.
+3. Frame: The point of view. A frame is composed of an origin point and three imaginary, mutually perpendicular axes that form the coordinate system.
 
 ## Formal definition
 
-1. **Point and the Pose Vector:**
+1. **Point and the Position Vector:**
 
-The pose of any given point in robotics is defined as a point in a three-dimensional Euclidean space. Its pose is a column vector $\textbf{p} \in \mathbb{R}^3 $
+The position of any given point in robotics is defined as a point in a three-dimensional Euclidean space. Its position is a column vector $\textbf{p} \in \mathbb{R}^3 $
 
 $$
-    P = [ x, y, z]^T
+    \mathbf{p} = [ x, y, z]^T
 $$
 
 2. **Frame:**
 
-A frame $\{B\}$ is composed of an origin and a set of three orthogonal unitary vectors $\hat{X}_A, \hat{Y}_A, \hat{Z}_A$.
+A frame $\{B\}$ is composed of an origin and a set of three orthogonal unitary vectors $\hat{X}_B, \hat{Y}_B, \hat{Z}_B$.
 
-The frame $\{B\}$ is described by the rotation matrix $^{A}_{B} R$ and the pose $^{A}P_{BORG}$, where $^{A}P_{BORG}$ is the vector that localizes the origin of the reference system $\{B\}$
+The frame $\{B\}$ is described by the rotation matrix $^{A}_{B} R$ and the pose $^{A}P_{BORG}$, where $^{A}P_{BORG}$ is the vector that locates the origin of the frame $\{B\}$
 
 $$
   \{B\} = \{ ^{A}_{B} R, ^{A}P_{BORG} \}
@@ -45,11 +46,43 @@ $$
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+Let's apply these definitions to the most fundamental operation in spatial geometry: **mapping**. Mapping means taking the description of a point in one frame and translating it to another frame.
+
+**The Scenario:**
+Imagine a factory floor with a fixed global frame $\{A\}$. There is a conveyor belt with a local frame $\{B\}$ attached to it. For this example, assume **Frame $\{A\}$ and Frame $\{B\}$ have the exact same orientation** (their axes are perfectly parallel). 
+
+The origin of $\{B\}$ is located 2 meters along the X-axis of $\{A\}$. In our notation, this translation vector is:
+$$
+  ^AP_{BORG} = [2, 0, 0]^T
+$$
+
+Now, a sensor detects a part (Point $P$) on the conveyor belt. The part is located 1 meter along the Y-axis and 3 meters along the Z-axis of the conveyor's local frame $\{B\}$:
+$$
+  ^BP = [0, 1, 3]^T
+$$
+
+**The Problem:**
+We want to express the exact same point $P$ relative to the global frame $\{A\}$ to tell our robot where to reach.
+
+**The Solution:**
+Because the axes are perfectly aligned (equivalent orientations), we can compute the new description of point $P$ relative to $\{A\}$ using pure vector addition:
+
+$$
+  ^AP = ^BP + ^AP_{BORG}
+$$
+
+$$
+  ^AP = \begin{bmatrix} 0 \\ 1 \\ 3 \end{bmatrix} + \begin{bmatrix} 2 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 2 \\ 1 \\ 3 \end{bmatrix}
+$$
+
+**Conclusion:** The physical part didn't move, but its position relative to $\{A\}$ is $[2, 1, 3]^T$. Keep in mind that direct vector addition like this is **only possible because the frames have equivalent orientations**. If $\{B\}$ was rotated, we would need rotation matrices (which we will cover in the next lesson).
+
+<VectorAdditionVizEmbed />
 
 ## Common pitfalls
 
-{/* TODO(author): list common pitfalls. */}
+1. **Missing the reference frame:** Do not define a vector like $P = [1, 2, 3]^T$ without declaring from which frame it is being measured. In robotics, a vector is meaningless without its leading superscript (e.g., $^AP$). Every vector needs a "point of view".
+2. **Adding vectors with different orientations:** As shown in the worked example, you can only directly add position vectors if their reference frames are perfectly aligned. If frame $\{B\}$ is rotated relative to frame $\{A\}$, calculating $^AP = ^BP + ^AP_{BORG}$ will result in a completely wrong and disastrous position for your robot. 
 
 ## Further reading
 
