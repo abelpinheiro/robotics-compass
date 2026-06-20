@@ -10,31 +10,97 @@ status: draft
 ---
 
 import Rotation2DVizEmbed from "@/components/viz/rotations2d/Rotation2DVizEmbed";
+import Rotation2DWorkedVizEmbed from "@/components/viz/rotations2d/Rotation2DWorkedVizEmbed";
 
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+In the previous chapter, we learned how to map points between frames that had the exact same orientation. But what happens if a robot turns?
+
+Imagine looking down at a mobile robot driving on a flat floor. We can attach a fixed global frame $\{A\}$ to the corner of the room, and a local frame $\{B\}$ to the center of the robot. As the robot spins, its local 'forward' direction (its $\hat{X}_{B}$ axis) is no longer aligned with the room's "forward" direction is no longer aligned with the room's "forward" direction ($\hat{X}_{A}$).
+
+To translate information from the robot's point of view to the room's point of view, we need to know exactly how much the robot has rotated. We do this by looking at the robot's local axes and comparing to the room's axes.
+
+This act of projecting "shadows" of one frame's axes onto another frame's axes is the foundation of spatial rotations, and it relies entirely on basic trigonometry: sines and cosines.
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+To understand pure rotation, let's temporarily assume that frame $\{A\}$ and frame $\{B\}$ share the exact same origin ($^AP_{BORG} = [0, 0]^T$). The only difference is that frame $\{B\}$ is rotated counter-clockwise by an angle $\theta$ relative to frame $\{A\}$.
+
+We are in a 2D plane, so we only care about the X and Y axes. We need to describe the unit vectors of $\{B\}$ ($\hat{X}_B$ and $\hat{Y}_B$) in terms of the axes of $\{A\}$.
+
+![A frame {B} rotated by $\theta$, axes projected onto {A}. projection of each axis.](/images/foundations/projection_axes.png)
+
+**1. Projecting the X-axis:**
+If we project the $\hat{X}_B$ vector onto frame $\{A\}$ using trigonometry, its horizontal component is $\cos(\theta)$ and its vertical component is $\sin(\theta)$.
+
+$$
+    ^A\hat{X}_B = \begin{bmatrix} \cos\theta \\ \sin\theta \end{bmatrix}
+$$
+
+**2. Projecting the Y-axis:**
+The $\hat{Y}_B$ vector is $90^\circ$ ahead of $\hat{X}_B$. Projecting it onto frame $\{A\}$ yields a negative horizontal component (it points backwards relative to $X_A$) and a positive vertical component.
+
+$$
+    ^A\hat{Y}_B = \begin{bmatrix} -\sin\theta \\ \cos\theta \end{bmatrix}
+$$
+
+**3. The 2D Rotation Matrix:**
+A rotation matrix is simply a package that holds these projected unit vectors side by side. By placing $^A\hat{X}_B$ as the first column and $^A\hat{Y}_B$ as the second column, we form the 2D Rotation Matrix $^{A}_{B}R$:
+
+$$
+    ^{A}_{B}R = [ ^A\hat{X}_B \quad ^A\hat{Y}_B ] = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}
+$$
+
+**4. Mapping Rotated Vectors:** Finally, if we have a point $P$ described in the robot's local frame as $^BP$, we can map it to the global frame $\{A\}$ by multiplying it by our rotation matrix. This is the rotational equivalent of the vector addition we saw in the previous chapter:
+
+$$
+    ^AP = ^{A}_{B}R \, ^BP
+$$
 
 ## Visualization
 
 <Rotation2DVizEmbed />
 
 ## Worked example
+Let's keep our previous scenario of the mobile robot and the room. The global frame $\{A\}$ is the room, and the local frame $\{B\}$ is fixed to the robot. They share the same origin.
 
-{/* TODO(author): write a worked example. */}
+Our robot has turned $90^\circ$ to its left. Using the right-hand rule, $\theta = 90^\circ$.
+
+The robot's onboard distance sensor detects a wall exactly 2 meters straight ahead. In the robot's local frame (where $\hat{X}_B$ is "forward"), the position of this wall point $P$ is:
+
+$$
+    ^BP = \begin{bmatrix} 2 \\ 0 \end{bmatrix}
+$$
+
+Let's find the coordinates of this wall point in the room's global frame ($^AP$).
+
+
+First, we build our 2D rotation matrix for $\theta = 90^\circ$. Knowing that $\cos(90^\circ) = 0$ and $\sin(90^\circ) = 1$:
+
+$$
+    ^{A}_{B}R = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix}
+$$
+
+Now, we use our mapping equation to multiply the rotation matrix by the local vector:
+
+$$
+    ^AP = ^{A}_{B}R \, ^BP = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix} \begin{bmatrix} 2 \\ 0 \end{bmatrix}
+$$
+
+$$
+    ^AP = \begin{bmatrix} (0 \cdot 2) + (-1 \cdot 0) \\ (1 \cdot 2) + (0 \cdot 0) \end{bmatrix} = \begin{bmatrix} 0 \\ 2 \end{bmatrix}
+$$
+
+
+<Rotation2DWorkedVizEmbed />
 
 ## Common pitfalls
+1. Clockwise vs. Counter-Clockwise: Remember that the standard convention is the Right-Hand Rule. This means counter-clockwise rotations are positive, and clockwise rotations are negative. If your robot turns $90^\circ$ to the right, your angle is $\theta = -90^\circ$. Forgetting this sign will flip your robot's understanding of the world.
 
-{/* TODO(author): list common pitfalls. */}
+2. Degrees vs. Radians in Code: When taking this math into a programming language, functions like math.cos() and math.sin() probably expect the angle in radians, not degrees. Writing cos(90) in your code will calculate the cosine of 90 radians, resulting in a horrible bug. Always convert: radians = degrees * (PI / 180).
 
-## Exercises
-
-{/* TODO(author): add exercises. */}
+3. Matrix Multiplication Order: Matrix multiplication is not commutative ($A \cdot B \neq B \cdot A$). You must multiply the rotation matrix by the vector ($R \cdot P$), not the other way around. In linear algebra, a $2 \times 2$ matrix cannot be multiplied on the left of a $2 \times 1$ column vector.
 
 ## Further reading
 
-{/* TODO(author): add references and further reading. */}
+section 2.2, 2.3 of Robotics, by Craig
