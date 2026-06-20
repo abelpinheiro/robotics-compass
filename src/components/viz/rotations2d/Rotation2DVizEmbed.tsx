@@ -11,6 +11,11 @@ const Rotation2DViz = dynamic(() => import("./Rotation2DViz"), {
   ),
 });
 
-export default function Rotation2DVizEmbed() {
-  return <Rotation2DViz />;
+export default function Rotation2DVizEmbed(props: {
+  pBody?: { x: number; y: number };
+  initialDeg?: number;
+  title?: string;
+  caption?: string;
+}) {
+  return <Rotation2DViz {...props} />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Viz2D } from "@/components/viz/Viz2D";
 import { VizFrame } from "@/components/viz/VizFrame";
 import { MatrixDisplay } from "@/components/viz/MatrixDisplay";
@@ -9,18 +9,25 @@ import { MatrixDisplay } from "@/components/viz/MatrixDisplay";
 const P_BODY = { x: 1.6, y: 0.6 };
 const fmt = (n: number) => (Math.abs(n) < 1e-9 ? 0 : n).toFixed(2);
 
+interface Point {
+  x: number;
+  y: number;
+}
+
 function RotationCanvas({
   width,
   height,
   theta,
+  pBody,
 }: {
   width: number;
   height: number;
   theta: number; // radians
+  pBody: Point;
 }) {
   const ref = useRef<HTMLCanvasElement>(null);
 
-  useEffect(() => {
+  const draw = useCallback(() => {
     const canvas = ref.current;
     if (!canvas || width <= 0) return;
     const ctx = canvas.getContext("2d");
@@ -32,15 +39,17 @@ function RotationCanvas({
     ctx.clearRect(0, 0, width, height);
 
     const s = getComputedStyle(canvas);
-    const tok = (n: string) => s.getPropertyValue(n).trim();
+    // Fall back to the light-theme token values if the stylesheet has not
+    // applied yet on the very first paint (avoids a blank canvas on cold loads).
+    const tok = (n: string, fb: string) => s.getPropertyValue(n).trim() || fb;
     const colors = {
-      grid: tok("--viz-grid"),
-      faint: tok("--faint"),
-      muted: tok("--muted"),
-      x: tok("--success"),
-      y: tok("--danger"),
-      p: tok("--accent"),
-      fg: tok("--foreground"),
+      grid: tok("--viz-grid", "#e3e6eb"),
+      faint: tok("--faint", "#9aa1ac"),
+      muted: tok("--muted", "#5b6472"),
+      x: tok("--success", "#16a34a"),
+      y: tok("--danger", "#e2675f"),
+      p: tok("--accent", "#2563eb"),
+      fg: tok("--foreground", "#1a1f2b"),
     };
 
     const cx = width / 2;
@@ -122,7 +131,7 @@ function RotationCanvas({
     arrow(-sn * 1.4, c * 1.4, colors.y, "ŷ_B");
 
     // circle traced by P
-    const r = Math.hypot(P_BODY.x, P_BODY.y);
+    const r = Math.hypot(pBody.x, pBody.y);
     ctx.strokeStyle = colors.faint;
     ctx.setLineDash([4, 4]);
     ctx.beginPath();
@@ -131,14 +140,22 @@ function RotationCanvas({
     ctx.setLineDash([]);
 
     // P = R·p_body
-    const pwx = c * P_BODY.x - sn * P_BODY.y;
-    const pwy = sn * P_BODY.x + c * P_BODY.y;
+    const pwx = c * pBody.x - sn * pBody.y;
+    const pwy = sn * pBody.x + c * pBody.y;
     arrow(pwx, pwy, colors.p, "P", 2.5);
     ctx.fillStyle = colors.p;
     ctx.beginPath();
     ctx.arc(X(pwx), Y(pwy), 4.5, 0, Math.PI * 2);
     ctx.fill();
-  }, [width, height, theta]);
+  }, [width, height, theta, pBody]);
+
+  // Draw now and again on the next frame, so a cold first paint (styles/layout
+  // not yet settled) still ends up rendered without needing user interaction.
+  useEffect(() => {
+    draw();
+    const id = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(id);
+  }, [draw]);
 
   return (
     <canvas
@@ -150,25 +167,35 @@ function RotationCanvas({
   );
 }
 
-export default function Rotation2DViz() {
-  const [deg, setDeg] = useState(35);
+export default function Rotation2DViz({
+  pBody = P_BODY,
+  initialDeg = 35,
+  title = "Rotation in 2D",
+  caption = "Rotate the frame with the slider; watch the point's world coordinates.",
+}: {
+  pBody?: Point;
+  initialDeg?: number;
+  title?: string;
+  caption?: string;
+} = {}) {
+  const [deg, setDeg] = useState(initialDeg);
   const theta = (deg * Math.PI) / 180;
   const c = Math.cos(theta);
   const sn = Math.sin(theta);
-  const pwx = c * P_BODY.x - sn * P_BODY.y;
-  const pwy = sn * P_BODY.x + c * P_BODY.y;
+  const pwx = c * pBody.x - sn * pBody.y;
+  const pwy = sn * pBody.x + c * pBody.y;
 
   const description =
     `A 2D rotation by θ = ${deg}°. The world axes x, y are fixed; the frame {B} ` +
     `(axes x̂_B, ŷ_B) is rotated by θ. A point fixed in {B} at body coordinates ` +
-    `(${fmt(P_BODY.x)}, ${fmt(P_BODY.y)}) has world coordinates ` +
+    `(${fmt(pBody.x)}, ${fmt(pBody.y)}) has world coordinates ` +
     `(${fmt(pwx)}, ${fmt(pwy)}) = R(θ)·p, tracing a circle as θ changes. ` +
     `R(θ) = [[cos θ, −sin θ], [sin θ, cos θ]].`;
 
   return (
     <VizFrame
-      title="Rotation in 2D"
-      caption="Rotate the frame with the slider; watch the point's world coordinates."
+      title={title}
+      caption={caption}
       textAlternative={description}
       controls={
         <label className="flex items-center gap-2 text-sm text-muted">
@@ -189,7 +216,12 @@ export default function Rotation2DViz() {
     >
       <Viz2D aspectRatio={1.4}>
         {({ width, height }) => (
-          <RotationCanvas width={width} height={height} theta={theta} />
+          <RotationCanvas
+            width={width}
+            height={height}
+            theta={theta}
+            pBody={pBody}
+          />
         )}
       </Viz2D>
 
@@ -205,7 +237,13 @@ export default function Rotation2DViz() {
           />
         </span>
         <span className="text-muted">
-          P world:{" "}
+          ᴮP:{" "}
+          <span className="font-mono tabular-nums text-foreground">
+            [{fmt(pBody.x)}, {fmt(pBody.y)}]ᵀ
+          </span>
+        </span>
+        <span className="text-muted">
+          ᴬP = R(θ) ᴮP:{" "}
           <span className="font-mono tabular-nums text-foreground">
             [{fmt(pwx)}, {fmt(pwy)}]ᵀ
           </span>
