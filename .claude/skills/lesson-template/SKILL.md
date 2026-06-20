@@ -119,3 +119,10 @@ status: draft
 The lesson route (`src/app/lessons/[area]/[slug]/`) renders the front-matter into the
 LessonLayout header and the body through `mdx-components`. Empty sections render as headings
 with no content — that is intended; they signal the author where to write.
+
+## Images
+
+Static lesson images live in `public/images/<area>/` and are referenced from the site root,
+e.g. `![alt text](/images/<area>/<name>.svg)`. Always include alt text. They are styled
+automatically via `.lesson-prose img`. See `public/images/README.md`. For anything interactive,
+use a viz component (see `viz-2d` / `viz-3d`) instead of a static image.
