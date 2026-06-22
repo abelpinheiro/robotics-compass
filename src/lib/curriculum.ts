@@ -41,7 +41,7 @@ export const curriculum: Area[] = [
     order: 1,
     lessons: [
       { slug: "vectors-and-frames", title: "Vectors and frames", order: 1, status: "published", difficulty: "intro", prerequisites: [] },
-      { slug: "rotations-2d", title: "Rotations in 2D", order: 2, status: "draft", difficulty: "intro", prerequisites: ["vectors-and-frames"] },
+      { slug: "rotations-2d", title: "Rotations in 2D", order: 2, status: "published", difficulty: "intro", prerequisites: ["vectors-and-frames"] },
       { slug: "rotations-3d", title: "Rotations in 3D (SO(3))", order: 3, status: "draft", difficulty: "core", prerequisites: ["rotations-2d"] },
       { slug: "homogeneous-transforms", title: "Homogeneous transforms (SE(3))", order: 4, status: "draft", difficulty: "core", prerequisites: ["rotations-3d"] },
       { slug: "quaternions", title: "Quaternions", order: 5, status: "draft", difficulty: "core", prerequisites: ["rotations-3d"] },
