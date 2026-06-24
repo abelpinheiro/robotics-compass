@@ -1,5 +1,8 @@
 import Link from "next/link";
 import { getStudyLevels, type Difficulty } from "@/lib/curriculum";
+import { getLocale } from "@/lib/i18n/server";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { localizedLessonTitle } from "@/lib/i18n/titles";
 
 const DIFFICULTY_DOT: Record<Difficulty, string> = {
   intro: "bg-success",
@@ -12,20 +15,22 @@ const DIFFICULTY_DOT: Record<Difficulty, string> = {
  * grouped into steps by their longest prerequisite chain (Step 1 = no
  * prerequisites), so each step only depends on earlier ones.
  */
-export function StudyRoadmap() {
+export async function StudyRoadmap() {
+  const locale = await getLocale();
+  const t = getDictionary(locale);
   const levels = getStudyLevels();
 
   return (
     <section aria-labelledby="study-roadmap-heading">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h2 id="study-roadmap-heading" className="font-serif text-2xl font-semibold">
-          Suggested learning path
+          {t.home.roadmapTitle}
         </h2>
         <ul className="flex items-center gap-3 text-xs text-muted">
           {(["intro", "core", "advanced"] as Difficulty[]).map((d) => (
             <li key={d} className="flex items-center gap-1.5">
               <span className={`h-2 w-2 rounded-full ${DIFFICULTY_DOT[d]}`} />
-              {d}
+              {t.difficulty[d]}
             </li>
           ))}
         </ul>
@@ -50,7 +55,7 @@ export function StudyRoadmap() {
                     <span
                       className={`h-2 w-2 rounded-full ${DIFFICULTY_DOT[lesson.difficulty]}`}
                     />
-                    {lesson.title}
+                    {localizedLessonTitle(lesson.slug, lesson.title, locale)}
                   </Link>
                 </li>
               ))}

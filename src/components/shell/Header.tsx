@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CompassLogo } from "./CompassLogo";
 import { SidebarToggle } from "./SidebarToggle";
+import { LanguageToggle } from "./LanguageToggle";
 
 /**
  * Slim top bar: compass logo + wordmark linking home. Light theme, sticky.
@@ -21,6 +22,9 @@ export function Header() {
           </span>
           <span>Robotics Compass</span>
         </Link>
+        <div className="ml-auto">
+          <LanguageToggle />
+        </div>
       </div>
     </header>
   );

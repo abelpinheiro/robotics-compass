@@ -1,25 +1,16 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import { LessonLayout } from "@/components/lesson/LessonLayout";
 import {
   getArea,
-  getAllLessons,
   getLesson,
   getPrerequisites,
   getAdjacentLessons,
 } from "@/lib/curriculum";
 import { loadLesson } from "@/lib/content";
-
-// Only pre-generated lessons exist; unknown area/slug → 404 automatically.
-export const dynamicParams = false;
+import { getLocale } from "@/lib/i18n/server";
 
 type Params = { area: string; slug: string };
-
-export function generateStaticParams(): Params[] {
-  return getAllLessons().map((lesson) => ({
-    area: lesson.area,
-    slug: lesson.slug,
-  }));
-}
 
 export async function generateMetadata({
   params,
@@ -27,10 +18,12 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { area, slug } = await params;
-  const { frontmatter } = await loadLesson(area, slug);
+  if (!getLesson(area, slug)) return {};
+  const mod = await loadLesson(area, slug, await getLocale());
+  if (!mod) return {};
   return {
-    title: frontmatter.title,
-    description: frontmatter.summary || undefined,
+    title: mod.frontmatter.title,
+    description: mod.frontmatter.summary || undefined,
   };
 }
 
@@ -40,7 +33,13 @@ export default async function LessonPage({
   params: Promise<Params>;
 }) {
   const { area, slug } = await params;
-  const { default: Content, frontmatter } = await loadLesson(area, slug);
+  // Only lessons registered in the curriculum exist.
+  if (!getLesson(area, slug)) notFound();
+
+  const mod = await loadLesson(area, slug, await getLocale());
+  if (!mod) notFound();
+
+  const { default: Content, frontmatter } = mod;
   const areaTitle = getArea(area)?.title;
   const lessonRef = getLesson(area, slug);
 

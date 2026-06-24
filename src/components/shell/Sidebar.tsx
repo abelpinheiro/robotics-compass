@@ -5,6 +5,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { curriculum } from "@/lib/curriculum";
 import { useSidebar } from "./sidebar-context";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
+import { localizedAreaTitle, localizedLessonTitle } from "@/lib/i18n/titles";
 
 const STORAGE_KEY = "rc-collapsed-areas";
 
@@ -44,6 +46,7 @@ function subscribe(cb: () => void) {
  */
 export function Sidebar() {
   const { open, close } = useSidebar();
+  const { locale, t } = useLocale();
   const pathname = usePathname();
 
   const raw = useSyncExternalStore(subscribe, readStore, () => "[]");
@@ -95,7 +98,7 @@ export function Sidebar() {
                     aria-controls={listId}
                     className="flex w-full items-center justify-between gap-2 rounded-md py-1 text-left font-serif text-[0.8125rem] font-semibold tracking-wide text-muted uppercase hover:text-foreground"
                   >
-                    <span>{area.title}</span>
+                    <span>{localizedAreaTitle(area.slug, area.title, locale)}</span>
                     <Chevron open={isOpen} />
                   </button>
                   {isOpen && (
@@ -119,10 +122,16 @@ export function Sidebar() {
                                   : "text-muted hover:bg-surface-2 hover:text-foreground"
                               }`}
                             >
-                              <span>{lesson.title}</span>
+                              <span>
+                                {localizedLessonTitle(
+                                  lesson.slug,
+                                  lesson.title,
+                                  locale,
+                                )}
+                              </span>
                               {lesson.status === "draft" && (
                                 <span className="rounded-sm bg-surface-2 px-1.5 py-0.5 text-[0.625rem] font-medium tracking-wide text-muted uppercase">
-                                  draft
+                                  {t.badge.draft}
                                 </span>
                               )}
                             </Link>

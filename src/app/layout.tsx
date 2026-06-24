@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter, Source_Serif_4, JetBrains_Mono } from "next/font/google";
 import { AppShell } from "@/components/shell/AppShell";
 import { SITE_URL } from "@/lib/site";
+import { getLocale } from "@/lib/i18n/server";
+import { LocaleProvider } from "@/lib/i18n/LocaleProvider";
 import "./globals.css";
 import "katex/dist/katex.min.css";
 
@@ -32,18 +34,21 @@ export const metadata: Metadata = {
   description: "An interactive, visualization-first guide to robotics.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const locale = await getLocale();
   return (
     <html
-      lang="en"
+      lang={locale}
       className={`${inter.variable} ${sourceSerif.variable} ${jetbrainsMono.variable}`}
     >
       <body>
-        <AppShell>{children}</AppShell>
+        <LocaleProvider initialLocale={locale}>
+          <AppShell>{children}</AppShell>
+        </LocaleProvider>
       </body>
     </html>
   );

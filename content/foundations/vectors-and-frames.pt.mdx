@@ -1,0 +1,89 @@
+---
+title: "Vetores e referenciais"
+area: foundations
+slug: vectors-and-frames
+order: 1
+summary: ""
+difficulty: ""
+prerequisites: []
+status: published
+---
+
+import VectorsFramesVizEmbed from "@/components/viz/frames/VectorsFramesVizEmbed";
+import VectorAdditionVizEmbed from "@/components/viz/frames/VectorAdditionVizEmbed";
+
+## Intuição
+
+O conceito de "espaço" é relativo. Se mandarmos um robô andar 5 metros à frente, a primeira pergunta lógica seria "a partir de onde e em qual direção?". Em robótica, para descrever o mundo precisamos de três conceitos básicos:
+
+1. Ponto: a localização exata no espaço tridimensional. Um ponto não tem tamanho, volume nem direção.
+2. Vetor: uma entidade que tem magnitude (tamanho) e direção. Pode ser usado para várias coisas, como velocidades e forças... mas, em cinemática, nós o usamos como uma seta que liga a origem de um sistema de coordenadas a um dado ponto.
+3. Referencial: o ponto de vista. Um referencial é composto por um ponto de origem e três eixos imaginários, mutuamente perpendiculares, que formam o sistema de coordenadas.
+
+## Definição formal
+
+1. **Ponto e o vetor de posição:**
+
+A posição de qualquer ponto em robótica é definida como um ponto no espaço euclidiano tridimensional. Sua posição é um vetor coluna $\textbf{p} \in \mathbb{R}^3 $
+
+$$
+    \mathbf{p} = [ x, y, z]^T
+$$
+
+2. **Referencial:**
+
+Um referencial $\{B\}$ é composto por uma origem e um conjunto de três vetores unitários ortogonais $\hat{X}_B, \hat{Y}_B, \hat{Z}_B$.
+
+O referencial $\{B\}$ é descrito pela matriz de rotação $^{A}_{B} R$ e pela posição $^{A}P_{BORG}$, onde $^{A}P_{BORG}$ é o vetor que localiza a origem do referencial $\{B\}$
+
+$$
+  \{B\} = \{ ^{A}_{B} R, ^{A}P_{BORG} \}
+$$
+
+## Visualização
+
+<VectorsFramesVizEmbed />
+
+## Exemplo resolvido
+
+Vamos aplicar essas definições à operação mais fundamental da geometria espacial: o **mapeamento**. Mapear significa pegar a descrição de um ponto em um referencial e traduzi-la para outro referencial.
+
+**O cenário:**
+Imagine o chão de uma fábrica com um referencial global fixo $\{A\}$. Há uma esteira transportadora com um referencial local $\{B\}$ preso a ela. Para este exemplo, suponha que **o referencial $\{A\}$ e o referencial $\{B\}$ têm exatamente a mesma orientação** (seus eixos são perfeitamente paralelos).
+
+A origem de $\{B\}$ está a 2 metros ao longo do eixo X de $\{A\}$. Na nossa notação, esse vetor de translação é:
+$$
+  ^AP_{BORG} = [2, 0, 0]^T
+$$
+
+Agora, um sensor detecta uma peça (Ponto $P$) sobre a esteira. A peça está a 1 metro ao longo do eixo Y e a 3 metros ao longo do eixo Z do referencial local $\{B\}$:
+$$
+  ^BP = [0, 1, 3]^T
+$$
+
+**O problema:**
+Queremos expressar exatamente o mesmo ponto $P$ em relação ao referencial global $\{A\}$ para dizer ao robô onde alcançar.
+
+**A solução:**
+Como os eixos estão perfeitamente alinhados (orientações equivalentes), podemos calcular a nova descrição do ponto $P$ em relação a $\{A\}$ usando pura adição de vetores:
+
+$$
+  ^AP = ^BP + ^AP_{BORG}
+$$
+
+$$
+  ^AP = \begin{bmatrix} 0 \\ 1 \\ 3 \end{bmatrix} + \begin{bmatrix} 2 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 2 \\ 1 \\ 3 \end{bmatrix}
+$$
+
+**Conclusão:** A peça física não se moveu, mas sua posição em relação a $\{A\}$ é $[2, 1, 3]^T$. Lembre-se de que a adição direta de vetores como esta **só é possível porque os referenciais têm orientações equivalentes**. Se $\{B\}$ estivesse rotacionado, precisaríamos de matrizes de rotação (que veremos na próxima lição).
+
+<VectorAdditionVizEmbed />
+
+## Erros comuns
+
+1. **Esquecer o referencial:** não defina um vetor como $P = [1, 2, 3]^T$ sem declarar a partir de qual referencial ele é medido. Em robótica, um vetor não tem significado sem o seu sobrescrito inicial (por exemplo, $^AP$). Todo vetor precisa de um "ponto de vista".
+2. **Somar vetores com orientações diferentes:** como mostrado no exemplo resolvido, você só pode somar vetores de posição diretamente se seus referenciais estiverem perfeitamente alinhados. Se o referencial $\{B\}$ estiver rotacionado em relação ao referencial $\{A\}$, calcular $^AP = ^BP + ^AP_{BORG}$ resultará em uma posição completamente errada e desastrosa para o seu robô.
+
+## Leituras adicionais
+
+1. Robotics, de Craig
