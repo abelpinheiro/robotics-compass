@@ -4,12 +4,14 @@ import { useState } from "react";
 import { Viz3D } from "@/components/viz/Viz3D";
 import { VizFrame } from "@/components/viz/VizFrame";
 import { MatrixDisplay } from "@/components/viz/MatrixDisplay";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Rotation2DWorkedScene from "./Rotation2DWorkedScene";
 
 const WALL = 2;
 const fmt = (n: number) => (Math.abs(n) < 1e-9 ? 0 : n).toFixed(2);
 
 export default function Rotation2DWorkedViz() {
+  const { t } = useLocale();
   const [deg, setDeg] = useState(90);
   const theta = (deg * Math.PI) / 180;
   const c = Math.cos(theta);
@@ -32,7 +34,7 @@ export default function Rotation2DWorkedViz() {
       textAlternative={description}
       controls={
         <label className="flex items-center gap-2 text-sm text-muted">
-          Angle θ
+          {t.viz.angle}
           <input
             type="range"
             min={0}

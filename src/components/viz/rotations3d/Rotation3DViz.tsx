@@ -5,6 +5,7 @@ import * as THREE from "three";
 import { Viz3D } from "@/components/viz/Viz3D";
 import { VizFrame } from "@/components/viz/VizFrame";
 import { MatrixDisplay } from "@/components/viz/MatrixDisplay";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import Rotation3DScene from "./Rotation3DScene";
 
 const toRad = (d: number) => (d * Math.PI) / 180;
@@ -45,6 +46,7 @@ function AngleSlider({
 }
 
 export default function Rotation3DViz() {
+  const { t } = useLocale();
   const [deg, setDeg] = useState<Angles>(INITIAL);
   const euler = { x: toRad(deg.x), y: toRad(deg.y), z: toRad(deg.z) };
 
@@ -75,15 +77,15 @@ export default function Rotation3DViz() {
       textAlternative={description}
       controls={
         <>
-          <AngleSlider label="Roll (x)" value={deg.x} onChange={set("x")} />
-          <AngleSlider label="Pitch (y)" value={deg.y} onChange={set("y")} />
-          <AngleSlider label="Yaw (z)" value={deg.z} onChange={set("z")} />
+          <AngleSlider label={t.viz.roll} value={deg.x} onChange={set("x")} />
+          <AngleSlider label={t.viz.pitch} value={deg.y} onChange={set("y")} />
+          <AngleSlider label={t.viz.yaw} value={deg.z} onChange={set("z")} />
           <button
             type="button"
             onClick={() => setDeg(INITIAL)}
             className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-surface-2"
           >
-            Reset
+            {t.viz.reset}
           </button>
         </>
       }

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Viz2D } from "@/components/viz/Viz2D";
 import { VizFrame } from "@/components/viz/VizFrame";
 import { MatrixDisplay } from "@/components/viz/MatrixDisplay";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 // A point fixed in the rotating frame {B}; we watch its world coordinates change.
 const P_BODY = { x: 1.6, y: 0.6 };
@@ -178,6 +179,7 @@ export default function Rotation2DViz({
   title?: string;
   caption?: string;
 } = {}) {
+  const { t } = useLocale();
   const [deg, setDeg] = useState(initialDeg);
   const theta = (deg * Math.PI) / 180;
   const c = Math.cos(theta);
@@ -199,7 +201,7 @@ export default function Rotation2DViz({
       textAlternative={description}
       controls={
         <label className="flex items-center gap-2 text-sm text-muted">
-          Angle θ
+          {t.viz.angle}
           <input
             type="range"
             min={-180}

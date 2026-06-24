@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Viz3D } from "@/components/viz/Viz3D";
 import { VizFrame } from "@/components/viz/VizFrame";
 import { MatrixDisplay } from "@/components/viz/MatrixDisplay";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import SE3Scene, { type Vec3 } from "./SE3Scene";
 
 const fmt = (n: number) => (Math.abs(n) < 1e-9 ? 0 : n).toFixed(2);
@@ -47,6 +48,7 @@ function Slider({
 }
 
 export default function SE3Viz() {
+  const { t } = useLocale();
   const [P, setP] = useState<Vec3>(INITIAL_P);
   const [yawDeg, setYawDeg] = useState(30);
   const [tx, setTx] = useState(2);
@@ -83,7 +85,7 @@ export default function SE3Viz() {
       textAlternative={description}
       controls={
         <>
-          <Slider label="Yaw" value={yawDeg} min={-180} max={180} step={1} onChange={setYawDeg} fmt={(v) => `${v}°`} />
+          <Slider label={t.viz.yaw} value={yawDeg} min={-180} max={180} step={1} onChange={setYawDeg} fmt={(v) => `${v}°`} />
           <Slider label="tx" value={tx} min={-3} max={3} step={0.1} onChange={setTx} fmt={fmt} />
           <Slider label="tz" value={tz} min={-3} max={3} step={0.1} onChange={setTz} fmt={fmt} />
           <button
@@ -91,7 +93,7 @@ export default function SE3Viz() {
             onClick={() => setP(INITIAL_P)}
             className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-surface-2"
           >
-            Reset point
+            {t.viz.resetPoint}
           </button>
         </>
       }

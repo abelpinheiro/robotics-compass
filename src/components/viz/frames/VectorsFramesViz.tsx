@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Viz3D } from "@/components/viz/Viz3D";
 import { VizFrame } from "@/components/viz/VizFrame";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import FramesScene, { BASE, type Vec3 } from "./FramesScene";
 
 const INITIAL: Vec3 = { x: 1, y: 0, z: 1 };
@@ -42,6 +43,7 @@ function ReadoutRow({
 }
 
 export default function VectorsFramesViz() {
+  const { t } = useLocale();
   const [P, setP] = useState<Vec3>(INITIAL);
   const baseP = baseCoords(P);
 
@@ -65,7 +67,7 @@ export default function VectorsFramesViz() {
           onClick={() => setP(INITIAL)}
           className="rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-surface-2"
         >
-          Reset point
+          {t.viz.resetPoint}
         </button>
       }
     >

@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Viz3D } from "@/components/viz/Viz3D";
 import { VizFrame } from "@/components/viz/VizFrame";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import QuaternionScene from "./QuaternionScene";
 
 const fmt = (n: number) => (Math.abs(n) < 1e-9 ? 0 : n).toFixed(2);
@@ -50,6 +51,7 @@ function Slider({
 }
 
 export default function QuaternionViz() {
+  const { t } = useLocale();
   const [azimuth, setAzimuth] = useState(40); // about vertical
   const [elevation, setElevation] = useState(35); // from the ground plane
   const [angle, setAngle] = useState(90); // rotation angle θ
@@ -88,9 +90,9 @@ export default function QuaternionViz() {
       textAlternative={description}
       controls={
         <>
-          <Slider label="Axis azimuth" value={azimuth} onChange={setAzimuth} />
-          <Slider label="Axis elevation" value={elevation} onChange={setElevation} />
-          <Slider label="Angle θ" value={angle} onChange={setAngle} />
+          <Slider label={t.viz.axisAzimuth} value={azimuth} onChange={setAzimuth} />
+          <Slider label={t.viz.axisElevation} value={elevation} onChange={setElevation} />
+          <Slider label={t.viz.angle} value={angle} onChange={setAngle} />
         </>
       }
     >

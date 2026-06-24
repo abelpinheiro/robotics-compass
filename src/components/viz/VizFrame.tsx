@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReactNode } from "react";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 
 /**
  * The framed container every visualization sits in. Provides consistent
@@ -25,6 +28,7 @@ export function VizFrame({
   controls?: ReactNode;
   children: ReactNode;
 }) {
+  const { t } = useLocale();
   return (
     <figure className="my-8 overflow-hidden rounded-card border border-border bg-surface">
       {title && (
@@ -45,7 +49,7 @@ export function VizFrame({
         {caption && <p className="mb-1">{caption}</p>}
         <details>
           <summary className="cursor-pointer text-xs font-medium text-accent">
-            Text description
+            {t.viz.textDescription}
           </summary>
           <p className="mt-1 text-xs text-muted">{textAlternative}</p>
         </details>
