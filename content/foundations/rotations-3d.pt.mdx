@@ -1,0 +1,113 @@
+---
+title: "Rotações em 3D (SO(3))"
+area: foundations
+slug: rotations-3d
+order: 3
+summary: ""
+difficulty: ""
+prerequisites: []
+status: draft
+---
+
+import Rotation3DVizEmbed from "@/components/viz/rotations3d/Rotation3DVizEmbed";
+
+## Intuição
+
+No plano 2D, um robô só podia girar de uma maneira: rotacionando em torno de um eixo vertical. Mas no mundo 3D, objetos como câmeras de drones ou braços robóticos têm três formas independentes de rotacionar.
+
+Para visualizar isso, os engenheiros usam a analogia de um avião:
+
+**Roll (rolagem)**: inclinar as asas para cima e para baixo (rotação em torno do eixo de avanço).
+
+**Pitch (arfagem)**: apontar o nariz para cima ou para baixo (rotação em torno do eixo lateral).
+
+**Yaw (guinada)**: virar para a esquerda ou para a direita (rotação em torno do eixo vertical).
+
+![Um avião com todas as rotações possíveis em 3D.](/images/foundations/roll_pitch_yaw.svg)
+
+Assim como em 2D, se prendermos um referencial local $\{B\}$ ao nosso drone e um referencial global $\{A\}$ ao chão, precisamos de uma forma de projetar as "sombras" 3D dos três eixos locais ($\hat{X}_B, \hat{Y}_B, \hat{Z}_B$) sobre os três eixos globais ($\hat{X}_A, \hat{Y}_A, \hat{Z}_A$). Isso exige expandir nossa matriz de rotação de $2 \times 2$ para $3 \times 3$.
+
+## Definição formal
+
+### A matriz de rotação 3x3
+
+Se o referencial $\{B\}$ e o referencial $\{A\}$ compartilham a mesma origem, a orientação de $\{B\}$ em relação a $\{A\}$ é descrita por uma matriz de rotação $3 \times 3$. Assim como construímos em 2D, cada coluna desta matriz representa um dos vetores unitários de $\{B\}$ projetado sobre os eixos de $\{A\}$:
+
+$$
+^{A}_{B}R = \left[ ^A\hat{X}_B \quad ^A\hat{Y}_B \quad ^A\hat{Z}_B \right] = 
+    \begin{bmatrix}
+    r_{11} & r_{12} & r_{13} \\
+    r_{21} & r_{22} & r_{23} \\
+    r_{31} & r_{32} & r_{33} \\
+    \end{bmatrix}
+$$
+
+### O papel duplo
+
+Esta matriz é o coração da cinemática espacial porque desempenha dois papéis distintos, mas profundamente relacionados:
+
+Ela descreve: suas colunas descrevem literalmente a orientação dos eixos de $\{B\}$ em relação a $\{A\}$.
+
+Ela mapeia: atua como um operador para mapear um vetor de posição do referencial local para o referencial global, estendendo nossa equação de mapeamento 2D para 3D:
+
+$$^AP = ^{A}_{B}R \, ^BP$$
+
+### Propriedades de SO(3)
+
+Matrizes de rotação não são apenas grades aleatórias de números. Elas pertencem a uma família matemática rigorosa chamada Grupo Ortogonal Especial, ou $SO(3)$. Para ser uma matriz de rotação válida em robótica, ela deve possuir estas propriedades definidoras:
+
+As colunas são ortonormais: cada coluna é um vetor unitário (comprimento exatamente igual a 1), e todas são perfeitamente perpendiculares entre si ($\hat{X} \cdot \hat{Y} = 0$).
+
+O determinante é igual a +1 ($\det R = +1$): isso garante que a matriz representa uma rotação pura que preserva a regra da mão direita. (Um determinante de -1 significaria que o objeto foi espelhado ou virado do avesso!).
+
+A inversa é a transposta ($R^{-1} = R^T$): esta é a propriedade mais útil na geometria computacional da robótica. Se você conhece a rotação de $A$ para $B$ ($^{A}_{B}R$) e quer encontrar a rotação de $B$ de volta para $A$ ($^{B}_{A}R$), você não precisa fazer inversões pesadas de matrizes. Basta trocar linhas e colunas:
+
+$$^{B}_{A}R = \left( ^{A}_{B}R \right)^{-1} = \left( ^{A}_{B}R \right)^{T}$$
+
+### Rotações principais
+
+Existem três matrizes de rotação básicas para girar por um ângulo $\theta$ em torno dos eixos principais (X, Y e Z):
+
+Rotação em torno de X (Roll):
+
+$$R_x(\theta) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos\theta & -\sin\theta \\ 0 & \sin\theta & \cos\theta \end{bmatrix}$$
+
+Rotação em torno de Y (Pitch):
+
+$$R_y(\theta) = \begin{bmatrix} \cos\theta & 0 & \sin\theta \\ 0 & 1 & 0 \\ -\sin\theta & 0 & \cos\theta \end{bmatrix}$$
+
+Rotação em torno de Z (Yaw):
+
+$$R_z(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}$$
+
+## Visualização
+
+<Rotation3DVizEmbed />
+
+## Exemplo resolvido
+
+Um braço robótico tem uma câmera montada no punho. Vamos chamar o chão de referencial global $\{A\}$ e a câmera de referencial local $\{B\}$. A câmera está apontando diretamente para baixo, o que significa que foi rotacionada $90^\circ$ em torno do eixo Y global (Pitch).
+
+A câmera detecta um QR code perfeitamente centralizado em sua visão, a exatamente 5 metros ao longo do seu eixo Z local. Então, no referencial da câmera, a posição do QR code é:
+
+$$^BP = \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix}$$
+
+**Onde está o QR code em relação ao referencial do chão ($^AP$)?**
+
+Primeiro, construímos a matriz de rotação para uma rotação de $90^\circ$ em torno de Y. Como $\cos(90^\circ) = 0$ e $\sin(90^\circ) = 1$, a matriz $R_y(90^\circ)$ fica:
+
+$$^{A}_{B}R = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix}$$
+
+Agora, mapeie o vetor usando $^AP = ^{A}_{B}R \, ^BP$:
+
+$$^AP = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix} = \begin{bmatrix} 5 \\ 0 \\ 0 \end{bmatrix}$$
+
+Isso significa que, no referencial global, o QR code está localizado a 5 metros ao longo do eixo X.
+
+## Erros comuns
+
+{/* TODO(author): list common pitfalls. */}
+
+## Leituras adicionais
+
+{/* TODO(author): add references and further reading. */}

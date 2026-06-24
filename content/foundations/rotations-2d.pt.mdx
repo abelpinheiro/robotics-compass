@@ -1,0 +1,106 @@
+---
+title: "Rotações em 2D"
+area: foundations
+slug: rotations-2d
+order: 2
+summary: ""
+difficulty: ""
+prerequisites: []
+status: published
+---
+
+import Rotation2DVizEmbed from "@/components/viz/rotations2d/Rotation2DVizEmbed";
+import Rotation2DWorkedVizEmbed from "@/components/viz/rotations2d/Rotation2DWorkedVizEmbed";
+
+## Intuição
+
+No capítulo anterior, aprendemos a mapear pontos entre referenciais que tinham exatamente a mesma orientação. Mas o que acontece se um robô gira?
+
+Imagine olhar de cima para um robô móvel andando em um piso plano. Podemos prender um referencial global fixo $\{A\}$ ao canto da sala e um referencial local $\{B\}$ ao centro do robô. À medida que o robô gira, sua direção local de "frente" (o eixo $\hat{X}_{B}$) deixa de estar alinhada com a direção de "frente" da sala ($\hat{X}_{A}$).
+
+Para traduzir informações do ponto de vista do robô para o ponto de vista da sala, precisamos saber exatamente quanto o robô girou. Fazemos isso olhando para os eixos locais do robô e comparando com os eixos da sala.
+
+Esse ato de projetar "sombras" dos eixos de um referencial sobre os eixos de outro referencial é a base das rotações espaciais, e depende inteiramente de trigonometria básica: senos e cossenos.
+
+## Definição formal
+
+Para entender a rotação pura, vamos supor temporariamente que o referencial $\{A\}$ e o referencial $\{B\}$ compartilham exatamente a mesma origem ($^AP_{BORG} = [0, 0]^T$). A única diferença é que o referencial $\{B\}$ está rotacionado no sentido anti-horário por um ângulo $\theta$ em relação ao referencial $\{A\}$.
+
+Estamos em um plano 2D, então só nos importamos com os eixos X e Y. Precisamos descrever os vetores unitários de $\{B\}$ ($\hat{X}_B$ e $\hat{Y}_B$) em termos dos eixos de $\{A\}$.
+
+![Um referencial {B} rotacionado por $\theta$, com os eixos projetados em {A}.](/images/foundations/projection_axes.png)
+
+**1. Projetando o eixo X:**
+Se projetarmos o vetor $\hat{X}_B$ no referencial $\{A\}$ usando trigonometria, sua componente horizontal é $\cos(\theta)$ e sua componente vertical é $\sin(\theta)$.
+
+$$
+    ^A\hat{X}_B = \begin{bmatrix} \cos\theta \\ \sin\theta \end{bmatrix}
+$$
+
+**2. Projetando o eixo Y:**
+O vetor $\hat{Y}_B$ está $90^\circ$ à frente de $\hat{X}_B$. Projetá-lo no referencial $\{A\}$ resulta em uma componente horizontal negativa (ele aponta para trás em relação a $X_A$) e uma componente vertical positiva.
+
+$$
+    ^A\hat{Y}_B = \begin{bmatrix} -\sin\theta \\ \cos\theta \end{bmatrix}
+$$
+
+**3. A matriz de rotação 2D:**
+Uma matriz de rotação é simplesmente um pacote que guarda esses vetores unitários projetados lado a lado. Colocando $^A\hat{X}_B$ como primeira coluna e $^A\hat{Y}_B$ como segunda coluna, formamos a matriz de rotação 2D $^{A}_{B}R$:
+
+$$
+    ^{A}_{B}R = [ ^A\hat{X}_B \quad ^A\hat{Y}_B ] = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}
+$$
+
+**4. Mapeando vetores rotacionados:** Por fim, se temos um ponto $P$ descrito no referencial local do robô como $^BP$, podemos mapeá-lo para o referencial global $\{A\}$ multiplicando-o pela nossa matriz de rotação. Este é o equivalente rotacional da soma de vetores que vimos no capítulo anterior:
+
+$$
+    ^AP = ^{A}_{B}R \, ^BP
+$$
+
+## Visualização
+
+<Rotation2DVizEmbed />
+
+## Exemplo resolvido
+
+Vamos manter o cenário anterior do robô móvel e da sala. O referencial global $\{A\}$ é a sala, e o referencial local $\{B\}$ está preso ao robô. Eles compartilham a mesma origem.
+
+Nosso robô virou $90^\circ$ para a esquerda. Usando a regra da mão direita, $\theta = 90^\circ$.
+
+O sensor de distância a bordo do robô detecta uma parede exatamente 2 metros à frente. No referencial local do robô (onde $\hat{X}_B$ é "frente"), a posição deste ponto da parede $P$ é:
+
+$$
+    ^BP = \begin{bmatrix} 2 \\ 0 \end{bmatrix}
+$$
+
+Vamos encontrar as coordenadas deste ponto da parede no referencial global da sala ($^AP$).
+
+Primeiro, construímos nossa matriz de rotação 2D para $\theta = 90^\circ$. Sabendo que $\cos(90^\circ) = 0$ e $\sin(90^\circ) = 1$:
+
+$$
+    ^{A}_{B}R = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix}
+$$
+
+Agora, usamos nossa equação de mapeamento para multiplicar a matriz de rotação pelo vetor local:
+
+$$
+    ^AP = ^{A}_{B}R \, ^BP = \begin{bmatrix} 0 & -1 \\ 1 & 0 \end{bmatrix} \begin{bmatrix} 2 \\ 0 \end{bmatrix}
+$$
+
+$$
+    ^AP = \begin{bmatrix} (0 \cdot 2) + (-1 \cdot 0) \\ (1 \cdot 2) + (0 \cdot 0) \end{bmatrix} = \begin{bmatrix} 0 \\ 2 \end{bmatrix}
+$$
+
+<Rotation2DWorkedVizEmbed />
+
+## Erros comuns
+
+1. Horário vs. Anti-horário: lembre-se de que a convenção padrão é a regra da mão direita. Isso significa que rotações anti-horárias são positivas e rotações horárias são negativas. Se o seu robô virar $90^\circ$ para a direita, o seu ângulo é $\theta = -90^\circ$. Esquecer esse sinal vai inverter o entendimento que o robô tem do mundo.
+
+2. Graus vs. Radianos no código: ao levar essa matemática para uma linguagem de programação, funções como math.cos() e math.sin() provavelmente esperam o ângulo em radianos, não em graus. Escrever cos(90) no seu código calculará o cosseno de 90 radianos, resultando em um bug terrível. Sempre converta: radianos = graus * (PI / 180).
+
+3. Ordem da multiplicação de matrizes: a multiplicação de matrizes não é comutativa ($A \cdot B \neq B \cdot A$). Você deve multiplicar a matriz de rotação pelo vetor ($R \cdot P$), e não o contrário. Em álgebra linear, uma matriz $2 \times 2$ não pode ser multiplicada à esquerda de um vetor coluna $2 \times 1$.
+
+## Leituras adicionais
+
+seções 2.2 e 2.3 de Robotics, de Craig
