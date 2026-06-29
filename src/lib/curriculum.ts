@@ -211,6 +211,18 @@ export function getAllLessons(): LessonWithArea[] {
   );
 }
 
+/** A lesson is shown to readers only once it is past the draft stage. Drafts
+ *  are hidden from navigation, the study roadmap, prev/next, and the sitemap
+ *  (they remain reachable by direct URL for authoring/preview). */
+export function isLessonVisible(lesson: LessonRef): boolean {
+  return lesson.status !== "draft";
+}
+
+/** Flat list of reader-visible lessons (drafts hidden), in curriculum order. */
+export function getVisibleLessons(): LessonWithArea[] {
+  return getAllLessons().filter(isLessonVisible);
+}
+
 /** Look up a lesson by its (globally unique) slug. */
 export function getLessonBySlug(slug: string): LessonWithArea | undefined {
   for (const area of curriculum) {
@@ -226,7 +238,7 @@ export function getPrerequisites(slug: string): LessonWithArea[] {
   if (!lesson) return [];
   return lesson.prerequisites
     .map(getLessonBySlug)
-    .filter((l): l is LessonWithArea => Boolean(l));
+    .filter((l): l is LessonWithArea => l !== undefined && isLessonVisible(l));
 }
 
 /** Previous / next lesson in flat curriculum order. */
@@ -234,7 +246,7 @@ export function getAdjacentLessons(
   areaSlug: string,
   lessonSlug: string,
 ): { prev?: LessonWithArea; next?: LessonWithArea } {
-  const flat = getAllLessons();
+  const flat = getVisibleLessons();
   const i = flat.findIndex((l) => l.area === areaSlug && l.slug === lessonSlug);
   if (i < 0) return {};
   return {
@@ -249,7 +261,7 @@ export function getAdjacentLessons(
  * the dependency graph. Edges are followed only within the curriculum.
  */
 export function getStudyLevels(): LessonWithArea[][] {
-  const all = getAllLessons();
+  const all = getVisibleLessons();
   const bySlug = new Map(all.map((l) => [l.slug, l]));
   const depthCache = new Map<string, number>();
   const visiting = new Set<string>();
@@ -278,5 +290,6 @@ export function getStudyLevels(): LessonWithArea[][] {
     const d = depth(lesson.slug);
     (levels[d] ??= []).push(lesson);
   }
-  return levels;
+  // Drop empty levels (filtering hidden lessons can leave gaps).
+  return levels.filter((level) => level && level.length > 0);
 }

@@ -3,7 +3,7 @@
 import { useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { curriculum } from "@/lib/curriculum";
+import { curriculum, isLessonVisible } from "@/lib/curriculum";
 import { useSidebar } from "./sidebar-context";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { localizedAreaTitle, localizedLessonTitle } from "@/lib/i18n/titles";
@@ -85,6 +85,8 @@ export function Sidebar() {
         <nav aria-label="Curriculum" className="text-sm">
           <ul className="space-y-3">
             {curriculum.map((area) => {
+              const lessons = area.lessons.filter(isLessonVisible);
+              if (lessons.length === 0) return null; // hide areas with no ready lessons
               const isOpen =
                 !collapsed.has(area.slug) || area.slug === currentArea;
               const listId = `area-${area.slug}-list`;
@@ -107,7 +109,7 @@ export function Sidebar() {
                       aria-labelledby={`area-${area.slug}`}
                       className="mt-1 space-y-0.5"
                     >
-                      {area.lessons.map((lesson) => {
+                      {lessons.map((lesson) => {
                         const href = `/lessons/${area.slug}/${lesson.slug}`;
                         const current = pathname === href;
                         return (
@@ -129,9 +131,9 @@ export function Sidebar() {
                                   locale,
                                 )}
                               </span>
-                              {lesson.status === "draft" && (
+                              {lesson.status === "in-progress" && (
                                 <span className="rounded-sm bg-surface-2 px-1.5 py-0.5 text-[0.625rem] font-medium tracking-wide text-muted uppercase">
-                                  {t.badge.draft}
+                                  {t.badge["in-progress"]}
                                 </span>
                               )}
                             </Link>
