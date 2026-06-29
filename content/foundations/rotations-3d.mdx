@@ -6,18 +6,81 @@ order: 3
 summary: ""
 difficulty: ""
 prerequisites: []
-status: draft
+status: published
 ---
 
 import Rotation3DVizEmbed from "@/components/viz/rotations3d/Rotation3DVizEmbed";
 
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+In the 2D plane, a robot could only rotate in one way: spinning around a vertical axis. But in the 3D world, objects like drone cameras or robot arms have three independent ways to rotate.
+
+To visualize this, engineers use an airplane analogy:
+
+**Roll**: Tilting the wings up and down (rotating around the forward axis).
+
+**Pitch**: Pointing the nose up or down (rotating around the side-to-side axis).
+
+**Yaw**: Steering left or right (rotating around the vertical axis).
+
+![An airplane with all of the possible rotations in 3D.](/images/foundations/roll_pitch_yaw.svg)
+
+Just like in 2D, if we attach a local frame $\{B\}$ to our drone and a global frame $\{A\}$ to the ground, we need a way to project the 3D "shadows" of all three local axes ($\hat{X}_B, \hat{Y}_B, \hat{Z}_B$) onto the three global axes ($\hat{X}_A, \hat{Y}_A, \hat{Z}_A$). This requires expanding our rotation matrix from $2 \times 2$ to $3 \times 3$.
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+### The 3x3 Rotation Matrix
+
+If frame $\{B\}$ and frame $\{A\}$ share the same origin, the orientation of $\{B\}$ relative to $\{A\}$ is described by a $3 \times 3$ Rotation Matrix. Just like we built it in 2D, each column of this matrix represents one of $\{B\}$'s unit vectors projected onto the axes of $\{A\}$:
+
+$$
+^{A}_{B}R = \left[ ^A\hat{X}_B \quad ^A\hat{Y}_B \quad ^A\hat{Z}_B \right] = 
+    \begin{bmatrix}
+    r_{11} & r_{12} & r_{13} \\
+    r_{21} & r_{22} & r_{23} \\
+    r_{31} & r_{32} & r_{33} \\
+    \end{bmatrix}
+$$
+
+### The Dual Role
+
+This matrix is the heart of spatial kinematics because it performs two distinct but deeply related jobs:
+
+**It Describes**: Its columns literally describe the orientation of $\{B\}$'s axes in relation to $\{A\}$.
+
+**It Maps**: It acts as an operator to map a position vector from the local frame to the global frame, extending our 2D mapping equation to 3D:
+
+$$^AP = ^{A}_{B}R \, ^BP$$
+
+### Properties of SO(3)
+
+Rotation matrices are not just random grids of numbers. They belong to a strict mathematical family called the Special Orthogonal Group, or $SO(3)$. To be a valid rotation matrix in robotics, it must possess these defining properties:
+
+1. **Columns are Orthonormal**. That means each column is a unit vector (length exactly equal to 1), and they are all perfectly perpendicular to each other ($\hat{X} \cdot \hat{Y} = 0$).
+
+2. **Determinant equals +1 ($\det R = +1$)**: This guarantees that the matrix represents a pure rotation that preserves the right-hand rule. (A determinant of -1 would mean the object was mirrored or turned inside out!).
+
+3. **The Inverse is the Transpose ($R^{-1} = R^T$)**: This is the single most useful property in robotics computational geometry. If you know the rotation from $A$ to $B$ ($^{A}_{B}R$) and want to find the rotation from $B$ back to $A$ ($^{B}_{A}R$), you don't need to perform heavy matrix inversions. You just swap the rows and columns:
+
+$$^{B}_{A}R = \left( ^{A}_{B}R \right)^{-1} = \left( ^{A}_{B}R \right)^{T}$$
+
+### Principal Rotations
+
+There are three basic rotation matrices for spinning by an angle $\theta$ around the primary axes (X, Y, and Z):
+
+Rotation around X (Roll):
+
+$$R_x(\theta) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos\theta & -\sin\theta \\ 0 & \sin\theta & \cos\theta \end{bmatrix}$$
+
+Rotation around Y (Pitch):
+
+$$R_y(\theta) = \begin{bmatrix} \cos\theta & 0 & \sin\theta \\ 0 & 1 & 0 \\ -\sin\theta & 0 & \cos\theta \end{bmatrix}$$
+
+Rotation around Z (Yaw):
+
+$$R_z(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}$$
+
+
 
 ## Visualization
 
@@ -25,16 +88,30 @@ import Rotation3DVizEmbed from "@/components/viz/rotations3d/Rotation3DVizEmbed"
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+A robot arm has a camera mounted on its wrist. Let's call the ground the global frame $\{A\}$ and the camera the local $\{B\}$. The camera is pointing straight down, which means it has been rotated $90^\circ$ around the global Y-axis (Pitch).
+
+The camera detects a QR code perfectly centered in its view, exactly 5 meters away along its local Z-axis. So, in the camera's frame, the position of the QR code is:
+
+$$^BP = \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix}$$
+
+**Where is the QR code in relation to the ground frame ($^AP$)?**
+
+First, we build the rotation matrix for a $90^\circ$ rotation around Y. Since $\cos(90^\circ) = 0$ and $\sin(90^\circ) = 1$, the $R_y(90^\circ)$ matrix becomes:
+
+$$^{A}_{B}R = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix}$$
+
+Now, map the vector using $^AP = ^{A}_{B}R \, ^BP$:
+
+$$^AP = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix} = \begin{bmatrix} 5 \\ 0 \\ 0 \end{bmatrix}$$
+
+That means that in the global frame, the QR code is located 5 meters along the X-axis.
 
 ## Common pitfalls
 
-{/* TODO(author): list common pitfalls. */}
-
-## Exercises
-
-{/* TODO(author): add exercises. */}
+1. **Rotations are NOT commutative!**. In basic math, $2 \times 3 = 3 \times 2$... but in spatial rotations, this is not true. Rotating $90^\circ$ around X and then $90^\circ$ around Y will put your robot in a completely different posture than rotating around Y first and then X. When chaining multiple rotations, order matters immensely ($R_x \cdot R_y \neq R_y \cdot R_x$).
+2. **The Gimbal Lock problem**. If you rely on sequences of three angles (like Euler Angles) to describe 3D orientation, you will eventually hit a mathematical singularity called Gimbal Lock, where two rotational axes align and the system loses a degree of freedom. This is why modern robotics simulation relies heavily on Quaternions.
 
 ## Further reading
-
-{/* TODO(author): add references and further reading. */}
+1. medium.com/@sepideh.92sh/part-iii-composing-rotations-euler-angles-and-roll-pitch-yaw-38aa816a5bcd
+2. [Homemade Gyroscope Demonstration, Gimbal Lock, and Inertial Guidance](https://www.youtube.com/watch?v=oj7v3MXJL3M)
+3. [Euler Angles Explained | Numerical Methods with Python 7](https://www.youtube.com/watch?v=2Cwa6hfn2K0) 

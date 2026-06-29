@@ -6,7 +6,7 @@ order: 3
 summary: ""
 difficulty: ""
 prerequisites: []
-status: draft
+status: published
 ---
 
 import Rotation3DVizEmbed from "@/components/viz/rotations3d/Rotation3DVizEmbed";
@@ -56,11 +56,11 @@ $$^AP = ^{A}_{B}R \, ^BP$$
 
 Matrizes de rotação não são apenas grades aleatórias de números. Elas pertencem a uma família matemática rigorosa chamada Grupo Ortogonal Especial, ou $SO(3)$. Para ser uma matriz de rotação válida em robótica, ela deve possuir estas propriedades definidoras:
 
-As colunas são ortonormais: cada coluna é um vetor unitário (comprimento exatamente igual a 1), e todas são perfeitamente perpendiculares entre si ($\hat{X} \cdot \hat{Y} = 0$).
+1. **As colunas são ortonormais**. Cada coluna é um vetor unitário (comprimento exatamente igual a 1), e todas são perfeitamente perpendiculares entre si ($\hat{X} \cdot \hat{Y} = 0$).
 
-O determinante é igual a +1 ($\det R = +1$): isso garante que a matriz representa uma rotação pura que preserva a regra da mão direita. (Um determinante de -1 significaria que o objeto foi espelhado ou virado do avesso!).
+2. **O determinante é igual a +1 ($\det R = +1$)**: isso garante que a matriz representa uma rotação pura que preserva a regra da mão direita. (Um determinante de -1 significaria que o objeto foi espelhado ou virado do avesso!).
 
-A inversa é a transposta ($R^{-1} = R^T$): esta é a propriedade mais útil na geometria computacional da robótica. Se você conhece a rotação de $A$ para $B$ ($^{A}_{B}R$) e quer encontrar a rotação de $B$ de volta para $A$ ($^{B}_{A}R$), você não precisa fazer inversões pesadas de matrizes. Basta trocar linhas e colunas:
+3. **A inversa é a transposta ($R^{-1} = R^T$)**: esta é a propriedade mais útil na geometria computacional da robótica. Se você conhece a rotação de $A$ para $B$ ($^{A}_{B}R$) e quer encontrar a rotação de $B$ de volta para $A$ ($^{B}_{A}R$), você não precisa fazer inversões pesadas de matrizes. Basta trocar linhas e colunas:
 
 $$^{B}_{A}R = \left( ^{A}_{B}R \right)^{-1} = \left( ^{A}_{B}R \right)^{T}$$
 
@@ -106,8 +106,11 @@ Isso significa que, no referencial global, o QR code está localizado a 5 metros
 
 ## Erros comuns
 
-{/* TODO(author): list common pitfalls. */}
+1. **As rotações NÃO são comutativas!**. Na matemática básica, $2 \times 3 = 3 \times 2$... mas em rotações espaciais isso não é verdade. Rotacionar $90^\circ$ em torno de X e depois $90^\circ$ em torno de Y deixa o robô em uma postura completamente diferente de rotacionar primeiro em torno de Y e depois de X. Ao encadear múltiplas rotações, a ordem importa imensamente ($R_x \cdot R_y \neq R_y \cdot R_x$).
+2. **O problema do Gimbal Lock**. Se você depende de sequências de três ângulos (como os ângulos de Euler) para descrever a orientação 3D, eventualmente vai encontrar uma singularidade matemática chamada Gimbal Lock, onde dois eixos de rotação se alinham e o sistema perde um grau de liberdade. É por isso que a simulação moderna em robótica depende fortemente de quatérnios.
 
 ## Leituras adicionais
 
-{/* TODO(author): add references and further reading. */}
+1. medium.com/@sepideh.92sh/part-iii-composing-rotations-euler-angles-and-roll-pitch-yaw-38aa816a5bcd
+2. [Homemade Gyroscope Demonstration, Gimbal Lock, and Inertial Guidance](https://www.youtube.com/watch?v=oj7v3MXJL3M)
+3. [Euler Angles Explained | Numerical Methods with Python 7](https://www.youtube.com/watch?v=2Cwa6hfn2K0)
