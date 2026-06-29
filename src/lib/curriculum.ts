@@ -293,3 +293,57 @@ export function getStudyLevels(): LessonWithArea[][] {
   // Drop empty levels (filtering hidden lessons can leave gaps).
   return levels.filter((level) => level && level.length > 0);
 }
+
+/**
+ * Area-level prerequisite edges, derived from lesson prerequisites: area X
+ * requires area Y when any lesson in X depends on a lesson in Y (Y ≠ X).
+ */
+export function getAreaPrerequisites(): Map<string, string[]> {
+  const deps = new Map<string, Set<string>>();
+  for (const area of curriculum) deps.set(area.slug, new Set());
+  for (const area of curriculum) {
+    for (const lesson of area.lessons) {
+      for (const pre of lesson.prerequisites) {
+        const preArea = getLessonBySlug(pre)?.area;
+        if (preArea && preArea !== area.slug) deps.get(area.slug)!.add(preArea);
+      }
+    }
+  }
+  return new Map([...deps].map(([slug, set]) => [slug, [...set]]));
+}
+
+/** Areas grouped into dependency levels (level 0 = no prerequisite areas). */
+export function getAreaLevels(): Area[][] {
+  const deps = getAreaPrerequisites();
+  const depthCache = new Map<string, number>();
+  const visiting = new Set<string>();
+
+  const depth = (slug: string): number => {
+    const cached = depthCache.get(slug);
+    if (cached !== undefined) return cached;
+    const pre = deps.get(slug) ?? [];
+    if (pre.length === 0) {
+      depthCache.set(slug, 0);
+      return 0;
+    }
+    if (visiting.has(slug)) return 0; // cycle guard
+    visiting.add(slug);
+    let max = 0;
+    for (const p of pre) max = Math.max(max, depth(p) + 1);
+    visiting.delete(slug);
+    depthCache.set(slug, max);
+    return max;
+  };
+
+  const levels: Area[][] = [];
+  for (const area of curriculum) {
+    const d = depth(area.slug);
+    (levels[d] ??= []).push(area);
+  }
+  return levels.filter((level) => level && level.length > 0);
+}
+
+/** First reader-visible lesson of an area (for linking from the roadmap). */
+export function getFirstVisibleLesson(areaSlug: string): LessonRef | undefined {
+  return getArea(areaSlug)?.lessons.find(isLessonVisible);
+}

@@ -22,6 +22,8 @@ export interface Dictionary {
     calloutTitle: string;
     calloutBody: string;
     roadmapTitle: string;
+    roadmapSubtitle: string;
+    roadmapAria: string;
   };
   viz: {
     textDescription: string;
@@ -74,6 +76,10 @@ const en: Dictionary = {
     calloutBody:
       "The curriculum is being authored as draft lessons. Browse the areas in the sidebar, or follow the suggested learning path below — it is ordered by each topic's prerequisites.",
     roadmapTitle: "Suggested learning path",
+    roadmapSubtitle:
+      "How the areas build on each other — pick any to start.",
+    roadmapAria:
+      "Curriculum dependency map: areas connected by prerequisite arrows.",
   },
   viz: {
     textDescription: "Text description",
@@ -126,6 +132,10 @@ const pt: Dictionary = {
     calloutBody:
       "O currículo está sendo escrito como lições em rascunho. Navegue pelas áreas na barra lateral, ou siga o caminho de estudo sugerido abaixo — ordenado pelos pré-requisitos de cada tópico.",
     roadmapTitle: "Caminho de estudo sugerido",
+    roadmapSubtitle:
+      "Como as áreas se constroem umas sobre as outras — escolha uma para começar.",
+    roadmapAria:
+      "Mapa de dependências do currículo: áreas conectadas por setas de pré-requisito.",
   },
   viz: {
     textDescription: "Descrição em texto",
