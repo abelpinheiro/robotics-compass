@@ -34,20 +34,21 @@ export default async function LessonPage({
 }) {
   const { area, slug } = await params;
   // Only lessons registered in the curriculum exist.
-  if (!getLesson(area, slug)) notFound();
+  const lessonRef = getLesson(area, slug);
+  if (!lessonRef) notFound();
 
   const mod = await loadLesson(area, slug, await getLocale());
   if (!mod) notFound();
 
   const { default: Content, frontmatter } = mod;
   const areaTitle = getArea(area)?.title;
-  const lessonRef = getLesson(area, slug);
 
   return (
     <LessonLayout
       frontmatter={frontmatter}
       areaTitle={areaTitle}
-      difficulty={lessonRef?.difficulty}
+      status={lessonRef.status}
+      difficulty={lessonRef.difficulty}
       prerequisites={getPrerequisites(slug)}
       adjacent={getAdjacentLessons(area, slug)}
     >

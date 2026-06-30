@@ -1,17 +1,23 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import type { Difficulty, LessonWithArea } from "@/lib/curriculum";
+import type {
+  Difficulty,
+  LessonStatus,
+  LessonWithArea,
+} from "@/lib/curriculum";
 import { getLocale } from "@/lib/i18n/server";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { localizedAreaTitle, localizedLessonTitle } from "@/lib/i18n/titles";
 
+// Front-matter is for content the author writes (title, summary). Structural
+// metadata — status, difficulty, prerequisites — lives in src/lib/curriculum.ts
+// (the single source of truth) and is passed in as props.
 export interface LessonFrontmatter {
   title: string;
   area: string;
   slug: string;
   order: number;
   summary?: string;
-  status: "draft" | "in-progress" | "published";
 }
 
 const DIFFICULTY_DOT: Record<Difficulty, string> = {
@@ -29,6 +35,7 @@ const DIFFICULTY_DOT: Record<Difficulty, string> = {
 export async function LessonLayout({
   frontmatter,
   areaTitle,
+  status,
   difficulty,
   prerequisites = [],
   adjacent = {},
@@ -36,12 +43,13 @@ export async function LessonLayout({
 }: {
   frontmatter: LessonFrontmatter;
   areaTitle?: string;
+  status: LessonStatus;
   difficulty?: Difficulty;
   prerequisites?: LessonWithArea[];
   adjacent?: { prev?: LessonWithArea; next?: LessonWithArea };
   children: ReactNode;
 }) {
-  const { title, summary, status, area } = frontmatter;
+  const { title, summary, area } = frontmatter;
   const { prev, next } = adjacent;
   const locale = await getLocale();
   const t = getDictionary(locale);

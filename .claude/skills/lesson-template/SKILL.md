@@ -24,20 +24,19 @@ area: <area-slug>                               # from robotics-curriculum
 slug: <topic-slug>                              # from robotics-curriculum
 order: <1-based index within the area>          # from robotics-curriculum
 summary: ""                                     # LEAVE EMPTY — author writes this
-status: draft                                   # always draft on scaffold
 ---
 ```
 
 Rules:
-- `title`, `area`, `slug`, `order`, `status` are filled from the curriculum (structural, not
-  prose).
+- `title`, `area`, `slug`, `order` are filled from the curriculum (structural, not prose).
 - `summary` is **left empty** for the human — it describes the concept and is the author's call.
-- `status` is always `draft` when scaffolding.
-- **`difficulty` and `prerequisites` live in `src/lib/curriculum.ts`** (on the `LessonRef`),
-  not in front-matter — they form the prerequisite graph that powers prereq links, prev/next
-  navigation, and the home-page study roadmap. Set them when registering the lesson in the
-  curriculum (structural metadata, not prose). Existing lessons may still carry empty
-  `difficulty`/`prerequisites` front-matter keys; those are ignored.
+- **`status`, `difficulty`, and `prerequisites` live ONLY in `src/lib/curriculum.ts`** (on the
+  `LessonRef`), not in front-matter. `status` controls visibility (drafts are hidden from the
+  sidebar/roadmap); `difficulty`/`prerequisites` form the graph that powers prereq links,
+  prev/next navigation, and the home-page roadmap. **To publish a lesson, set
+  `status: "published"` on its `LessonRef` in `curriculum.ts`** (not the MDX). New lessons start
+  `status: "draft"` there. Existing lessons may still carry an ignored `status`/`difficulty`/
+  `prerequisites` front-matter key; the app does not read them.
 
 ## Section placeholders (fixed order, empty)
 
@@ -84,7 +83,6 @@ area: path-planning
 slug: a-star
 order: 5
 summary: ""
-status: draft
 ---
 
 ## Intuition
