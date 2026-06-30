@@ -50,7 +50,9 @@ Ela descreve: suas colunas descrevem literalmente a orientação dos eixos de $\
 
 Ela mapeia: atua como um operador para mapear um vetor de posição do referencial local para o referencial global, estendendo nossa equação de mapeamento 2D para 3D:
 
-$$^AP = ^{A}_{B}R \, ^BP$$
+$$
+^AP = ^{A}_{B}R \, ^BP
+$$
 
 ### Propriedades de SO(3)
 
@@ -62,7 +64,9 @@ Matrizes de rotação não são apenas grades aleatórias de números. Elas pert
 
 3. **A inversa é a transposta ($R^{-1} = R^T$)**: esta é a propriedade mais útil na geometria computacional da robótica. Se você conhece a rotação de $A$ para $B$ ($^{A}_{B}R$) e quer encontrar a rotação de $B$ de volta para $A$ ($^{B}_{A}R$), você não precisa fazer inversões pesadas de matrizes. Basta trocar linhas e colunas:
 
-$$^{B}_{A}R = \left( ^{A}_{B}R \right)^{-1} = \left( ^{A}_{B}R \right)^{T}$$
+$$
+^{B}_{A}R = \left( ^{A}_{B}R \right)^{-1} = \left( ^{A}_{B}R \right)^{T}
+$$
 
 ### Rotações principais
 
@@ -70,15 +74,21 @@ Existem três matrizes de rotação básicas para girar por um ângulo $\theta$ 
 
 Rotação em torno de X (Roll):
 
-$$R_x(\theta) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos\theta & -\sin\theta \\ 0 & \sin\theta & \cos\theta \end{bmatrix}$$
+$$
+R_x(\theta) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos\theta & -\sin\theta \\ 0 & \sin\theta & \cos\theta \end{bmatrix}
+$$
 
 Rotação em torno de Y (Pitch):
 
-$$R_y(\theta) = \begin{bmatrix} \cos\theta & 0 & \sin\theta \\ 0 & 1 & 0 \\ -\sin\theta & 0 & \cos\theta \end{bmatrix}$$
+$$
+R_y(\theta) = \begin{bmatrix} \cos\theta & 0 & \sin\theta \\ 0 & 1 & 0 \\ -\sin\theta & 0 & \cos\theta \end{bmatrix}
+$$
 
 Rotação em torno de Z (Yaw):
 
-$$R_z(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}$$
+$$
+R_z(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}
+$$
 
 ## Visualização
 
@@ -90,17 +100,23 @@ Um braço robótico tem uma câmera montada no punho. Vamos chamar o chão de re
 
 A câmera detecta um QR code perfeitamente centralizado em sua visão, a exatamente 5 metros ao longo do seu eixo Z local. Então, no referencial da câmera, a posição do QR code é:
 
-$$^BP = \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix}$$
+$$
+^BP = \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix}
+$$
 
 **Onde está o QR code em relação ao referencial do chão ($^AP$)?**
 
 Primeiro, construímos a matriz de rotação para uma rotação de $90^\circ$ em torno de Y. Como $\cos(90^\circ) = 0$ e $\sin(90^\circ) = 1$, a matriz $R_y(90^\circ)$ fica:
 
-$$^{A}_{B}R = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix}$$
+$$
+^{A}_{B}R = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix}
+$$
 
 Agora, mapeie o vetor usando $^AP = ^{A}_{B}R \, ^BP$:
 
-$$^AP = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix} = \begin{bmatrix} 5 \\ 0 \\ 0 \end{bmatrix}$$
+$$
+^AP = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix} = \begin{bmatrix} 5 \\ 0 \\ 0 \end{bmatrix}
+$$
 
 Isso significa que, no referencial global, o QR code está localizado a 5 metros ao longo do eixo X.
 

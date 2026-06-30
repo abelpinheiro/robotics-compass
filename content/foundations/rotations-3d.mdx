@@ -50,7 +50,9 @@ This matrix is the heart of spatial kinematics because it performs two distinct 
 
 **It Maps**: It acts as an operator to map a position vector from the local frame to the global frame, extending our 2D mapping equation to 3D:
 
-$$^AP = ^{A}_{B}R \, ^BP$$
+$$
+^AP = ^{A}_{B}R \, ^BP
+$$
 
 ### Properties of SO(3)
 
@@ -62,7 +64,9 @@ Rotation matrices are not just random grids of numbers. They belong to a strict 
 
 3. **The Inverse is the Transpose ($R^{-1} = R^T$)**: This is the single most useful property in robotics computational geometry. If you know the rotation from $A$ to $B$ ($^{A}_{B}R$) and want to find the rotation from $B$ back to $A$ ($^{B}_{A}R$), you don't need to perform heavy matrix inversions. You just swap the rows and columns:
 
-$$^{B}_{A}R = \left( ^{A}_{B}R \right)^{-1} = \left( ^{A}_{B}R \right)^{T}$$
+$$
+^{B}_{A}R = \left( ^{A}_{B}R \right)^{-1} = \left( ^{A}_{B}R \right)^{T}
+$$
 
 ### Principal Rotations
 
@@ -70,15 +74,21 @@ There are three basic rotation matrices for spinning by an angle $\theta$ around
 
 Rotation around X (Roll):
 
-$$R_x(\theta) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos\theta & -\sin\theta \\ 0 & \sin\theta & \cos\theta \end{bmatrix}$$
+$$
+R_x(\theta) = \begin{bmatrix} 1 & 0 & 0 \\ 0 & \cos\theta & -\sin\theta \\ 0 & \sin\theta & \cos\theta \end{bmatrix}
+$$
 
 Rotation around Y (Pitch):
 
-$$R_y(\theta) = \begin{bmatrix} \cos\theta & 0 & \sin\theta \\ 0 & 1 & 0 \\ -\sin\theta & 0 & \cos\theta \end{bmatrix}$$
+$$
+R_y(\theta) = \begin{bmatrix} \cos\theta & 0 & \sin\theta \\ 0 & 1 & 0 \\ -\sin\theta & 0 & \cos\theta \end{bmatrix}
+$$
 
 Rotation around Z (Yaw):
 
-$$R_z(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}$$
+$$
+R_z(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}
+$$
 
 
 
@@ -92,17 +102,23 @@ A robot arm has a camera mounted on its wrist. Let's call the ground the global 
 
 The camera detects a QR code perfectly centered in its view, exactly 5 meters away along its local Z-axis. So, in the camera's frame, the position of the QR code is:
 
-$$^BP = \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix}$$
+$$
+^BP = \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix}
+$$
 
 **Where is the QR code in relation to the ground frame ($^AP$)?**
 
 First, we build the rotation matrix for a $90^\circ$ rotation around Y. Since $\cos(90^\circ) = 0$ and $\sin(90^\circ) = 1$, the $R_y(90^\circ)$ matrix becomes:
 
-$$^{A}_{B}R = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix}$$
+$$
+^{A}_{B}R = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix}
+$$
 
 Now, map the vector using $^AP = ^{A}_{B}R \, ^BP$:
 
-$$^AP = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix} = \begin{bmatrix} 5 \\ 0 \\ 0 \end{bmatrix}$$
+$$
+^AP = \begin{bmatrix} 0 & 0 & 1 \\ 0 & 1 & 0 \\ -1 & 0 & 0 \end{bmatrix} \begin{bmatrix} 0 \\ 0 \\ 5 \end{bmatrix} = \begin{bmatrix} 5 \\ 0 \\ 0 \end{bmatrix}
+$$
 
 That means that in the global frame, the QR code is located 5 meters along the X-axis.
 
