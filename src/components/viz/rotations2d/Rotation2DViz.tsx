@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { Viz2D } from "@/components/viz/Viz2D";
 import { VizFrame } from "@/components/viz/VizFrame";
 import { MatrixDisplay } from "@/components/viz/MatrixDisplay";
@@ -150,9 +150,10 @@ function RotationCanvas({
     ctx.fill();
   }, [width, height, theta, pBody]);
 
-  // Draw now and again on the next frame, so a cold first paint (styles/layout
-  // not yet settled) still ends up rendered without needing user interaction.
-  useEffect(() => {
+  // Paint synchronously with the committed layout (before the browser paints),
+  // then once more on the next frame as a safety net for cold loads where
+  // styles/layout have not fully settled — without needing user interaction.
+  useLayoutEffect(() => {
     draw();
     const id = requestAnimationFrame(draw);
     return () => cancelAnimationFrame(id);

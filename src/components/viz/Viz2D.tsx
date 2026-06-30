@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useLayoutEffect, useRef, useState, type ReactNode } from "react";
 
 export interface VizSize {
   width: number;
@@ -31,9 +31,14 @@ export function Viz2D({
   const ref = useRef<HTMLDivElement>(null);
   const [width, setWidth] = useState(0);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     if (!el) return;
+    // Measure synchronously before paint so children render at the correct size
+    // on the first committed frame. Waiting only on the async ResizeObserver
+    // callback leaves the canvas mounted-but-unpainted for a frame, which on
+    // cold loads can persist as a blank canvas until the next re-render.
+    setWidth(el.getBoundingClientRect().width);
     const observer = new ResizeObserver((entries) => {
       const entry = entries[0];
       if (entry) setWidth(entry.contentRect.width);
