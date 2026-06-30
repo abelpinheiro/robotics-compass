@@ -10,6 +10,23 @@ import { localizedAreaTitle, localizedLessonTitle } from "@/lib/i18n/titles";
 
 const STORAGE_KEY = "rc-collapsed-areas";
 
+// Optional external courses for readers who want to go further (institution
+// names are language-neutral, so not part of the translation dictionary).
+const COURSES = [
+  {
+    label: "Hugging Face — Robotics Course",
+    href: "https://huggingface.co/learn/robotics-course",
+  },
+  {
+    label: "Univ. of Michigan — Online Robotics",
+    href: "https://robotics.umich.edu/academics/courses/online-courses/",
+  },
+  {
+    label: "ETH Zürich — Robot Learning",
+    href: "https://cvg.ethz.ch/lectures/Robot-Learning/",
+  },
+];
+
 // Tiny external store for the persisted set of collapsed areas. Using
 // useSyncExternalStore keeps it hydration-safe (server snapshot = none
 // collapsed) without setting state inside an effect.
@@ -147,8 +164,48 @@ export function Sidebar() {
             })}
           </ul>
         </nav>
+
+        <div className="mt-6 border-t border-border pt-4">
+          <p className="mb-2 font-serif text-[0.8125rem] font-semibold tracking-wide text-muted uppercase">
+            {t.nav.relatedCourses}
+          </p>
+          <ul className="space-y-0.5 text-sm">
+            {COURSES.map((course) => (
+              <li key={course.href}>
+                <a
+                  href={course.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between gap-2 rounded-md px-2 py-1.5 text-muted transition-colors hover:bg-surface-2 hover:text-foreground"
+                >
+                  <span>{course.label}</span>
+                  <ExternalLinkIcon />
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
       </aside>
     </>
+  );
+}
+
+function ExternalLinkIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      width="13"
+      height="13"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+      className="shrink-0 text-faint"
+    >
+      <path d="M7 17L17 7M9 7h8v8" />
+    </svg>
   );
 }
 

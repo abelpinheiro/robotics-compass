@@ -6,6 +6,7 @@ export interface Dictionary {
     curriculum: string;
     lessonsComingSoon: string;
     toggleNav: string;
+    relatedCourses: string;
   };
   langToggle: { label: string; en: string; pt: string };
   badge: { draft: string; "in-progress": string; published: string };
@@ -58,6 +59,7 @@ const en: Dictionary = {
     curriculum: "Curriculum",
     lessonsComingSoon: "Lessons coming soon",
     toggleNav: "Toggle navigation",
+    relatedCourses: "Related courses",
   },
   langToggle: { label: "Change language", en: "EN", pt: "PT" },
   badge: { draft: "draft", "in-progress": "in progress", published: "published" },
@@ -114,6 +116,7 @@ const pt: Dictionary = {
     curriculum: "Currículo",
     lessonsComingSoon: "Lições em breve",
     toggleNav: "Alternar navegação",
+    relatedCourses: "Cursos relacionados",
   },
   langToggle: { label: "Mudar idioma", en: "EN", pt: "PT" },
   badge: { draft: "rascunho", "in-progress": "em progresso", published: "publicado" },
