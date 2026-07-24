@@ -21,7 +21,7 @@ const lessonTitlesPt: Record<string, string> = {
   "vectors-and-frames": "Vetores e referenciais",
   "rotations-2d": "Rotações em 2D",
   "rotations-3d": "Rotações em 3D (SO(3))",
-  "homogeneous-transforms": "Transformações homogêneas (SE(3))",
+  "homogeneous-transforms": "Transformações homogêneas",
   quaternions: "Quatérnios",
   "twists-and-screws": "Twists e screws",
   // kinematics
