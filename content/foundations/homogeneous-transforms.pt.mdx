@@ -1,0 +1,89 @@
+---
+title: "Transformações homogêneas (SE(3))"
+area: foundations
+slug: homogeneous-transforms
+order: 4
+summary: ""
+difficulty: ""
+prerequisites: []
+status: draft
+---
+
+import SE3ArmVizEmbed from "@/components/viz/se3/SE3ArmVizEmbed";
+import SE3VizEmbed from "@/components/viz/se3/SE3VizEmbed";
+
+## Intuição
+
+Até agora, resolvemos o mapeamento espacial em duas partes separadas.
+Na seção de vetores e referenciais, aprendemos a lidar com a translação pura usando a adição de vetores: $^AP = ^BP + ^AP_{BORG}$.
+Na seção de rotações em 3D, aprendemos a lidar com a rotação pura usando a multiplicação de matrizes: $^AP = ^{A}_{B}R \, ^BP$.
+
+No mundo real, porém, o efetuador final de um robô quase sempre está ao mesmo tempo transladado e rotacionado em relação à sua base. Se tentarmos combinar nossas duas equações, obtemos:
+
+$$^AP = ^{A}_{B}R \, ^BP + ^AP_{BORG}$$
+
+Embora essa equação esteja matematicamente correta, ela é computacionalmente inconveniente. Ela exige duas operações diferentes: uma multiplicação seguida de uma adição. Se tivermos um braço robótico com 6 juntas, encadear essas equações se torna um pesadelo algébrico gigantesco.
+
+Para ajudar com esse problema, introduzimos uma técnica chamada **coordenadas homogêneas**.
+
+## Definição formal
+
+### A matriz $4\times4$
+Uma matriz de transformação homogênea, normalmente denotada por $T$, é uma matriz $4 \times 4$ que pertence ao Grupo Euclidiano Especial, ou $SE(3)$. Ela descreve perfeitamente um referencial completo $\{B\}$ em relação ao referencial $\{A\}$ ao aninhar a matriz de rotação $3 \times 3$ $R$ e o vetor de posição $3 \times 1$ $P$ dentro dela:
+
+$$^{A}_{B}T = \begin{bmatrix} ^{A}_{B}R & ^AP_{BORG} \\ 0 \quad 0 \quad 0 & 1 \end{bmatrix}$$
+
+- O bloco $3 \times 3$ superior esquerdo é a rotação.
+
+- A coluna $3 \times 1$ superior direita é a translação (posição).
+
+- A última linha é $[0, 0, 0, 1]$.
+
+### Vetores homogêneos
+Para multiplicar uma matriz $4 \times 4$ por um vetor de posição 3D, o vetor também precisa ser ampliado para 4 dimensões.
+
+$$P_{homogeneous} = \begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix}$$
+
+### A equação de mapeamento unificada
+A equação foi simplificada para uma única multiplicação. $P$ de $\{B\}$ para $\{A\}$:
+
+$$^AP = ^{A}_{B}T \, ^BP$$
+
+### Inversa de uma transformação homogênea
+
+Diferentemente das matrizes de rotação puras, $T^{-1}$ não é igual a $T^T$. No entanto, como $T$ é composta por componentes de corpo rígido, existe um atalho computacionalmente barato para encontrar a inversa sem fazer álgebra linear pesada:
+
+$$\left( ^{A}_{B}T \right)^{-1} = ^{B}_{A}T = \begin{bmatrix} R^T & -R^T P \\ 0 \quad 0 \quad 0 & 1 \end{bmatrix}$$
+
+## Visualização
+
+<SE3ArmVizEmbed />
+
+<SE3VizEmbed />
+
+## Exemplo resolvido
+
+Considere um robô móvel. O referencial global $\{A\}$ é a origem da sala. O chassi do robô $\{B\}$ está localizado em $x = 3\,\text{m}$, $y = 2\,\text{m}$ no chão e está rotacionado $90^\circ$ em torno do eixo Z (guinada).
+
+Montado no chassi há um scanner a laser. No referencial local do chassi $\{B\}$, uma parede é detectada em $[1, 0, 0]^T$ (1 metro diretamente à frente do scanner).
+
+Vamos encontrar a posição global da parede ($^AP$) usando uma matriz de transformação homogênea.
+
+Primeiro, construímos a matriz $4 \times 4$ $^{A}_{B}T$.
+A rotação é uma guinada de $90^\circ$ ($R_z$), e a translação é $^AP_{BORG} = [3, 2, 0]^T$.
+
+$$^{A}_{B}T = \begin{bmatrix} 0 & -1 & 0 & 3 \\ 1 & 0 & 0 & 2 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}$$
+
+Em seguida, preparamos nosso vetor local $^BP$ acrescentando um 1 para torná-lo homogêneo:
+
+$$^BP_{hom} = \begin{bmatrix} 1 \\ 0 \\ 0 \\ 1 \end{bmatrix}$$
+
+Por fim, multiplicamos:
+
+$$^AP = \begin{bmatrix} 0 & -1 & 0 & 3 \\ 1 & 0 & 0 & 2 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} 1 \\ 0 \\ 0 \\ 1 \end{bmatrix} = \begin{bmatrix} (0\cdot1) + 3\cdot1 \\ (1\cdot1) + 2\cdot1 \\ 0 \\ 1 \end{bmatrix} = \begin{bmatrix} 3 \\ 3 \\ 0 \\ 1 \end{bmatrix}$$
+
+Concluímos que as coordenadas globais da parede são $x = 3, y = 3, z = 0$.
+
+## Leituras adicionais
+
+{/* TODO(author): add references and further reading. */}

@@ -9,31 +9,81 @@ prerequisites: []
 status: draft
 ---
 
+import SE3ArmVizEmbed from "@/components/viz/se3/SE3ArmVizEmbed";
 import SE3VizEmbed from "@/components/viz/se3/SE3VizEmbed";
 
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+Up until now, we have solved spatial mapping in two separate pieces.
+In the section of vector and frames, we learned how to handle pure translation using vector addition: $^AP = ^BP + ^AP_{BORG}$.
+In the section of rotations in 3D, we learned how to handle pure rotation using matrix multiplication: $^AP = ^{A}_{B}R \, ^BP$.
 
+In the real world, however, a robot's end-effector is almost always both translated and rotated relative to its base. If we try to combine our two equations, we get:
+
+$$^AP = ^{A}_{B}R \, ^BP + ^AP_{BORG}$$
+
+While this equation is mathematically correct, it is computationally annoying. It requires two different operations: a multiplication followed by an addition. If we have a robot arm with 6 joints, chaining these equations together becomes a massive algebraic nightmare.
+
+To help with this problem, we introduce a technique called **Homogeneous Coordinates**
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+### The $4\times4$ matrix
+A Homogeneous Transformation Matrix, usually denoted as $T$, is a $4 \times 4$ matrix that belongs to the Special Euclidean Group, or $SE(3)$. It perfectly describes a complete frame $\{B\}$ relative to frame $\{A\}$ by nesting the $3 \times 3$ rotation matrix $R$ and the $3 \times 1$ position vector $P$ inside it:
+
+$$^{A}_{B}T = \begin{bmatrix} ^{A}_{B}R & ^AP_{BORG} \\ 0 \quad 0 \quad 0 & 1 \end{bmatrix}$$
+
+- The top-left $3 \times 3$ block is the Rotation.
+
+- The top-right $3 \times 1$ column is the Translation (Position).
+
+- The bottom row is $[0, 0, 0, 1]$.
+
+### Homogeneous vectors
+To multiply a $4 \times 4$ matrix by a 3D position vector, the vector must also be upgraded to 4 dimensions.
+
+$$P_{homogeneous} = \begin{bmatrix} x \\ y \\ z \\ 1 \end{bmatrix}$$
+
+### The Unified Mapping Equation
+The equation has been simplified to a single multiplication. $P$ from $\{B\}$ to $\{A\}$:
+
+$$^AP = ^{A}_{B}T \, ^BP$$
+
+### Inverse of a homogeneous transform
+
+Unlike pure rotation matrices, $T^{-1}$ is not equal to $T^T$. However, because $T$ is made of rigid body components, there is a computationally cheap shortcut to find the inverse without doing heavy linear algebra:
+
+$$\left( ^{A}_{B}T \right)^{-1} = ^{B}_{A}T = \begin{bmatrix} R^T & -R^T P \\ 0 \quad 0 \quad 0 & 1 \end{bmatrix}$$
 
 ## Visualization
+
+<SE3ArmVizEmbed />
 
 <SE3VizEmbed />
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+Consider a mobile robot. The global frame $\{A\}$ is the room's origin. The robot's chassis $\{B\}$ is located at $x = 3m$, $y = 2m$ on the floor and is rotated $90^\circ$ around the Z-axis (Yaw).
 
-## Common pitfalls
+Mounted on the chassis is a laser scanner. In the chassis' local frame $\{B\}$, a wall is detected at $[1, 0, 0]^T$ (1 meter straight ahead of the scanner).
 
-{/* TODO(author): list common pitfalls. */}
+Let's find the global position of the wall ($^AP$) using a Homogeneous Transformation Matrix.
 
-## Exercises
+First, we construct the $4 \times 4$ matrix $^{A}_{B}T$.
+The rotation is a $90^\circ$ Yaw ($R_z$), and the translation is $^AP_{BORG} = [3, 2, 0]^T$.
 
-{/* TODO(author): add exercises. */}
+$$^{A}_{B}T = \begin{bmatrix} 0 & -1 & 0 & 3 \\ 1 & 0 & 0 & 2 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}$$
+
+Next, we prepare our local vector $^BP$ by appending a 1 to make it homogeneous:
+
+
+$$^BP_{hom} = \begin{bmatrix} 1 \\ 0 \\ 0 \\ 1 \end{bmatrix}$$
+
+Finally, we multiply:
+
+
+$$^AP = \begin{bmatrix} 0 & -1 & 0 & 3 \\ 1 & 0 & 0 & 2 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} 1 \\ 0 \\ 0 \\ 1 \end{bmatrix} = \begin{bmatrix} (0\cdot1) + 3\cdot1 \\ (1\cdot1) + 2\cdot1 \\ 0 \\ 1 \end{bmatrix} = \begin{bmatrix} 3 \\ 3 \\ 0 \\ 1 \end{bmatrix}$$
+
+We conclude that the wall's global coordinates are $x = 3, y = 3, z = 0$.
 
 ## Further reading
 
