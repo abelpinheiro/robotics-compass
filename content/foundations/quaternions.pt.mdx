@@ -1,0 +1,79 @@
+---
+title: "Quatérnios"
+area: foundations
+slug: quaternions
+order: 5
+summary: ""
+difficulty: ""
+prerequisites: []
+status: draft
+---
+
+import QuaternionVizEmbed from "@/components/viz/quaternions/QuaternionVizEmbed";
+
+## Intuição
+
+Em vez de depender de ângulos de Euler e matrizes de rotação para descrever rotações 3D, a robótica moderna e os motores de jogos usam *quatérnios*. Em vez de pensar em três rotações separadas (X, depois Y, depois Z) e usar 9 números diferentes para representar uma orientação, podemos simplificar definindo um único eixo e girando o robô por um certo ângulo em torno dele.
+
+Um quatérnio é simplesmente um objeto compacto de 4 números que codifica esse conceito de eixo-ângulo.
+
+## Definição formal
+
+### A estrutura de um quatérnio
+
+Um quatérnio $q$ é uma extensão dos números complexos, mas, em vez de uma parte imaginária, ele tem três ($i, j, k$). Na robótica, normalmente escrevemos um quatérnio unitário como um vetor 4D composto por uma parte escalar ($w$) e uma parte vetorial ($x, y, z$):
+
+$$
+\mathbf{q} = \begin{bmatrix} w \\ x \\ y \\ z \end{bmatrix} = \begin{bmatrix} \cos(\theta/2) \\ v_x \sin(\theta/2) \\ v_y \sin(\theta/2) \\ v_z \sin(\theta/2) \end{bmatrix}
+$$
+
+Onde:
+
+- $\theta$ é o ângulo de rotação.
+
+- $[v_x, v_y, v_z]^T$ é o vetor unitário que representa o eixo de rotação.
+
+O quatérnio deve ser um quatérnio unitário. Isso significa que sua magnitude deve ser igual a 1:
+
+$$\vert{}\vert{}q\vert{}\vert{} = \sqrt{w^2 + x^2 + y^2 + z^2} = 1$$
+
+### Convertendo para matrizes de rotação
+Podemos converter o quatérnio de volta para matrizes $3 \times 3$ para mapear vetores. A fórmula de conversão é computacionalmente barata e evita completamente funções trigonométricas:
+
+$$R(q) = \begin{bmatrix}  1 - 2y^2 - 2z^2 & 2xy - 2wz & 2xz + 2wy \\ 2xy + 2wz & 1 - 2x^2 - 2z^2 & 2yz - 2wx \\ 2xz - 2wy & 2yz + 2wx & 1 - 2x^2 - 2y^2 \end{bmatrix}$$
+
+
+
+## Visualização
+
+<QuaternionVizEmbed />
+
+## Exemplo resolvido
+
+Vamos calcular o quatérnio que representa a seguinte orientação: estamos programando um drone no PyBullet. O drone começa apontando para a frente (alinhado com o eixo X global).
+Queremos girar o drone $90^\circ$ para a esquerda em torno do eixo vertical Z.
+
+Para resolver isso, vamos definir o eixo e o ângulo.
+A rotação é em torno do eixo Z, então nosso vetor unitário de eixo é $\mathbf{v} = [0, 0, 1]^T$.
+O ângulo é $\theta = 90^\circ$. (Em radianos, $\theta = \pi/2$).
+
+Agora, substituímos esses valores na definição do quatérnio:
+
+Escalar ($w$): $\cos(90^\circ / 2) = \cos(45^\circ) = 0.707$
+
+Parte X: $0 \cdot \sin(45^\circ) = 0$
+
+Parte Y: $0 \cdot \sin(45^\circ) = 0$
+
+Parte Z: $1 \cdot \sin(45^\circ) = 0.707$
+
+Conclusão:
+O quatérnio que representa uma guinada (yaw) de $90^\circ$ é $\mathbf{q} = [0.707, \ 0, \ 0, \ 0.707]^T$. Repare como ele satisfaz perfeitamente a restrição unitária ($0.707^2 + 0.707^2 \approx 1$). Esse é exatamente o formato de array que você passará para pybullet.resetBasePositionAndOrientation().
+
+## Erros comuns
+
+1. Diferentemente dos ângulos de Euler, os quatérnios não são legíveis por humanos. Você não consegue olhar para $[0.2, 0.4, 0.5, 0.7]$ e visualizar a postura. Confie na matemática, use funções de conversão (como scipy.spatial.transform.Rotation) quando precisar imprimir logs para depuração, e nunca tente ajustar valores de quatérnios manualmente.
+
+## Leituras adicionais
+
+1. [Quaternions and 3d rotation, explained interactively](https://www.youtube.com/watch?v=zjMuIxRvygQ)

@@ -13,11 +13,36 @@ import QuaternionVizEmbed from "@/components/viz/quaternions/QuaternionVizEmbed"
 
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+Instead of relying in Euler Angles and Rotation Matrices to describe 3D rotations, modern robotics and game engines use *Quaternions*. Instead of thinking about three separate rotations (X, then Y, then Z) and using 9 different numbers to represent an orientation, we can simplify by defining this single axis and rotating the robot by a certain angle around it.
+
+A quaternion is simply a compact, 4-number object that encodes this axis-angle concept.
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+### The Structure of a Quaternion
+
+A quaternion $q$ is an extension of complex numbers, but instead of one imaginary part, it has three ($i, j, k$). For robotics, we usually write a unit quaternion as a 4D vector composed of a scalar part ($w$) and a vector part ($x, y, z$):
+
+$$
+\mathbf{q} = \begin{bmatrix} w \\ x \\ y \\ z \end{bmatrix} = \begin{bmatrix} \cos(\theta/2) \\ v_x \sin(\theta/2) \\ v_y \sin(\theta/2) \\ v_z \sin(\theta/2) \end{bmatrix}
+$$
+
+Where:
+
+- $\theta$ is the angle of rotation.
+
+- $[v_x, v_y, v_z]^T$ is the unit vector representing the axis of rotation.
+
+The quaternion must be a unit quaternion. This means its magnitude must equal 1:
+
+$$\vert{}\vert{}q\vert{}\vert{} = \sqrt{w^2 + x^2 + y^2 + z^2} = 1$$
+
+### Converting to Rotation Matrices
+We can convert the quaternion back to $3 \times 3$ matrices to map vectors. The conversion formula is computationally cheap and avoids trigonometric functions entirely:
+
+$$R(q) = \begin{bmatrix}  1 - 2y^2 - 2z^2 & 2xy - 2wz & 2xz + 2wy \\ 2xy + 2wz & 1 - 2x^2 - 2z^2 & 2yz - 2wx \\ 2xz - 2wy & 2yz + 2wx & 1 - 2x^2 - 2y^2 \end{bmatrix}$$
+
+
 
 ## Visualization
 
@@ -25,16 +50,30 @@ import QuaternionVizEmbed from "@/components/viz/quaternions/QuaternionVizEmbed"
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+Let's calculate the quaternion that represents the following orientation: We are programming a drone in PyBullet. The drone starts facing forward (aligned with the global X-axis). 
+We want to rotate the drone $90^\circ$ to the left around the vertical Z-axis.
+
+To solve this, we will define the axis and the angle.
+The rotation is around the Z-axis, so our unit axis vector is $\mathbf{v} = [0, 0, 1]^T$.
+The angle is $\theta = 90^\circ$. (In radians, $\theta = \pi/2$).
+
+Now, plug these into the quaternion definition:
+
+Scalar ($w$): $\cos(90^\circ / 2) = \cos(45^\circ) = 0.707$
+
+X part: $0 \cdot \sin(45^\circ) = 0$
+
+Y part: $0 \cdot \sin(45^\circ) = 0$
+
+Z part: $1 \cdot \sin(45^\circ) = 0.707$
+
+Conclusion:
+The quaternion representing a $90^\circ$ Yaw is $\mathbf{q} = [0.707, \ 0, \ 0, \ 0.707]^T$. Notice how it perfectly fulfills the unit constraint ($0.707^2 + 0.707^2 \approx 1$). This is exactly the array format you will pass into pybullet.resetBasePositionAndOrientation().
 
 ## Common pitfalls
 
-{/* TODO(author): list common pitfalls. */}
-
-## Exercises
-
-{/* TODO(author): add exercises. */}
+1. Unlike Euler angles, quaternions are not human-readable. You cannot look at $[0.2, 0.4, 0.5, 0.7]$ and visualize the posture. Trust the math, use conversion functions (like scipy.spatial.transform.Rotation) when you need to print logs for debugging, and never try to manually tweak quaternion values by hand.
 
 ## Further reading
 
-1. https://www.youtube.com/watch?v=zjMuIxRvygQ
+1. [Quaternions and 3d rotation, explained interactively](https://www.youtube.com/watch?v=zjMuIxRvygQ)
