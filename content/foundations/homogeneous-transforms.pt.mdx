@@ -19,7 +19,9 @@ Na seção de rotações em 3D, aprendemos a lidar com a rotação usando a mult
 
 No mundo real, porém, o efetuador final de um robô quase sempre está ao mesmo tempo transladado e rotacionado em relação à sua base. Se tentarmos combinar nossas duas equações, obtemos:
 
-$$^AP = ^{A}_{B}R \, ^BP + ^AP_{BORG}$$
+$$
+^AP = ^{A}_{B}R \, ^BP + ^AP_{BORG}
+$$
 
 Embora essa equação esteja matematicamente correta, ela é computacionalmente inconveniente. Ela exige duas operações diferentes: uma multiplicação seguida de uma adição. Se tivermos um braço robótico com 6 juntas, encadear essas equações se torna um pesadelo algébrico gigantesco.
 

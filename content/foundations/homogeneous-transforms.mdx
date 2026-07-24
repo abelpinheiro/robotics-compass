@@ -19,7 +19,9 @@ In the section of rotations in 3D, we learned how to handle rotation using matri
 
 In the real world, however, a robot's end-effector is almost always both translated and rotated relative to its base. If we try to combine our two equations, we get:
 
-$$^AP = ^{A}_{B}R \, ^BP + ^AP_{BORG}$$
+$$
+^AP = ^{A}_{B}R \, ^BP + ^AP_{BORG}
+$$
 
 While this equation is mathematically correct, it is computationally annoying. It requires two different operations: a multiplication followed by an addition. If we have a robot arm with 6 joints, chaining these equations together becomes a massive algebraic nightmare.
 
