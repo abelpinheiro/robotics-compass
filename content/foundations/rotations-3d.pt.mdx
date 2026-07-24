@@ -90,6 +90,19 @@ $$
 R_z(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}
 $$
 
+### Composição de rotações (ângulos de Euler)
+Qualquer orientação arbitrária pode ser obtida compondo rotações elementares em torno dos eixos principais.
+Uma forma comum de fazer isso é usando ângulos de Euler, que descrevem uma orientação como uma sequência de três rotações. Em robótica, a sequência mais comum é a dos ângulos de Euler Z-Y-X (também conhecida como Yaw-Pitch-Roll, ou guinada-arfagem-rolagem).
+
+Se um robô guina por um ângulo $\psi$ (em torno de Z), depois arfa por $\theta$ (em torno do novo Y) e finalmente rola por $\phi$ (em torno do novo X), a matriz de rotação combinada final é:
+
+$$
+R_{ZYX}(\psi, \theta, \phi) = R_z(\psi) \, R_y(\theta) \, R_x(\phi)
+$$
+
+Quando matrizes de rotação operam sobre vetores-coluna, as matrizes são aplicadas da direita para a esquerda.
+
+
 ## Visualização
 
 <Rotation3DVizEmbed />
@@ -122,7 +135,7 @@ Isso significa que, no referencial global, o QR code está localizado a 5 metros
 
 ## Erros comuns
 
-1. **As rotações NÃO são comutativas!**. Na matemática básica, $2 \times 3 = 3 \times 2$... mas em rotações espaciais isso não é verdade. Rotacionar $90^\circ$ em torno de X e depois $90^\circ$ em torno de Y deixa o robô em uma postura completamente diferente de rotacionar primeiro em torno de Y e depois de X. Ao encadear múltiplas rotações, a ordem importa imensamente ($R_x \cdot R_y \neq R_y \cdot R_x$).
+1. **As rotações NÃO são comutativas!**. Na matemática básica, $2 \times 3 = 3 \times 2$... mas em rotações espaciais isso não é verdade. Rotacionar $90^\circ$ em torno de X e depois $90^\circ$ em torno de Y deixa o robô em uma postura completamente diferente de rotacionar primeiro em torno de Y e depois de X. Ao encadear múltiplas rotações, a ordem importa imensamente ($R_x(90^{\circ}) \cdot R_y(90^{\circ}) \neq R_y(90^{\circ}) \cdot R_x(90^{\circ})$).
 2. **O problema do Gimbal Lock**. Se você depende de sequências de três ângulos (como os ângulos de Euler) para descrever a orientação 3D, eventualmente vai encontrar uma singularidade matemática chamada Gimbal Lock, onde dois eixos de rotação se alinham e o sistema perde um grau de liberdade. É por isso que a simulação moderna em robótica depende fortemente de quatérnios.
 
 ## Leituras adicionais
@@ -130,3 +143,4 @@ Isso significa que, no referencial global, o QR code está localizado a 5 metros
 1. [Part III — Composing Rotations: Euler Angles and Roll–Pitch–Yaw](https://medium.com/@sepideh.92sh/part-iii-composing-rotations-euler-angles-and-roll-pitch-yaw-38aa816a5bcd)
 2. [Homemade Gyroscope Demonstration, Gimbal Lock, and Inertial Guidance](https://www.youtube.com/watch?v=oj7v3MXJL3M)
 3. [Euler Angles Explained | Numerical Methods with Python 7](https://www.youtube.com/watch?v=2Cwa6hfn2K0)
+4. Bruno Siciliano — Robotics: Modelling, Planning and Control, Capítulo 2, seção 4

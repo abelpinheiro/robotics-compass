@@ -90,6 +90,17 @@ $$
 R_z(\theta) = \begin{bmatrix} \cos\theta & -\sin\theta & 0 \\ \sin\theta & \cos\theta & 0 \\ 0 & 0 & 1 \end{bmatrix}
 $$
 
+### Composing Rotations (Euler Angles)
+Any arbitrary orientation can be obtained by composing elementary rotations about the principal axes.
+A common way to do this is using Euler Angles, which describe an orientation as a sequence of three rotations. In robotics, the most common sequence is the Z-Y-X Euler Angles (also known as Yaw-Pitch-Roll).
+
+If a robot yaws by angle $\psi$ (around Z), then pitches by $\theta$ (around the new Y), and finally rolls by $\phi$ (around the new X), the final combined rotation matrix is:
+
+$$
+R_{ZYX}(\psi, \theta, \phi) = R_z(\psi) \, R_y(\theta) \, R_x(\phi)
+$$
+
+When rotation matrices operate on column vectors, the matrices are applied from right to left.
 
 
 ## Visualization
@@ -124,10 +135,11 @@ That means that in the global frame, the QR code is located 5 meters along the X
 
 ## Common pitfalls
 
-1. **Rotations are NOT commutative!**. In basic math, $2 \times 3 = 3 \times 2$... but in spatial rotations, this is not true. Rotating $90^\circ$ around X and then $90^\circ$ around Y will put your robot in a completely different posture than rotating around Y first and then X. When chaining multiple rotations, order matters immensely ($R_x \cdot R_y \neq R_y \cdot R_x$).
+1. **Rotations are NOT commutative!**. In basic math, $2 \times 3 = 3 \times 2$... but in spatial rotations, this is not true. Rotating $90^\circ$ around X and then $90^\circ$ around Y will put your robot in a completely different posture than rotating around Y first and then X. When chaining multiple rotations, order matters immensely ($R_x(90^{\circ}) \cdot R_y(90^{\circ})  \neq R_y(90^{\circ})  \cdot R_x(90^{\circ}) $).
 2. **The Gimbal Lock problem**. If you rely on sequences of three angles (like Euler Angles) to describe 3D orientation, you will eventually hit a mathematical singularity called Gimbal Lock, where two rotational axes align and the system loses a degree of freedom. This is why modern robotics simulation relies heavily on Quaternions.
 
 ## Further reading
 1. [Part III — Composing Rotations: Euler Angles and Roll–Pitch–Yaw](https://medium.com/@sepideh.92sh/part-iii-composing-rotations-euler-angles-and-roll-pitch-yaw-38aa816a5bcd)
 2. [Homemade Gyroscope Demonstration, Gimbal Lock, and Inertial Guidance](https://www.youtube.com/watch?v=oj7v3MXJL3M)
 3. [Euler Angles Explained | Numerical Methods with Python 7](https://www.youtube.com/watch?v=2Cwa6hfn2K0) 
+4. Bruno Siciliano - Robotics Modelling, Planning and Control Chapter 2, section 4
