@@ -130,7 +130,7 @@ const pt: Dictionary = {
   home: {
     kicker: "Robótica, visualizada",
     tagline:
-      "Um guia interativo de robótica, com visualizações em primeiro lugar — amplo no campo e mais profundo em planejamento de trajetórias. Cada tópico traz uma visualização viva e manipulável.",
+      "Um guia interativo de robótica, com visualizações! Com foco em planejamento de trajetórias. Cada tópico tenta trazer uma abordagem interativa com visualizações.",
     calloutTitle: "Esqueleto inicial",
     calloutBody:
       "O currículo está sendo escrito como lições em rascunho. Navegue pelas áreas na barra lateral, ou siga o caminho de estudo sugerido abaixo — ordenado pelos pré-requisitos de cada tópico.",
