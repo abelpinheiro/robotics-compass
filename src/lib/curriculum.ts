@@ -53,12 +53,12 @@ export const curriculum: Area[] = [
     title: "Kinematics",
     order: 2,
     lessons: [
-      { slug: "forward-kinematics", title: "Forward kinematics", order: 1, status: "draft", difficulty: "core", prerequisites: ["homogeneous-transforms"] },
-      { slug: "dh-parameters", title: "DH parameters", order: 2, status: "draft", difficulty: "core", prerequisites: ["forward-kinematics"] },
+      { slug: "modeling-manipulators", title: "Modeling Manipulators", order: 1, status: "published", difficulty: "core", prerequisites: ["homogeneous-transforms"] },
+      { slug: "forward-kinematics", title: "Forward kinematics", order: 2, status: "draft", difficulty: "core", prerequisites: ["modeling-manipulators"] },
       { slug: "inverse-kinematics", title: "Inverse kinematics", order: 3, status: "draft", difficulty: "core", prerequisites: ["forward-kinematics"] },
-      { slug: "velocity-kinematics", title: "Velocity kinematics", order: 4, status: "draft", difficulty: "core", prerequisites: ["forward-kinematics"] },
-      { slug: "jacobians", title: "Jacobians", order: 5, status: "draft", difficulty: "core", prerequisites: ["velocity-kinematics"] },
-      { slug: "singularities", title: "Singularities", order: 6, status: "draft", difficulty: "advanced", prerequisites: ["jacobians"] },
+      { slug: "velocity-kinematics", title: "Velocity kinematics and Jacobians", order: 4, status: "draft", difficulty: "core", prerequisites: ["forward-kinematics"] },
+      { slug: "inverse-differential-kinematics", title: "Inverse differential kinematics", order: 5, status: "draft", difficulty: "core", prerequisites: ["velocity-kinematics"] },
+      { slug: "singularities", title: "Singularities", order: 6, status: "draft", difficulty: "advanced", prerequisites: ["velocity-kinematics"] },
     ],
   },
   {
@@ -66,7 +66,7 @@ export const curriculum: Area[] = [
     title: "Dynamics",
     order: 3,
     lessons: [
-      { slug: "newton-euler", title: "Newton–Euler dynamics", order: 1, status: "draft", difficulty: "core", prerequisites: ["jacobians"] },
+      { slug: "newton-euler", title: "Newton–Euler dynamics", order: 1, status: "draft", difficulty: "core", prerequisites: ["velocity-kinematics"] },
       { slug: "lagrangian-dynamics", title: "Lagrangian dynamics", order: 2, status: "draft", difficulty: "core", prerequisites: ["newton-euler"] },
       { slug: "equations-of-motion", title: "Equations of motion", order: 3, status: "draft", difficulty: "core", prerequisites: ["lagrangian-dynamics"] },
       { slug: "contact-and-friction", title: "Contact and friction", order: 4, status: "draft", difficulty: "advanced", prerequisites: ["equations-of-motion"] },

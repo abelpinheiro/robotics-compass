@@ -25,11 +25,11 @@ const lessonTitlesPt: Record<string, string> = {
   quaternions: "Quatérnios",
   "twists-and-screws": "Twists e screws",
   // kinematics
+  "modeling-manipulators": "Modelagem de manipuladores",
   "forward-kinematics": "Cinemática direta",
-  "dh-parameters": "Parâmetros DH",
   "inverse-kinematics": "Cinemática inversa",
-  "velocity-kinematics": "Cinemática de velocidade",
-  jacobians: "Jacobianas",
+  "velocity-kinematics": "Cinemática de velocidade e Jacobianas",
+  "inverse-differential-kinematics": "Cinemática diferencial inversa",
   singularities: "Singularidades",
   // dynamics
   "newton-euler": "Dinâmica de Newton–Euler",

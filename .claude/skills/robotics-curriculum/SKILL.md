@@ -30,15 +30,15 @@ _Prereqs: none — entry point for the whole site._
 
 ### 2. kinematics
 _Prereqs: foundations (frames, SE(3))._
-1. `forward-kinematics`
-2. `dh-parameters`
+1. `modeling-manipulators`
+2. `forward-kinematics`
 3. `inverse-kinematics`
-4. `velocity-kinematics`
-5. `jacobians`
+4. `velocity-kinematics` (Velocity kinematics and Jacobians)
+5. `inverse-differential-kinematics`
 6. `singularities`
 
 ### 3. dynamics
-_Prereqs: kinematics (jacobians)._
+_Prereqs: kinematics (velocity kinematics / Jacobians)._
 1. `newton-euler`
 2. `lagrangian-dynamics`
 3. `equations-of-motion`
