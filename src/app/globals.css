@@ -227,6 +227,32 @@
     font-size: 0.875rem;
     color: var(--muted);
   }
+
+  /* GitHub-Flavored Markdown tables (via remark-gfm). */
+  .lesson-prose :where(table) {
+    width: 100%;
+    margin-block: 1.5rem;
+    border-collapse: collapse;
+    font-size: 0.95rem;
+    line-height: 1.5;
+  }
+
+  .lesson-prose :where(thead) {
+    border-bottom: 2px solid var(--border);
+  }
+
+  .lesson-prose :where(th) {
+    padding: 0.5rem 0.75rem;
+    font-weight: 600;
+    color: var(--foreground);
+    background: var(--surface-2);
+  }
+
+  .lesson-prose :where(td) {
+    padding: 0.5rem 0.75rem;
+    border-top: 1px solid var(--border);
+    color: var(--foreground);
+  }
 }
 
 /* Honor reduced-motion globally (Golden rule 5). */

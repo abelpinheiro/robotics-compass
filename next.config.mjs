@@ -13,10 +13,12 @@ const withMDX = createMDX({
     // Plugins are passed as strings so they stay serializable for Turbopack.
     // remark-frontmatter parses the `---` block; remark-mdx-frontmatter exports
     // it as a `frontmatter` named export the lesson route can read.
+    // remark-gfm adds GitHub-Flavored Markdown (tables, strikethrough, autolinks).
     // remark-math parses $…$ / $$…$$ math.
     remarkPlugins: [
       'remark-frontmatter',
       ['remark-mdx-frontmatter', { name: 'frontmatter' }],
+      'remark-gfm',
       'remark-math',
     ],
     // rehype-katex renders the parsed math to HTML (needs katex CSS, imported in
