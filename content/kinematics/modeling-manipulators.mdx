@@ -9,32 +9,112 @@ prerequisites: []
 status: draft
 ---
 
-import DHArmVizEmbed from "@/components/viz/dh/DHArmVizEmbed";
+import DHVizEmbed from "@/components/viz/dh/DHVizEmbed";
 
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+Before we can calculate where a robot's hand will go, we need a way to mathematically describe the robot's physical anatomy to the computer.
+
+Imagine a robotic arm as a skeleton. The solid metal segments are the bones, which we call Links. The motors that connect these bones are the Joints.
+
+To track the robot's movement in space, we must attach a reference frame to every single joint. We will use the Denavit-Hartenberg convention which will allow us to define the geometry of how each rigid body attaches to its parent via a joint.
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+### The Denavit-Hartenberg (DH) Convention
+
+In the 1950s, Jacques Denavit and Richard Hartenberg proposed a systematic method to attach reference frames to the links of a spatial kinematic chain.
+
+Here we enforce that the Z-axis must align with the axis of rotation of the joint. Also, it is used four parameters to move joint i - 1 to joint i.
+
+1. Link length ($a_i$): The distance between the $Z_{i-1}$ and $Z_i$ axes along the $X_i$ axis. (How long the physical link is).
+
+2. Link twist ($\alpha_i$): The angle between the $Z_{i-1}$ and $Z_i$ axes about the $X_i$ axis. (How much the joint is tilted).
+
+3. Link offset ($d_i$): The distance between the $X_{i-1}$ and $X_i$ axes along the $Z_{i-1}$ axis. (How much the joint is shifted laterally).
+
+4. Joint angle ($\theta_i$): The angle between the $X_{i-1}$ and $X_i$ axes about the $Z_{i-1}$ axis. (This is the variable that changes when a motor spins!).
+
+### The DH Transformation Matrix
+
+Once we extract these four parameters for a specific link, we plug them into a standard Homogeneous Transformation Matrix. This matrix $^{i-1}_iT$ maps a point from frame $\{i\}$ back to frame $\{i-1\}$.
+
+This $4 \times 4$ matrix is simply the multiplication of four basic transformations (two rotations and two translations) performed in a very specific order. According to Craig's Modified DH rules, to move from frame $\{i-1\}$ to frame $\{i\}$, we:
+
+1. Rotate about the $X_{i-1}$ axis by $\alpha_{i-1}$.
+
+2. Translate along the $X_{i-1}$ axis by $a_{i-1}$.
+
+3. Rotate about the new $Z_i$ axis by $\theta_i$.
+
+4. Translate along the new $Z_i$ axis by $d_i$.
+
+Mathematically, this sequence is written as:
+
+$$
+^{i-1}_iT = Rot_{X}(\alpha_{i-1}) \cdot Trans_{X}(a_{i-1}) \cdot Rot_{Z}(\theta_i) \cdot Trans_{Z}(d_i)
+$$
+
+When you multiply these four matrices together, you get the standard Modified DH:
+
+$$
+^{i-1}_iT = \begin{bmatrix}  \cos\theta_i & -\sin\theta_i & 0 & a_{i-1} \\  \sin\theta_i \cos\alpha_{i-1} & \cos\theta_i \cos\alpha_{i-1} & -\sin\alpha_{i-1} & -d_i \sin\alpha_{i-1} \\  \sin\theta_i \sin\alpha_{i-1} & \cos\theta_i \sin\alpha_{i-1} & \cos\alpha_{i-1} & d_i \cos\alpha_{i-1} \\  0 & 0 & 0 & 1  \end{bmatrix}
+$$
 
 ## Visualization
 
-<DHArmVizEmbed />
+<DHVizEmbed />
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+Let's extract the DH parameters of a simple 2R Planar Robot (a robotic arm with two rotational joints moving flat on a table, like a human arm resting on a desk). The first link has length $L_1$ and the second has length $L_2$.
+
+![Top-down DH frame assignment for a 2R planar arm: the joint axes Z_0, Z_1, Z_2 all point out of the table (drawn as circled dots), so every twist alpha is zero; the frame origins sit at the joints, so every offset d is zero. Each X axis runs along its link, with link lengths a_1 = L_1 and a_2 = L_2, and the joint angles theta_1 and theta_2 are the two variables.](/images/kinematics/modeling-manipulators-2r-planar.svg)
+
+First, we align all Z-axes with the axis of rotation. Since the robot moves on a flat table, all motors spin around the vertical axis. Therefore, $Z_0$, $Z_1$, and $Z_2$ all point straight up out of the table.
+
+Secondly, align the X-axes along the links. $X_0$ points along Link 1, $X_1$ points along Link 2.
+
+Now, we build the DH Table row by row:
+
+Link 1 (Moving from Frame 0 to Frame 1):
+
+$\alpha_0$: Are the $Z_0$ and $Z_1$ axes tilted relative to each other? No, they are perfectly parallel. $\rightarrow 0$
+
+$a_0$: Distance from $Z_0$ to $Z_1$ along $X_0$. This is the length of the link. $\rightarrow L_1$
+
+$\theta_1$: The angle of the first motor. $\rightarrow \theta_1^*$ (The * indicates it is a variable, not a constant).
+
+$d_1$: Is Frame 1 shifted up or down the $Z_1$ axis? No, they are on the same plane. $\rightarrow 0$
+
+Link 2 (Moving from Frame 1 to Frame 2):
+
+Following the same logic for the second link, we get: $\alpha_1 = 0$, $a_1 = L_2$, $\theta_2 = \theta_2^*$, $d_2 = 0$.
+
+
+| Link ($i$) | $a_i$   | $\alpha_i$ | $d_i$    | $\theta_i$   |
+|:-----------|:-------:|-----------:|---------:|-------------:| 
+| 1          | $L_1$   | $0$        | $0$      | $\theta_1^*$ |
+| 2          | $L_2$   | $0$        | $0$      | $\theta_2^*$ |
+
 
 ## Common pitfalls
 
-{/* TODO(author): list common pitfalls. */}
+1. Z-Axis Misalignment: The most critical rule of the DH convention is that the $Z$-axis must always be the axis of actuation (the imaginary line the motor spins around, or the slider extends along).
 
-## Exercises
-
-{/* TODO(author): add exercises. */}
+2. Standard vs. Modified DH: Some books (like Spong & Siciliano) use the Standard DH convention, where the frame is attached to the distal (far) end of the link. Other books (like John J. Craig's Introduction to Robotics) use the Modified DH convention, where the frame is attached to the proximal (near) end of the link. The tables and matrices look slightly different between the two.
+    - Modified DH
+        - Frame $i$ is attached to the proximal (near) end of link $i$.
+        - Operation order: X-axis first, then Z-axis.
+        - Table columns are typically ordered: $\alpha_{i-1}, a_{i-1}, \theta_i, d_i$.
+        - $^{i-1}_iT = Rot_{X}(\alpha_{i-1}) \cdot Trans_{X}(a_{i-1}) \cdot Rot_{Z}(\theta_i) \cdot Trans_{Z}(d_i)$
+    - Standard DH
+        - Frame $i$ is attached to the distal (far) end of link $i$.
+        - Operation order: Z-axis first, then X-axis.
+        - Table columns are typically ordered: $a_i, \alpha_i, d_i, \theta_i$.
+        - $A_i = Rot_{Z}(\theta_i) \cdot Trans_{Z}(d_i) \cdot Trans_{X}(a_i) \cdot Rot_{X}(\alpha_i)$
 
 ## Further reading
 
-{/* TODO(author): add references and further reading. */}
+1. [Robotics101 from VisCircuit](https://robotics101-viscircuit.web.app/robotics/dh-model)
+2. [Robotics DH Parameters (Modified vs Standard, Derivation, Transformation Matrix)](https://www.youtube.com/watch?v=zmaUbNrbjzY)

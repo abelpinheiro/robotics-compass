@@ -1,0 +1,120 @@
+---
+title: "Modelagem de manipuladores"
+area: kinematics
+slug: modeling-manipulators
+order: 1
+summary: ""
+difficulty: ""
+prerequisites: []
+status: draft
+---
+
+import DHVizEmbed from "@/components/viz/dh/DHVizEmbed";
+
+## Intuição
+
+Antes de podermos calcular para onde a mão de um robô vai, precisamos de uma forma de descrever matematicamente a anatomia física do robô para o computador.
+
+Imagine um braço robótico como um esqueleto. Os segmentos sólidos de metal são os ossos, que chamamos de elos (links). Os motores que conectam esses ossos são as juntas (joints).
+
+Para rastrear o movimento do robô no espaço, precisamos fixar um referencial a cada junta. Usaremos a convenção de Denavit-Hartenberg, que nos permitirá definir a geometria de como cada corpo rígido se conecta ao seu pai por meio de uma junta.
+
+## Definição formal
+
+### A convenção de Denavit-Hartenberg (DH)
+
+Na década de 1950, Jacques Denavit e Richard Hartenberg propuseram um método sistemático para fixar referenciais aos elos de uma cadeia cinemática espacial.
+
+Aqui, impomos que o eixo Z deve estar alinhado com o eixo de rotação da junta. Além disso, usamos quatro parâmetros para ir da junta $i-1$ à junta $i$.
+
+1. Comprimento do elo ($a_i$): A distância entre os eixos $Z_{i-1}$ e $Z_i$ ao longo do eixo $X_i$. (O comprimento físico do elo).
+
+2. Torção do elo ($\alpha_i$): O ângulo entre os eixos $Z_{i-1}$ e $Z_i$ em torno do eixo $X_i$. (O quanto a junta está inclinada).
+
+3. Deslocamento do elo ($d_i$): A distância entre os eixos $X_{i-1}$ e $X_i$ ao longo do eixo $Z_{i-1}$. (O quanto a junta está deslocada lateralmente).
+
+4. Ângulo da junta ($\theta_i$): O ângulo entre os eixos $X_{i-1}$ e $X_i$ em torno do eixo $Z_{i-1}$. (Esta é a variável que muda quando um motor gira!).
+
+### A matriz de transformação DH
+
+Uma vez extraídos esses quatro parâmetros para um elo específico, nós os inserimos em uma matriz de transformação homogênea padrão. Essa matriz $^{i-1}_iT$ mapeia um ponto do referencial $\{i\}$ de volta para o referencial $\{i-1\}$.
+
+Essa matriz $4 \times 4$ é simplesmente a multiplicação de quatro transformações básicas (duas rotações e duas translações) realizadas em uma ordem bem específica. Segundo as regras da DH Modificada de Craig, para ir do referencial $\{i-1\}$ ao referencial $\{i\}$, nós:
+
+1. Rotacionamos em torno do eixo $X_{i-1}$ por $\alpha_{i-1}$.
+
+2. Transladamos ao longo do eixo $X_{i-1}$ por $a_{i-1}$.
+
+3. Rotacionamos em torno do novo eixo $Z_i$ por $\theta_i$.
+
+4. Transladamos ao longo do novo eixo $Z_i$ por $d_i$.
+
+Matematicamente, essa sequência é escrita como:
+
+$$
+^{i-1}_iT = Rot_{X}(\alpha_{i-1}) \cdot Trans_{X}(a_{i-1}) \cdot Rot_{Z}(\theta_i) \cdot Trans_{Z}(d_i)
+$$
+
+Ao multiplicar essas quatro matrizes, você obtém a DH Modificada padrão:
+
+$$
+^{i-1}_iT = \begin{bmatrix}  \cos\theta_i & -\sin\theta_i & 0 & a_{i-1} \\  \sin\theta_i \cos\alpha_{i-1} & \cos\theta_i \cos\alpha_{i-1} & -\sin\alpha_{i-1} & -d_i \sin\alpha_{i-1} \\  \sin\theta_i \sin\alpha_{i-1} & \cos\theta_i \sin\alpha_{i-1} & \cos\alpha_{i-1} & d_i \cos\alpha_{i-1} \\  0 & 0 & 0 & 1  \end{bmatrix}
+$$
+
+## Visualização
+
+<DHVizEmbed />
+
+## Exemplo resolvido
+
+Vamos extrair os parâmetros DH de um robô planar 2R simples (um braço robótico com duas juntas rotacionais que se movem no plano de uma mesa, como um braço humano apoiado sobre uma escrivaninha). O primeiro elo tem comprimento $L_1$ e o segundo tem comprimento $L_2$.
+
+![Atribuição de referenciais DH (vista de cima) para um braço planar 2R: os eixos das juntas Z_0, Z_1, Z_2 apontam todos para fora da mesa (desenhados como pontos circulados), então toda torção alpha é zero; as origens dos referenciais ficam nas juntas, então todo deslocamento d é zero. Cada eixo X corre ao longo do seu elo, com comprimentos a_1 = L_1 e a_2 = L_2, e os ângulos de junta theta_1 e theta_2 são as duas variáveis.](/images/kinematics/modeling-manipulators-2r-planar.svg)
+
+Primeiro, alinhamos todos os eixos Z com o eixo de rotação. Como o robô se move sobre uma mesa plana, todos os motores giram em torno do eixo vertical. Portanto, $Z_0$, $Z_1$ e $Z_2$ apontam todos para cima, para fora da mesa.
+
+Em segundo lugar, alinhamos os eixos X ao longo dos elos. $X_0$ aponta ao longo do Elo 1, $X_1$ aponta ao longo do Elo 2.
+
+Agora, construímos a Tabela DH linha por linha:
+
+Elo 1 (indo do Referencial 0 ao Referencial 1):
+
+$\alpha_0$: Os eixos $Z_0$ e $Z_1$ estão inclinados um em relação ao outro? Não, eles são perfeitamente paralelos. $\rightarrow 0$
+
+$a_0$: Distância de $Z_0$ a $Z_1$ ao longo de $X_0$. Este é o comprimento do elo. $\rightarrow L_1$
+
+$\theta_1$: O ângulo do primeiro motor. $\rightarrow \theta_1^*$ (O * indica que é uma variável, não uma constante).
+
+$d_1$: O Referencial 1 está deslocado para cima ou para baixo ao longo do eixo $Z_1$? Não, eles estão no mesmo plano. $\rightarrow 0$
+
+Elo 2 (indo do Referencial 1 ao Referencial 2):
+
+Seguindo a mesma lógica para o segundo elo, obtemos: $\alpha_1 = 0$, $a_1 = L_2$, $\theta_2 = \theta_2^*$, $d_2 = 0$.
+
+
+| Elo ($i$)  | $a_i$   | $\alpha_i$ | $d_i$    | $\theta_i$   |
+|:-----------|:-------:|-----------:|---------:|-------------:| 
+| 1          | $L_1$   | $0$        | $0$      | $\theta_1^*$ |
+| 2          | $L_2$   | $0$        | $0$      | $\theta_2^*$ |
+
+
+## Erros comuns
+
+1. Desalinhamento do eixo Z: A regra mais crítica da convenção DH é que o eixo $Z$ deve sempre ser o eixo de atuação (a linha imaginária em torno da qual o motor gira, ou ao longo da qual o atuador prismático se estende).
+
+2. DH Padrão vs. Modificada: Alguns livros (como Spong & Siciliano) usam a convenção DH Padrão, na qual o referencial é fixado à extremidade distal (mais distante) do elo. Outros livros (como o Introduction to Robotics de John J. Craig) usam a convenção DH Modificada, na qual o referencial é fixado à extremidade proximal (mais próxima) do elo. As tabelas e matrizes ficam ligeiramente diferentes entre as duas.
+    - DH Modificada
+        - O referencial $i$ é fixado à extremidade proximal (mais próxima) do elo $i$.
+        - Ordem das operações: primeiro o eixo X, depois o eixo Z.
+        - As colunas da tabela são tipicamente ordenadas como: $\alpha_{i-1}, a_{i-1}, \theta_i, d_i$.
+        - $^{i-1}_iT = Rot_{X}(\alpha_{i-1}) \cdot Trans_{X}(a_{i-1}) \cdot Rot_{Z}(\theta_i) \cdot Trans_{Z}(d_i)$
+    - DH Padrão
+        - O referencial $i$ é fixado à extremidade distal (mais distante) do elo $i$.
+        - Ordem das operações: primeiro o eixo Z, depois o eixo X.
+        - As colunas da tabela são tipicamente ordenadas como: $a_i, \alpha_i, d_i, \theta_i$.
+        - $A_i = Rot_{Z}(\theta_i) \cdot Trans_{Z}(d_i) \cdot Trans_{X}(a_i) \cdot Rot_{X}(\alpha_i)$
+
+## Leituras adicionais
+
+1. [Robotics101 from VisCircuit](https://robotics101-viscircuit.web.app/robotics/dh-model)
+2. [Robotics DH Parameters (Modified vs Standard, Derivation, Transformation Matrix)](https://www.youtube.com/watch?v=zmaUbNrbjzY)
