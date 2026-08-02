@@ -19,16 +19,17 @@ interface Params {
 const fmt = (n: number) => (Math.abs(n) < 5e-3 ? 0 : n).toFixed(2);
 const toRad = (deg: number) => (deg * Math.PI) / 180;
 
-// Standard DH matrix A_i = Rotz(theta)·Transz(d)·Transx(a)·Rotx(alpha).
+// Modified (Craig) DH matrix ^{i-1}_iT = Rotx(alpha_{i-1})·Transx(a_{i-1})·
+// Rotz(theta_i)·Transz(d_i).
 function dhMatrix(p: Params): Mat4 {
   const ct = Math.cos(toRad(p.theta));
   const st = Math.sin(toRad(p.theta));
   const ca = Math.cos(toRad(p.alpha));
   const sa = Math.sin(toRad(p.alpha));
   return [
-    [ct, -st * ca, st * sa, p.a * ct],
-    [st, ct * ca, -ct * sa, p.a * st],
-    [0, sa, ca, p.d],
+    [ct, -st, 0, p.a],
+    [st * ca, ct * ca, -sa, -p.d * sa],
+    [st * sa, ct * sa, ca, p.d * ca],
     [0, 0, 0, 1],
   ];
 }
@@ -123,10 +124,10 @@ function ParamSliders({
 }) {
   return (
     <>
+      <Slider label="α (twist)" value={p.alpha} min={-180} max={180} step={1} onChange={(v) => set({ alpha: v })} display={`${p.alpha}°`} />
+      <Slider label="a (length)" value={p.a} min={0} max={2.5} step={0.05} onChange={(v) => set({ a: v })} display={fmt(p.a)} />
       <Slider label="θ (joint angle)" value={p.theta} min={-180} max={180} step={1} onChange={(v) => set({ theta: v })} display={`${p.theta}°`} />
       <Slider label="d (offset)" value={p.d} min={0} max={2.5} step={0.05} onChange={(v) => set({ d: v })} display={fmt(p.d)} />
-      <Slider label="a (length)" value={p.a} min={0} max={2.5} step={0.05} onChange={(v) => set({ a: v })} display={fmt(p.a)} />
-      <Slider label="α (twist)" value={p.alpha} min={-180} max={180} step={1} onChange={(v) => set({ alpha: v })} display={`${p.alpha}°`} />
     </>
   );
 }
@@ -157,22 +158,24 @@ export default function DHViz() {
 
   const description =
     mode === "transform"
-      ? `A single Denavit–Hartenberg transformation from frame {i-1} (fixed, at the ` +
-        `origin) to frame {i}. Four sliders set the DH parameters: joint angle θ = ` +
-        `${tp.theta}° about Z(i-1), offset d = ${fmt(tp.d)} along Z(i-1), length a = ` +
-        `${fmt(tp.a)} along X(i) (the common normal), twist α = ${tp.alpha}° about X(i). ` +
-        `The {i} frame and the 4×4 matrix A_i update live.`
-      : `A two-link robot arm built from a DH table. Each joint is a cylindrical ` +
-        `motor about its Z axis; coordinate frames {0}, {1}, {2} can be toggled. For ` +
-        `each link the common normal a_i and the offset d_i are drawn and labelled on ` +
-        `the geometry. Link 1: θ=${link1.theta}°, d=${fmt(link1.d)}, a=${fmt(link1.a)}, ` +
-        `α=${link1.alpha}°. Link 2: θ=${link2.theta}°, d=${fmt(link2.d)}, a=${fmt(link2.a)}, ` +
-        `α=${link2.alpha}°. The base-to-end-effector transform is ⁰T₂ = A₁·A₂. Drag to orbit.`;
+      ? `A single Modified (Craig) Denavit–Hartenberg transformation from frame {i-1} ` +
+        `(fixed, at the origin) to frame {i}. Four sliders set the DH parameters: twist ` +
+        `α = ${tp.alpha}° about X(i-1), length a = ${fmt(tp.a)} along X(i-1) (the common ` +
+        `normal), joint angle θ = ${tp.theta}° about Z(i), offset d = ${fmt(tp.d)} along ` +
+        `Z(i). The {i} frame and the 4×4 matrix ^{i-1}_iT = Rx(α)·Tx(a)·Rz(θ)·Tz(d) ` +
+        `update live.`
+      : `A two-link robot arm built from a Modified DH table. Each joint is a cylindrical ` +
+        `motor about its Z axis; coordinate frames {0}, {1}, {2} can be toggled. For each ` +
+        `link the common normal a_(i-1) and the offset d_i are drawn and labelled on the ` +
+        `geometry. Link 1: α₀=${link1.alpha}°, a₀=${fmt(link1.a)}, θ₁=${link1.theta}°, ` +
+        `d₁=${fmt(link1.d)}. Link 2: α₁=${link2.alpha}°, a₁=${fmt(link2.a)}, ` +
+        `θ₂=${link2.theta}°, d₂=${fmt(link2.d)}. The base-to-end-effector transform is ` +
+        `⁰T₂ = ⁰T₁·¹T₂. Drag to orbit.`;
 
   return (
     <VizFrame
-      title="DH parameters: transform and robot arm"
-      caption="Switch views with the buttons. Both draw each link's common normal (aᵢ) and offset (dᵢ); θ and α come from the frame orientation. The single transform also shows Aᵢ; the arm shows the DH table and ⁰T₂."
+      title="Modified DH parameters: transform and robot arm"
+      caption="Switch views with the buttons. Both draw each link's common normal (aᵢ₋₁) and offset (dᵢ); α and a act on Xᵢ₋₁, θ and d on Zᵢ. The single transform shows ⁱ⁻¹ᵢT; the arm shows the DH table and ⁰T₂."
       textAlternative={description}
       controls={
         mode === "transform" ? (
@@ -249,9 +252,10 @@ export default function DHViz() {
         <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
           <span className="flex items-center gap-2 text-muted">
             <span className="whitespace-nowrap">
-              A<sub>i</sub> =
+              <sup>i-1</sup>
+              <sub>i</sub>T =
             </span>
-            <MatrixDisplay rows={A} ariaLabel="4 by 4 DH transformation matrix A_i" />
+            <MatrixDisplay rows={A} ariaLabel="4 by 4 modified DH transformation matrix" />
           </span>
         </div>
       ) : (
@@ -262,20 +266,20 @@ export default function DHViz() {
               <thead>
                 <tr className="text-xs text-muted">
                   <th className="pr-3 text-left font-medium">link</th>
-                  <th className="px-2 text-right font-medium">θ</th>
-                  <th className="px-2 text-right font-medium">d</th>
-                  <th className="px-2 text-right font-medium">a</th>
-                  <th className="px-2 text-right font-medium">α</th>
+                  <th className="px-2 text-right font-medium">αᵢ₋₁</th>
+                  <th className="px-2 text-right font-medium">aᵢ₋₁</th>
+                  <th className="px-2 text-right font-medium">θᵢ</th>
+                  <th className="px-2 text-right font-medium">dᵢ</th>
                 </tr>
               </thead>
               <tbody className="font-mono text-foreground">
                 {[link1, link2].map((l, i) => (
                   <tr key={i}>
                     <td className="pr-3 text-left text-muted">{i + 1}</td>
+                    <td className="px-2 text-right">{l.alpha}°</td>
+                    <td className="px-2 text-right">{fmt(l.a)}</td>
                     <td className="px-2 text-right">{l.theta}°</td>
                     <td className="px-2 text-right">{fmt(l.d)}</td>
-                    <td className="px-2 text-right">{fmt(l.a)}</td>
-                    <td className="px-2 text-right">{l.alpha}°</td>
                   </tr>
                 ))}
               </tbody>

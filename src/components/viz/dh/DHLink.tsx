@@ -38,19 +38,21 @@ const paramClass =
   "pointer-events-none select-none rounded px-1 text-xs font-semibold italic";
 
 /**
- * One DH transformation from the current frame {i-1} (its own origin) to frame
- * {i}, built as A_i = Rotz(theta)·Transz(d)·Transx(a)·Rotx(alpha) via nested
- * groups — so children mounted at frame {i} inherit the exact pose. It draws the
- * joint motor (a cylinder along Z i-1) and labels the two translational DH
- * parameters on the geometry: d_i (offset along Z i-1) and a_i (the common
- * normal along X_i). theta and alpha are read off the frame orientation.
+ * One Modified (Craig) DH transformation from the current frame {i-1} to frame
+ * {i}, built as ^{i-1}_iT = Rotx(alpha_{i-1})·Transx(a_{i-1})·Rotz(theta_i)·
+ * Transz(d_i) via nested groups — so children mounted at frame {i} inherit the
+ * exact pose. It draws the joint motor (a cylinder along Z_i, the joint axis)
+ * and labels the two translational DH parameters on the geometry: a_{i-1} (the
+ * common normal along X_{i-1}) and d_i (offset along Z_i). alpha and theta are
+ * read off the frame orientation.
  */
 export function DHLink({
   a,
   d,
   alpha,
   theta,
-  sub,
+  aSub,
+  dSub,
   colors,
   showFrame = true,
   showParams = true,
@@ -63,7 +65,8 @@ export function DHLink({
   d: number;
   alpha: number;
   theta: number;
-  sub: string;
+  aSub: string;
+  dSub: string;
   colors: DHColors;
   showFrame?: boolean;
   showParams?: boolean;
@@ -73,76 +76,74 @@ export function DHLink({
   children?: ReactNode;
 }) {
   return (
-    <group>
-      {/* joint motor: a cylinder along the joint axis Z(i-1) (local z) */}
-      {showMotor && (
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <cylinderGeometry args={[0.13, 0.13, 0.5, 24]} />
-          <meshStandardMaterial color={colors.motor} metalness={0.2} roughness={0.5} />
-        </mesh>
-      )}
-
-      {/* d_i : offset along Z(i-1) */}
-      {showParams && Math.abs(d) > 1e-3 && (
+    <group rotation={[alpha, 0, 0]}>
+      {/* a_{i-1} : the common normal (link) along X_{i-1} */}
+      {showParams && Math.abs(a) > 1e-3 && (
         <>
           <Line
             points={[
               [0, 0, 0],
-              [0, 0, d],
+              [a, 0, 0],
             ]}
-            color={colors.offset}
-            lineWidth={2.5}
-            dashed
-            dashSize={0.1}
-            gapSize={0.07}
+            color={colors.link}
+            lineWidth={5}
           />
-          <Html position={[0, 0, d / 2]} center>
+          <Html position={[a / 2, 0, 0.14]} center>
             <span className={paramClass} style={{ color: colors.offset }}>
-              d{sub}
+              a{aSub}
             </span>
           </Html>
         </>
       )}
 
-      <group rotation={[0, 0, theta]}>
-        <group position={[0, 0, d]}>
-          {/* a_i : the common normal (link) along X_i */}
-          {showParams && Math.abs(a) > 1e-3 && (
+      <group position={[a, 0, 0]}>
+        {/* joint motor: a cylinder along the joint axis Z_i (local z) */}
+        {showMotor && (
+          <mesh rotation={[Math.PI / 2, 0, 0]}>
+            <cylinderGeometry args={[0.13, 0.13, 0.5, 24]} />
+            <meshStandardMaterial color={colors.motor} metalness={0.2} roughness={0.5} />
+          </mesh>
+        )}
+
+        <group rotation={[0, 0, theta]}>
+          {/* d_i : offset along Z_i */}
+          {showParams && Math.abs(d) > 1e-3 && (
             <>
               <Line
                 points={[
                   [0, 0, 0],
-                  [a, 0, 0],
+                  [0, 0, d],
                 ]}
-                color={colors.link}
-                lineWidth={5}
+                color={colors.offset}
+                lineWidth={2.5}
+                dashed
+                dashSize={0.1}
+                gapSize={0.07}
               />
-              <Html position={[a / 2, 0, 0.14]} center>
+              <Html position={[0, 0, d / 2]} center>
                 <span className={paramClass} style={{ color: colors.offset }}>
-                  a{sub}
+                  d{dSub}
                 </span>
               </Html>
             </>
           )}
 
-          <group position={[a, 0, 0]}>
-            <group rotation={[alpha, 0, 0]}>
-              {showFrame && (
-                <>
-                  <axesHelper args={[frameSize]} />
-                  <mesh>
-                    <sphereGeometry args={[0.05, 16, 16]} />
-                    <meshBasicMaterial color={colors.link} />
-                  </mesh>
-                </>
-              )}
-              {frameLabel && (
-                <Html position={[0.18, 0.18, 0.12]} center>
-                  <span className={dhLabelClass}>{frameLabel}</span>
-                </Html>
-              )}
-              {children}
-            </group>
+          <group position={[0, 0, d]}>
+            {showFrame && (
+              <>
+                <axesHelper args={[frameSize]} />
+                <mesh>
+                  <sphereGeometry args={[0.05, 16, 16]} />
+                  <meshBasicMaterial color={colors.link} />
+                </mesh>
+              </>
+            )}
+            {frameLabel && (
+              <Html position={[0.18, 0.18, 0.12]} center>
+                <span className={dhLabelClass}>{frameLabel}</span>
+              </Html>
+            )}
+            {children}
           </group>
         </group>
       </group>

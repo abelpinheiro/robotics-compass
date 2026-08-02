@@ -43,7 +43,8 @@ function Scene({
           d={d}
           alpha={alpha}
           theta={theta}
-          sub="ᵢ"
+          aSub="ᵢ₋₁"
+          dSub="ᵢ"
           colors={colors}
           frameLabel="{i}"
         />

@@ -56,7 +56,8 @@ function Scene({
           d={link1.d}
           alpha={link1.alpha}
           theta={link1.theta}
-          sub="₁"
+          aSub="₀"
+          dSub="₁"
           colors={colors}
           showFrame={show1}
           frameLabel="{1}"
@@ -66,7 +67,8 @@ function Scene({
             d={link2.d}
             alpha={link2.alpha}
             theta={link2.theta}
-            sub="₂"
+            aSub="₁"
+            dSub="₂"
             colors={colors}
             showFrame={show2}
             frameLabel="{2}"
