@@ -27,13 +27,15 @@ In the 1950s, Jacques Denavit and Richard Hartenberg proposed a systematic metho
 
 Here we enforce that the Z-axis must align with the axis of rotation of the joint. Also, it is used four parameters to move joint i - 1 to joint i.
 
-1. Link length ($a_i$): The distance between the $Z_{i-1}$ and $Z_i$ axes along the $X_i$ axis. (How long the physical link is).
+1. Link length ($a_{i-1}$): The distance between the $Z_{i-1}$ and $Z_i$ axes along the $X_{i-1}$ axis. (How long the physical link is).
 
-2. Link twist ($\alpha_i$): The angle between the $Z_{i-1}$ and $Z_i$ axes about the $X_i$ axis. (How much the joint is tilted).
+2. Link twist ($\alpha_{i-1}$): The angle between the $Z_{i-1}$ and $Z_i$ axes about the $X_{i-1}$ axis. (How much the joint is tilted).
 
-3. Link offset ($d_i$): The distance between the $X_{i-1}$ and $X_i$ axes along the $Z_{i-1}$ axis. (How much the joint is shifted laterally).
+3. Link offset ($d_i$): The distance between the $X_{i-1}$ and $X_i$ axes along the $Z_i$ axis. (How much the joint is shifted laterally).
 
-4. Joint angle ($\theta_i$): The angle between the $X_{i-1}$ and $X_i$ axes about the $Z_{i-1}$ axis. (This is the variable that changes when a motor spins!).
+4. Joint angle ($\theta_i$): The angle between the $X_{i-1}$ and $X_i$ axes about the $Z_i$ axis. (This is the variable that changes when a motor spins!).
+
+![Modified DH parameters between two consecutive joint frames: the joint axes Z_(i-1) and Z_i are joined by their common normal, the X_(i-1) axis; a_(i-1) is the link length along X_(i-1) and alpha_(i-1) the link twist about X_(i-1). Along Z_i, the offset d_i reaches the origin O_i, where X_i sits, rotated from X_(i-1) by the joint angle theta_i about Z_i.](/images/kinematics/modeling-manipulators-dh-parameters.svg)
 
 ### The DH Transformation Matrix
 
@@ -69,11 +71,13 @@ $$
 
 Let's extract the DH parameters of a simple 2R Planar Robot (a robotic arm with two rotational joints moving flat on a table, like a human arm resting on a desk). The first link has length $L_1$ and the second has length $L_2$.
 
-![Top-down DH frame assignment for a 2R planar arm: the joint axes Z_0, Z_1, Z_2 all point out of the table (drawn as circled dots), so every twist alpha is zero; the frame origins sit at the joints, so every offset d is zero. Each X axis runs along its link, with link lengths a_1 = L_1 and a_2 = L_2, and the joint angles theta_1 and theta_2 are the two variables.](/images/kinematics/modeling-manipulators-2r-planar.svg)
+![Top-down DH frame assignment for a 2R planar arm: the joint axes Z_0, Z_1, Z_2 all point out of the table (drawn as circled dots), so every twist alpha is zero; the frame origins sit at the joints, so every offset d is zero. Each X axis runs along its link, with link lengths a_0 = L_1 and a_1 = L_2, and the joint angles theta_1 and theta_2 are the two variables.](/images/kinematics/modeling-manipulators-2r-planar.svg)
 
 First, we align all Z-axes with the axis of rotation. Since the robot moves on a flat table, all motors spin around the vertical axis. Therefore, $Z_0$, $Z_1$, and $Z_2$ all point straight up out of the table.
 
 Secondly, align the X-axes along the links. $X_0$ points along Link 1, $X_1$ points along Link 2.
+
+
 
 Now, we build the DH Table row by row:
 
@@ -92,10 +96,10 @@ Link 2 (Moving from Frame 1 to Frame 2):
 Following the same logic for the second link, we get: $\alpha_1 = 0$, $a_1 = L_2$, $\theta_2 = \theta_2^*$, $d_2 = 0$.
 
 
-| Link ($i$) | $a_i$   | $\alpha_i$ | $d_i$    | $\theta_i$   |
-|:-----------|:-------:|-----------:|---------:|-------------:| 
-| 1          | $L_1$   | $0$        | $0$      | $\theta_1^*$ |
-| 2          | $L_2$   | $0$        | $0$      | $\theta_2^*$ |
+| Link ($i$) | $\alpha_{i-1}$ | $a_{i-1}$ | $\theta_i$   | $d_i$ |
+|:-----------|:--------------:|:---------:|:------------:|:-----:|
+| 1          | $0$            | $L_1$     | $\theta_1^*$ | $0$   |
+| 2          | $0$            | $L_2$     | $\theta_2^*$ | $0$   |
 
 
 ## Common pitfalls

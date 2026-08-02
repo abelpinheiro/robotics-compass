@@ -27,13 +27,15 @@ Na década de 1950, Jacques Denavit e Richard Hartenberg propuseram um método s
 
 Aqui, impomos que o eixo Z deve estar alinhado com o eixo de rotação da junta. Além disso, usamos quatro parâmetros para ir da junta $i-1$ à junta $i$.
 
-1. Comprimento do elo ($a_i$): A distância entre os eixos $Z_{i-1}$ e $Z_i$ ao longo do eixo $X_i$. (O comprimento físico do elo).
+1. Comprimento do elo ($a_{i-1}$): A distância entre os eixos $Z_{i-1}$ e $Z_i$ ao longo do eixo $X_{i-1}$. (O comprimento físico do elo).
 
-2. Torção do elo ($\alpha_i$): O ângulo entre os eixos $Z_{i-1}$ e $Z_i$ em torno do eixo $X_i$. (O quanto a junta está inclinada).
+2. Torção do elo ($\alpha_{i-1}$): O ângulo entre os eixos $Z_{i-1}$ e $Z_i$ em torno do eixo $X_{i-1}$. (O quanto a junta está inclinada).
 
-3. Deslocamento do elo ($d_i$): A distância entre os eixos $X_{i-1}$ e $X_i$ ao longo do eixo $Z_{i-1}$. (O quanto a junta está deslocada lateralmente).
+3. Deslocamento do elo ($d_i$): A distância entre os eixos $X_{i-1}$ e $X_i$ ao longo do eixo $Z_i$. (O quanto a junta está deslocada lateralmente).
 
-4. Ângulo da junta ($\theta_i$): O ângulo entre os eixos $X_{i-1}$ e $X_i$ em torno do eixo $Z_{i-1}$. (Esta é a variável que muda quando um motor gira!).
+4. Ângulo da junta ($\theta_i$): O ângulo entre os eixos $X_{i-1}$ e $X_i$ em torno do eixo $Z_i$. (Esta é a variável que muda quando um motor gira!).
+
+![Parâmetros DH Modificada entre dois referenciais de junta consecutivos: os eixos das juntas Z_(i-1) e Z_i são unidos pela normal comum, o eixo X_(i-1); a_(i-1) é o comprimento do elo ao longo de X_(i-1) e alpha_(i-1) a torção do elo em torno de X_(i-1). Ao longo de Z_i, o deslocamento d_i chega à origem O_i, onde fica X_i, girado em relação a X_(i-1) pelo ângulo de junta theta_i em torno de Z_i.](/images/kinematics/modeling-manipulators-dh-parameters.svg)
 
 ### A matriz de transformação DH
 
@@ -69,7 +71,7 @@ $$
 
 Vamos extrair os parâmetros DH de um robô planar 2R simples (um braço robótico com duas juntas rotacionais que se movem no plano de uma mesa, como um braço humano apoiado sobre uma escrivaninha). O primeiro elo tem comprimento $L_1$ e o segundo tem comprimento $L_2$.
 
-![Atribuição de referenciais DH (vista de cima) para um braço planar 2R: os eixos das juntas Z_0, Z_1, Z_2 apontam todos para fora da mesa (desenhados como pontos circulados), então toda torção alpha é zero; as origens dos referenciais ficam nas juntas, então todo deslocamento d é zero. Cada eixo X corre ao longo do seu elo, com comprimentos a_1 = L_1 e a_2 = L_2, e os ângulos de junta theta_1 e theta_2 são as duas variáveis.](/images/kinematics/modeling-manipulators-2r-planar.svg)
+![Atribuição de referenciais DH (vista de cima) para um braço planar 2R: os eixos das juntas Z_0, Z_1, Z_2 apontam todos para fora da mesa (desenhados como pontos circulados), então toda torção alpha é zero; as origens dos referenciais ficam nas juntas, então todo deslocamento d é zero. Cada eixo X corre ao longo do seu elo, com comprimentos a_0 = L_1 e a_1 = L_2, e os ângulos de junta theta_1 e theta_2 são as duas variáveis.](/images/kinematics/modeling-manipulators-2r-planar.svg)
 
 Primeiro, alinhamos todos os eixos Z com o eixo de rotação. Como o robô se move sobre uma mesa plana, todos os motores giram em torno do eixo vertical. Portanto, $Z_0$, $Z_1$ e $Z_2$ apontam todos para cima, para fora da mesa.
 
@@ -92,10 +94,10 @@ Elo 2 (indo do Referencial 1 ao Referencial 2):
 Seguindo a mesma lógica para o segundo elo, obtemos: $\alpha_1 = 0$, $a_1 = L_2$, $\theta_2 = \theta_2^*$, $d_2 = 0$.
 
 
-| Elo ($i$)  | $a_i$   | $\alpha_i$ | $d_i$    | $\theta_i$   |
-|:-----------|:-------:|-----------:|---------:|-------------:| 
-| 1          | $L_1$   | $0$        | $0$      | $\theta_1^*$ |
-| 2          | $L_2$   | $0$        | $0$      | $\theta_2^*$ |
+| Elo ($i$)  | $\alpha_{i-1}$ | $a_{i-1}$ | $\theta_i$   | $d_i$ |
+|:-----------|:--------------:|:---------:|:------------:|:-----:|
+| 1          | $0$            | $L_1$     | $\theta_1^*$ | $0$   |
+| 2          | $0$            | $L_2$     | $\theta_2^*$ | $0$   |
 
 
 ## Erros comuns

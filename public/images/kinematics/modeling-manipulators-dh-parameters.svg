@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="170 35 320 362" width="100%" height="100%" font-family="ui-sans-serif, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>Modified Denavit–Hartenberg parameters between two consecutive joint frames</title>
+  <desc>Two consecutive joint axes Z(i-1) and Z(i) in an oblique 3D view (Craig's Modified DH convention). Their common normal is the X(i-1) axis; a(i-1), the link length, is the distance along X(i-1) between the two Z axes, and alpha(i-1), the link twist, is the angle between the two Z axes about X(i-1). Along Z(i) the offset d(i) reaches the origin O(i), where X(i) sits, rotated from X(i-1) by the joint angle theta(i) about Z(i).</desc>
+
+  <defs>
+    <marker id="mdhX" markerWidth="10" markerHeight="10" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#E2675F"/>
+    </marker>
+  </defs>
+
+  <rect x="170" y="35" width="320" height="362" fill="#ffffff"/>
+
+  <!-- common normal (physical link) O(i-1) -> C, along X(i-1) -->
+  <line x1="210" y1="360" x2="390" y2="360" stroke="#64748B" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- dashed reference guides -->
+  <!-- Z(i-1)-parallel at C, to read alpha -->
+  <line x1="390" y1="360" x2="390" y2="120" stroke="#9AA1AC" stroke-width="1.4" stroke-dasharray="5 4"/>
+  <!-- X(i-1) direction carried to O(i), to read theta -->
+  <line x1="370.9" y1="275.9" x2="432" y2="275.9" stroke="#9AA1AC" stroke-width="1.4" stroke-dasharray="5 4"/>
+
+  <!-- joint axes (Z, blue) -->
+  <line x1="210" y1="388.5" x2="210" y2="48" stroke="#2563EB" stroke-width="2.6" marker-end="url(#dummy)"/>
+  <line x1="210" y1="388.5" x2="210" y2="48" stroke="#2563EB" stroke-width="2.6"/>
+  <path d="M210,48 l-5,11 l5,-4 l5,4 z" fill="#2563EB"/>
+  <line x1="395.8" y1="385.6" x2="341.5" y2="143" stroke="#2563EB" stroke-width="2.6"/>
+  <path d="M340,140.7 l-1,11.7 l3.6,-2.6 l4.6,1.2 z" fill="#2563EB"/>
+
+  <!-- X axes (red) -->
+  <line x1="210" y1="360" x2="444" y2="360" stroke="#E2675F" stroke-width="2.4" marker-end="url(#mdhX)"/>
+  <line x1="370.9" y1="275.9" x2="446.3" y2="247.6" stroke="#E2675F" stroke-width="2.4" marker-end="url(#mdhX)"/>
+
+  <!-- origins -->
+  <circle cx="210" cy="360" r="3.3" fill="#1A1F2B"/>
+  <circle cx="370.9" cy="275.9" r="3.3" fill="#1A1F2B"/>
+
+  <!-- a(i-1): bracket over the common normal -->
+  <path d="M210,347 L210,338 L390,338 L390,347" stroke="#D97706" stroke-width="1.6" fill="none"/>
+  <text x="300" y="331" fill="#D97706" font-size="17" font-style="italic" text-anchor="middle">a<tspan baseline-shift="sub" font-size="11">i-1</tspan></text>
+
+  <!-- alpha(i-1): arc about X(i-1) between Z(i-1)-parallel and Z(i) -->
+  <path d="M390,300 Q384,301 376.7,301.5" stroke="#D97706" stroke-width="2" fill="none"/>
+  <text x="395" y="294" fill="#D97706" font-size="17" font-style="italic">α<tspan baseline-shift="sub" font-size="11">i-1</tspan></text>
+
+  <!-- d(i): dimension bracket along Z(i) from C to O(i) -->
+  <path d="M390,360 L404.6,356.7 M404.6,356.7 L385.5,272.6 M385.5,272.6 L370.9,275.9" stroke="#D97706" stroke-width="1.6" fill="none"/>
+  <text x="409" y="342" fill="#D97706" font-size="17" font-style="italic">d<tspan baseline-shift="sub" font-size="11">i</tspan></text>
+
+  <!-- theta(i): arc about Z(i) between X(i-1) and X(i) -->
+  <path d="M416.9,275.9 Q416,266 414,259.7" stroke="#D97706" stroke-width="2" fill="none"/>
+  <text x="433" y="272" fill="#D97706" font-size="17" font-style="italic">θ<tspan baseline-shift="sub" font-size="11">i</tspan></text>
+
+  <!-- axis labels -->
+  <text x="178" y="46" fill="#2563EB" font-size="17" font-style="italic">Z<tspan baseline-shift="sub" font-size="11">i-1</tspan></text>
+  <text x="316" y="138" fill="#2563EB" font-size="17" font-style="italic">Z<tspan baseline-shift="sub" font-size="11">i</tspan></text>
+  <text x="448" y="357" fill="#E2675F" font-size="16" font-style="italic">X<tspan baseline-shift="sub" font-size="11">i-1</tspan></text>
+  <text x="450" y="244" fill="#E2675F" font-size="16" font-style="italic">X<tspan baseline-shift="sub" font-size="11">i</tspan></text>
+
+  <!-- origin labels -->
+  <text x="196" y="377" fill="#1A1F2B" font-size="14" font-style="italic" text-anchor="end">O<tspan baseline-shift="sub" font-size="10">i-1</tspan></text>
+  <text x="344" y="270" fill="#1A1F2B" font-size="14" font-style="italic" text-anchor="end">O<tspan baseline-shift="sub" font-size="10">i</tspan></text>
+</svg>
