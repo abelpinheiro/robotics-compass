@@ -90,7 +90,7 @@ export const curriculum: Area[] = [
     title: "Reinforcement learning",
     order: 5,
     lessons: [
-      { slug: "mdps", title: "Markov decision processes", order: 1, status: "draft", difficulty: "intro", prerequisites: [] },
+      { slug: "mdps", title: "Markov decision processes", order: 1, status: "published", difficulty: "intro", prerequisites: [] },
       { slug: "value-iteration", title: "Value iteration", order: 2, status: "draft", difficulty: "core", prerequisites: ["mdps"] },
       { slug: "policy-iteration", title: "Policy iteration", order: 3, status: "draft", difficulty: "core", prerequisites: ["mdps"] },
       { slug: "monte-carlo", title: "Monte Carlo methods", order: 4, status: "draft", difficulty: "core", prerequisites: ["mdps"] },
