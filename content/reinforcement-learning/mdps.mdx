@@ -11,11 +11,25 @@ status: draft
 
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+The Reinforcement Learning framework can be summarized in the following image
+
+![Reinforcement Learning interaction cycle.](/images/reinforcement-learning/components-rl-chapter2.png)
+
+A
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+An MDP is formally defined as a 5-tuple: $(S, A, P, R, \gamma)$
+
+1. State Space ($S$): A set of all possible situations the agent can find itself in. (e.g., the exact coordinates of a robot, or the pixels on a screen).
+
+2. Action Space ($A$): A set of all valid moves the agent can make. These can be discrete (e.g., "move left", "move right") or continuous (e.g., "apply 2.5 Volts to the motor").
+
+3. Transition Dynamics ($P$): A probability function $P(s' \vert{} s, a)$ that dictates the rules of the world. If the agent is in state $s$ and takes action $a$, what is the probability that it ends up in the new state $s'$? In a deterministic simulator, this is 100%. In a noisy real-world scenario (like a robot slipping on ice), the outcome is probabilistic.
+
+4. Reward Function ($R$): A scalar feedback signal $R(s, a)$ given to the agent after taking an action. It tells the agent what is good and what is bad.
+
+5. Discount Factor ($\gamma$): A number between $0$ and $1$. It acts as the agent's "patience." A reward of +10 right now is worth more than a reward of +10 in a hundred steps. The discount factor mathematically devalues rewards the further they are in the future, preventing infinite sums in unending tasks.
 
 ## Visualization
 
