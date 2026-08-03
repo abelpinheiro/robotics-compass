@@ -35,8 +35,6 @@ Aqui, impomos que o eixo Z deve estar alinhado com o eixo de rotação da junta.
 
 4. Ângulo da junta ($\theta_i$): O ângulo entre os eixos $X_{i-1}$ e $X_i$ em torno do eixo $Z_i$. (Esta é a variável que muda quando um motor gira!).
 
-![Parâmetros DH Modificada entre dois referenciais de junta consecutivos: os eixos das juntas Z_(i-1) e Z_i são unidos pela normal comum, o eixo X_(i-1); a_(i-1) é o comprimento do elo ao longo de X_(i-1) e alpha_(i-1) a torção do elo em torno de X_(i-1). Ao longo de Z_i, o deslocamento d_i chega à origem O_i, onde fica X_i, girado em relação a X_(i-1) pelo ângulo de junta theta_i em torno de Z_i.](/images/kinematics/modeling-manipulators-dh-parameters.svg)
-
 ### A matriz de transformação DH
 
 Uma vez extraídos esses quatro parâmetros para um elo específico, nós os inserimos em uma matriz de transformação homogênea padrão. Essa matriz $^{i-1}_iT$ mapeia um ponto do referencial $\{i\}$ de volta para o referencial $\{i-1\}$.

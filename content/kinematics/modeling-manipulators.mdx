@@ -35,8 +35,6 @@ Here we enforce that the Z-axis must align with the axis of rotation of the join
 
 4. Joint angle ($\theta_i$): The angle between the $X_{i-1}$ and $X_i$ axes about the $Z_i$ axis. (This is the variable that changes when a motor spins!).
 
-![Modified DH parameters between two consecutive joint frames: the joint axes Z_(i-1) and Z_i are joined by their common normal, the X_(i-1) axis; a_(i-1) is the link length along X_(i-1) and alpha_(i-1) the link twist about X_(i-1). Along Z_i, the offset d_i reaches the origin O_i, where X_i sits, rotated from X_(i-1) by the joint angle theta_i about Z_i.](/images/kinematics/modeling-manipulators-dh-parameters.svg)
-
 ### The DH Transformation Matrix
 
 Once we extract these four parameters for a specific link, we plug them into a standard Homogeneous Transformation Matrix. This matrix $^{i-1}_iT$ maps a point from frame $\{i\}$ back to frame $\{i-1\}$.
