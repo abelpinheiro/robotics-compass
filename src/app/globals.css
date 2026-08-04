@@ -204,6 +204,15 @@
     color: var(--muted);
   }
 
+  /* Wide display math (e.g. 4x4 matrices) scrolls inside its own box instead
+     of pushing the page wide on narrow screens (Golden rule: no horizontal
+     body scroll). */
+  .lesson-prose :where(.katex-display) {
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-block: 0.5rem;
+  }
+
   /* Authored lesson images (from public/images/…). */
   .lesson-prose :where(img) {
     display: block;
