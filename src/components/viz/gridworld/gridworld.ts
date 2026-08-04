@@ -69,7 +69,7 @@ function listStates(world: GridWorld): string[] {
 }
 
 /** Move one cell in a direction, staying put if blocked by a wall or boundary. */
-function move(world: GridWorld, k: string, dir: Action): string {
+export function move(world: GridWorld, k: string, dir: Action): string {
   const { row, col } = cellOf(k);
   const [dr, dc] = DIRS[dir];
   const nr = row + dr;
@@ -88,7 +88,7 @@ function move(world: GridWorld, k: string, dir: Action): string {
 
 /** Stochastic transition model: intended direction with prob (1 - noise),
  *  each perpendicular direction with prob noise/2. */
-function transitions(
+export function transitions(
   world: GridWorld,
   k: string,
   action: Action,
@@ -195,7 +195,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-function sample(probs: Map<string, number>, rng: () => number): string {
+export function sample(probs: Map<string, number>, rng: () => number): string {
   let x = rng();
   let last = "";
   for (const [k2, p] of probs) {

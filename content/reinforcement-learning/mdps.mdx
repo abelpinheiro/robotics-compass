@@ -9,6 +9,9 @@ prerequisites: []
 status: draft
 ---
 
+import MDPGridVizEmbed from "@/components/viz/gridworld/MDPGridVizEmbed";
+import MDPGraphVizEmbed from "@/components/viz/mdp/MDPGraphVizEmbed";
+
 ## Intuition
 
 The Reinforcement Learning framework can be summarized in the following image
@@ -33,7 +36,9 @@ An MDP is formally defined as a 5-tuple: $(S, A, P, R, \gamma)$
 
 ## Visualization
 
-{/* TODO(viz): wire the visualization component here via /new-viz. */}
+<MDPGridVizEmbed />
+
+<MDPGraphVizEmbed />
 
 ## Worked example
 
