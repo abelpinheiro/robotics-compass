@@ -29,31 +29,34 @@ The core of RL is essentially a trial-and-error loop of an agent which is observ
 ## Formal definition
 To build an MDP, we need to represent our problem as a tuple: $(S, A, P, R, \gamma)$.
 
-1. The Markov property
+### 1. The Markov property
+
 MDPs have a memoryless property known as the Markov Property, that is, the probability of the next state given the current state and action is totally independent of the history of interactions of the agent. That means that the probability of moving from one state to another given the entire sequence of events is exactly the same as given only the immediate preceding state and action:
 
 $$\mathbb{P}(S_{t+1} = s', R_{t+1} = r \mid S_0, A_0, S_1, A_1, \dots, S_t = s, A_t = a) = \mathbb{P}(S_{t+1} = s', R_{t+1} = r \mid S_t = s, A_t = a)$$
 
-2. State, Action and Discount
+### 2. State, Action and Discount
+
 - State Space ($S$): A set of all possible situations the agent can find itself in. (e.g., the exact coordinates of a robot, or the pixels on a screen).
 - Action Space ($A$): A set of all valid moves the agent can make. These can be discrete (e.g., "move left", "move right") or continuous (e.g., "apply 2.5 Volts to the motor").
 - Discount Factor ($\gamma$): A scalar between $0$ and $1$. It acts as a way to decide if the agent will consider only the nearest immediate actions (thus reducing the weight of the future actions) or not. It also reduced the variance considering all of the possibilities as we go further and further towards the future.
 
-3. The Transition Function ($P$)
+### 3. The Transition Function ($P$)
+
 Also known as the transiction dynamics, it is the probability of ending up in state $s'$ given that the agent was in state $s$ and took action $a$.
 
 $$P(s' \mid s, a) = \mathbb{P}(S_{t+1} = s' \mid S_t = s, A_t = a)$$
 
 By definition, for any given state-action pair, the sum of probabilities of all possible next states must equal 1: $\sum_{s' \in \mathcal{S}} P(s' \mid s, a) = 1$. In a deterministic simulator (like a chess game), this probability is always 100% or 0%. In a stochastic scenario (like a robot slipping on a floor), taking the action "move forward" might only have an 80% chance of reaching the forward state.
 
-4. The Reward Function ($R$)
+### 4. The Reward Function ($R$)
 
 The Reward Function is a scalar feedback signal given to the agent. This is how we communicate what we want the agent to achieve.
 Strictly speaking, the expected reward $R(s, a)$ is the expected value ($\mathbb{E}$) of the reward received at time step $t+1$, given the state-action pair at time step $t$:
 
 $$R(s, a) = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a]$$
 
-5. The Concept of Return ($G_t$)
+### 5. The Concept of Return ($G_t$)
 
 We define the Return ($G_t$) as the total discounted sum of rewards the agent accumulates from time step $t$ until the end of the game (or into infinity):
 
