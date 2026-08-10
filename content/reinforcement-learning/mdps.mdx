@@ -16,7 +16,13 @@ import MDPGraphVizEmbed from "@/components/viz/mdp/MDPGraphVizEmbed";
 
 The Reinforcement Learning framework can be summarized in the following image
 
+<figure>
+
 ![Reinforcement Learning interaction cycle.](/images/reinforcement-learning/components-rl-chapter2.png)
+
+<figcaption>Source: <em>Grokking Deep Reinforcement Learning</em> (Miguel Morales), Chapter 2.</figcaption>
+
+</figure>
 
 The core of RL is essentially a trial-and-error loop of an agent which is observing the world, perfoming an action and receiving an reward based on the transition to this new state that the agent finds himself now. The mathematical framework that this strategy is based is called *Markov Decision Process (MDP)*.
 
@@ -38,7 +44,7 @@ Also known as the transiction dynamics, it is the probability of ending up in st
 
 $$P(s' \mid s, a) = \mathbb{P}(S_{t+1} = s' \mid S_t = s, A_t = a)$$
 
-By definition, for any given state-action pair, the sum of probabilities of all possible next states must equal 1: $\sum_{s' \in \mathcal{S}} P(s' \mid s, a) = 1$. In a deterministic simulator (like a chess game), this probability is always 100% (1.0) or 0%. In a stochastic scenario (like a robot slipping on a floor), taking the action "move forward" might only have an 80% chance of reaching the forward state.
+By definition, for any given state-action pair, the sum of probabilities of all possible next states must equal 1: $\sum_{s' \in \mathcal{S}} P(s' \mid s, a) = 1$. In a deterministic simulator (like a chess game), this probability is always 100% or 0%. In a stochastic scenario (like a robot slipping on a floor), taking the action "move forward" might only have an 80% chance of reaching the forward state.
 
 4. The Reward Function ($R$)
 
@@ -49,11 +55,11 @@ $$R(s, a) = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a]$$
 
 5. The Concept of Return ($G_t$)
 
-While the Reward Function gives immediate feedback, the agent's ultimate goal is long-term success. We define the Return ($G_t$) as the total discounted sum of rewards the agent accumulates from time step $t$ until the end of the game (or into infinity):
+We define the Return ($G_t$) as the total discounted sum of rewards the agent accumulates from time step $t$ until the end of the game (or into infinity):
 
 $$G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots = \sum_{k=0}^{\infty} \gamma^k R_{t+k+1}$$
 
-The agent's sole purpose in life is to maximize the expected Return.
+The agent's purpose is to maximize the expected Return.
 
 ## Visualization
 
@@ -63,16 +69,28 @@ The agent's sole purpose in life is to maximize the expected Return.
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+Let's consider a robot navigating a small grid. It is currently at time $t=0$. It takes 3 steps before reaching the goal and ending the episode. The rewards it receives at each step are: $R_1 = -1$, $R_2 = -1$, and the goal reward $R_3 = +10$. The discount factor is $\gamma = 0.9$.
+
+We will calculate the Return $G_0$ for the robot from the starting position. For that, We plug the immediate rewards into our Return equation:
+
+$$G_0 = R_1 + \gamma R_2 + \gamma^2 R_3$$
+
+$$G_0 = -1 + (0.9)(-1) + (0.9)^2(10)$$
+
+$$G_0 = -1 - 0.9 + 0.81(10)$$
+
+$$G_0 = -1.9 + 8.1 = 6.2$$
+
+The total discounted Return from the starting state is 6.2. Even though the first two steps gave negative rewards (punishing the robot for taking time), the large future reward, appropriately discounted, made the overall Return positive.
 
 ## Common pitfalls
 
-{/* TODO(author): list common pitfalls. */}
+1. Violating the Markov Property (Hidden States): Think about the environment of the Atari game Pong: if you give single static image frame as its state $S$, it cannot tell the direction the ball is going. The past directions matters, so the state is not Markovian. The solution is usually to stack the last 3 or 4 frames together to form a single state, restoring the Markov property.
 
-## Exercises
+2. Do not confuse Reward with Return! You might think that a good solution is to make the agent optimizes the immediate Reward ($R$). However, the agent optimizes the long-term Return ($G_t$). An agent might willingly take an action that gives a massive negative reward right now if it leads to an even bigger positive reward later.
 
-{/* TODO(author): add exercises. */}
+3. Discount Factor $\gamma = 1$: If you set $\gamma$ to exactly 1 in a task that never ends (a continuous task), the sum of future rewards in the Return equation will reach infinity. Always keep $\gamma < 1$ (usually 0.99) unless you are in a strict episodic environment where termination is guaranteed.
 
 ## Further reading
 
-{/* TODO(author): add references and further reading. */}
+1. Grokking's Deep Reinforcement Learning Chapter 2.
