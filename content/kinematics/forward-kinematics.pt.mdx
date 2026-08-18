@@ -1,0 +1,128 @@
+---
+title: "Cinemática direta"
+area: kinematics
+slug: forward-kinematics
+order: 1
+summary: ""
+difficulty: ""
+prerequisites: []
+status: draft
+---
+
+import FKArmVizEmbed from "@/components/viz/fk/FKArmVizEmbed";
+
+## Intuição
+
+No capítulo anterior, aprendemos a descrever a relação entre uma junta do robô e a seguinte usando os parâmetros de Denavit-Hartenberg (DH). Mas saber que o "cotovelo está a 30 cm do ombro" não é suficiente para realizar uma tarefa real. Geralmente precisamos saber onde a garra do robô (o efetuador) está em relação ao chão (a base) para que ela possa pegar um objeto.
+
+A cinemática direta (Forward Kinematics, FK) é o processo matemático que responde a uma pergunta simples: **"Se eu ajustar os motores do robô para estes ângulos específicos, onde a garra vai parar no espaço 3D?"**
+
+Se você sabe como ir da base à Junta 1, da Junta 1 à Junta 2 e da Junta 2 à garra... basta encadear todas essas instruções para encontrar um caminho direto da base até a garra. Em robótica, encadeamos esses passos usando multiplicação de matrizes.
+
+## Definição formal
+
+### Os três espaços da robótica
+
+1. **Espaço dos atuadores (Actuator Space):** É o que o hardware físico entende. Consiste nos sinais brutos vindos dos seus motores.
+
+2. **Espaço das juntas (Joint Space, ou espaço de configuração):** É a representação da postura do robô, sua configuração interna. Consiste nos ângulos ($\theta$) das juntas rotacionais, ou nas distâncias ($d$) das juntas prismáticas. Ir do espaço dos atuadores ao espaço das juntas geralmente envolve apenas multiplicar por uma relação de engrenagem. Um conjunto específico de ângulos de junta, como $\Theta = [90^\circ, 45^\circ, -30^\circ]$, define perfeitamente a *configuração* do robô.
+$$
+   \mathbf{q} = \begin{bmatrix} q_1 & q_2 & \dots & q_n \end{bmatrix}^T
+$$
+
+3. **Espaço cartesiano (Cartesian Space, ou espaço da tarefa):** É o mundo 3D em que vivemos. É descrito por coordenadas ($X, Y, Z$) e orientações (roll, pitch, yaw). É onde o efetuador do robô realiza sua tarefa de fato, como polir a porta de um carro ou pegar um objeto.
+
+$$
+   \mathbf{x} = \begin{bmatrix} x & y & z & \alpha & \beta & \gamma \end{bmatrix}^T
+$$
+*(onde $x, y, z$ definem a posição 3D, e $\alpha, \beta, \gamma$ representam a orientação, como roll, pitch e yaw).*
+
+A **cinemática direta** é definida como a função de mapeamento matemático que recebe um vetor no **espaço das juntas** e o converte em uma pose no **espaço cartesiano**:
+$$
+\mathbf{x} = f(\mathbf{q})
+$$
+
+### A cadeia cinemática
+
+Suponha que um robô tenha $n$ juntas. A partir da nossa Tabela DH, podemos gerar uma matriz de transformação homogênea $4 \times 4$ individual para cada elo: $^{i-1}_{i}T$.
+
+Para encontrar a pose do efetuador (referencial $n$) em relação à base (referencial $0$), basta multiplicar todas as matrizes de transformação individuais, em ordem:
+
+$$
+^0_nT = ^0_1T \cdot ^1_2T \cdot ^2_3T \dots ^{n-1}_nT
+$$
+
+### Extraindo os dados de pose
+
+O resultado dessa grande multiplicação é uma matriz $4 \times 4$. Ela contém tanto a posição 3D quanto a orientação 3D do efetuador:
+
+$$
+^0_nT = \begin{bmatrix} r_{11} & r_{12} & r_{13} & X \\ r_{21} & r_{22} & r_{23} & Y \\ r_{31} & r_{32} & r_{33} & Z \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+*   **Posição ($X, Y, Z$):** O vetor $3 \times 1$ no canto superior direito fornece as coordenadas cartesianas exatas da garra em metros (relativas ao referencial da base).
+*   **Orientação ($R$):** A matriz de rotação $3 \times 3$ no canto superior esquerdo diz exatamente para onde a garra está apontando. Podemos converter essa matriz de rotação depois para ângulos de Euler (roll, pitch, yaw) ou quatérnios.
+
+## Visualização
+
+<FKArmVizEmbed />
+
+## Exemplo resolvido
+
+Vamos resolver o clássico **manipulador planar 2R** (um braço robótico com duas juntas rotacionais que se movem em um plano 2D).
+*   O Elo 1 tem comprimento $L_1$ e está no ângulo $\theta_1$.
+*   O Elo 2 tem comprimento $L_2$ e está no ângulo $\theta_2$.
+
+![Um manipulador planar 2R desenhado no plano x–y do mundo. O Elo 1 (comprimento L_1) sai da junta da base fixa com ângulo theta_1 em relação ao eixo x; o Elo 2 (comprimento L_2) é preso no cotovelo com ângulo theta_2 em relação à extensão do Elo 1. Linhas tracejadas descem da ponta (o efetuador) até os eixos x e y, marcando suas coordenadas cartesianas (X, Y).](/images/kinematics/forward-kinematics-2r-planar.svg)
+
+**Passo 1: Parâmetros DH**
+Usando a convenção Modificada (Craig) da lição anterior, temos 3 referenciais: Base $\{0\}$, Junta 2 $\{1\}$ e a Ponta $\{2\}$.
+
+| Referencial ($i$) | $\alpha_{i-1}$ | $a_{i-1}$ | $\theta_i$ | $d_i$ |
+|:------------------|:--------------:|:---------:|:----------:|:-----:|
+| 1                 | $0$            | $0$       | $\theta_1$ | $0$   |
+| 2                 | $0$            | $L_1$     | $\theta_2$ | $0$   |
+| Ponta             | $0$            | $L_2$     | $0$        | $0$   |
+
+**Passo 2: Construir as matrizes individuais**
+Substituindo esses valores no modelo de matriz de transformação DH Modificada:
+
+$$
+^0_1T = \begin{bmatrix} \cos\theta_1 & -\sin\theta_1 & 0 & 0 \\ \sin\theta_1 & \cos\theta_1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+$$
+^1_2T = \begin{bmatrix} \cos\theta_2 & -\sin\theta_2 & 0 & L_1 \\ \sin\theta_2 & \cos\theta_2 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+$$
+^2_{tip}T = \begin{bmatrix} 1 & 0 & 0 & L_2 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+**Passo 3: Encadear as matrizes**
+Multiplique-as ($^0_1T \cdot ^1_2T \cdot ^2_{tip}T$). Para manter as contas limpas, usamos a notação abreviada $c_1 = \cos(\theta_1)$ e $s_{12} = \sin(\theta_1 + \theta_2)$.
+Depois de fazer a multiplicação de matrizes e aplicar identidades trigonométricas básicas, a matriz final $^0_{tip}T$ fica:
+
+$$
+^0_{tip}T = \begin{bmatrix} 
+c_{12} & -s_{12} & 0 & L_1 c_1 + L_2 c_{12} \\ 
+s_{12} & c_{12}  & 0 & L_1 s_1 + L_2 s_{12} \\ 
+0      & 0       & 1 & 0 \\ 
+0      & 0       & 0 & 1 
+\end{bmatrix}
+$$
+
+**Conclusão:**
+As equações de cinemática direta para a posição da ponta são:
+*   $X = L_1 \cos(\theta_1) + L_2 \cos(\theta_1 + \theta_2)$
+*   $Y = L_1 \sin(\theta_1) + L_2 \sin(\theta_1 + \theta_2)$
+
+Isso corresponde exatamente à geometria que você obteria se simplesmente desenhasse os triângulos em um papel!
+
+## Erros comuns
+
+{/* TODO(author): list common pitfalls. */}
+
+## Leituras adicionais
+
+Seções 3.5 e 3.6 de *Robotics*, de Craig
