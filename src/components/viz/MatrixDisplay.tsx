@@ -4,9 +4,14 @@ const fmt = (n: number) => (Math.abs(n) < 1e-9 ? 0 : n).toFixed(2);
 export function MatrixDisplay({
   rows,
   ariaLabel,
+  highlightCol,
+  highlightColor,
 }: {
   rows: number[][];
   ariaLabel?: string;
+  /** Emphasize the top-3 rows of this column (e.g. the TCP position). */
+  highlightCol?: number;
+  highlightColor?: string;
 }) {
   const cols = rows[0]?.length ?? 0;
   return (
@@ -24,11 +29,18 @@ export function MatrixDisplay({
         style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
       >
         {rows.flatMap((row, i) =>
-          row.map((v, j) => (
-            <span key={`${i}-${j}`} className="text-right tabular-nums">
-              {fmt(v)}
-            </span>
-          )),
+          row.map((v, j) => {
+            const hl = highlightCol !== undefined && j === highlightCol && i < 3;
+            return (
+              <span
+                key={`${i}-${j}`}
+                className={`text-right tabular-nums ${hl ? "font-bold" : ""}`}
+                style={hl ? { color: highlightColor } : undefined}
+              >
+                {fmt(v)}
+              </span>
+            );
+          }),
         )}
       </div>
       <span

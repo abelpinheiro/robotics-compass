@@ -9,11 +9,15 @@ prerequisites: []
 status: draft
 ---
 
-import ArmVizEmbed from "@/components/viz/arm/ArmVizEmbed";
+import FKArmVizEmbed from "@/components/viz/fk/FKArmVizEmbed";
 
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+In the previous chapter, we learned how to describe the relationship between one robot joint and the next using Denavit-Hartenberg (DH) parameters. But knowing that the "elbow is 30 cm away from the shoulder" isn't enough to perform a real task. We usually need to know where the robot's gripper (the End-Effector) is relative to the ground (the Base) so it can pick up an object.
+
+Forward Kinematics (FK) is the mathematical process of answering one simple question: **"If I set my robot's motors to these specific angles, where will the gripper end up in 3D space?"**
+
+If you know how to get from the Base to Joint 1, and from Joint 1 to Joint 2, and from Joint 2 to the Gripper... you can just chain all those instructions together to find a direct path from the Base straight to the Gripper. In robotics, we chain these steps using matrix multiplication.
 
 ## Formal definition
 
@@ -21,7 +25,7 @@ import ArmVizEmbed from "@/components/viz/arm/ArmVizEmbed";
 
 ## Visualization
 
-<ArmVizEmbed />
+<FKArmVizEmbed />
 
 ## Worked example
 
@@ -30,10 +34,6 @@ import ArmVizEmbed from "@/components/viz/arm/ArmVizEmbed";
 ## Common pitfalls
 
 {/* TODO(author): list common pitfalls. */}
-
-## Exercises
-
-{/* TODO(author): add exercises. */}
 
 ## Further reading
 
