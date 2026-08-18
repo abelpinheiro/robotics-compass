@@ -21,7 +21,47 @@ If you know how to get from the Base to Joint 1, and from Joint 1 to Joint 2, an
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+### The Three Spaces of Robotics
+
+1. **Actuator Space:** This is what the physical hardware understands. It consists of the raw signals from your motors.
+
+2. **Joint Space (or Configuration Space):** This is the representation of the robot's posture, its internal configuration. It consists of the actual angles ($\theta$) for revolute joints, or distances ($d$) for prismatic joints. Moving from Actuator Space to Joint Space usually just involves multiplying by a gear ratio. A specific set of joint angles, like $\Theta = [90^\circ, 45^\circ, -30^\circ]$, perfectly defines the robot's *configuration*.
+$$
+   \mathbf{q} = \begin{bmatrix} q_1 & q_2 & \dots & q_n \end{bmatrix}^T
+$$
+
+3. **Cartesian Space (or Task Space):** This is the 3D world we live in. It is described by coordinates ($X, Y, Z$) and orientations (Roll, Pitch, Yaw). This is where the robot's end-effector performs its actual task, like polishing a car door or picking up an object.
+
+$$
+   \mathbf{x} = \begin{bmatrix} x & y & z & \alpha & \beta & \gamma \end{bmatrix}^T
+$$
+*(where $x, y, z$ define the 3D position, and $\alpha, \beta, \gamma$ represent orientation, such as Roll, Pitch, and Yaw).*
+
+**Forward Kinematics** is defined as the mathematical mapping function that takes a vector in **Joint Space** and converts it into a pose in **Cartesian Space**:
+$$
+\mathbf{x} = f(\mathbf{q})
+$$
+
+### The Kinematic Chain
+
+Let's assume a robot has $n$ joints. From our DH Table, we can generate an individual $4 \times 4$ Homogeneous Transformation Matrix for every single link: $^{i-1}_{i}T$.
+
+To find the pose of the end-effector (frame $n$) relative to the base (frame $0$), we simply multiply all the individual transformation matrices together in order:
+
+$$
+^0_nT = ^0_1T \cdot ^1_2T \cdot ^2_3T \dots ^{n-1}_nT
+$$
+
+### Extracting Pose Data
+
+The result of this massive multiplication is a $4 \times 4$ matrix. It contains both the 3D position and 3D orientation of the end-effector:
+
+$$
+^0_nT = \begin{bmatrix} r_{11} & r_{12} & r_{13} & X \\ r_{21} & r_{22} & r_{23} & Y \\ r_{31} & r_{32} & r_{33} & Z \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+*   **Position ($X, Y, Z$):** The top-right $3 \times 1$ vector gives you the exact Cartesian coordinates of the gripper in meters (relative to the base frame).
+*   **Orientation ($R$):** The top-left $3 \times 3$ rotation matrix tells you exactly which way the gripper is pointing. We can convert this rotation matrix later to Euler Angles (Roll, Pitch, Yaw) or Quaternions.
 
 ## Visualization
 
@@ -29,7 +69,55 @@ If you know how to get from the Base to Joint 1, and from Joint 1 to Joint 2, an
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+Let's solve the classic **2R Planar Manipulator** (a robotic arm with two rotational joints moving on a flat 2D plane). 
+*   Link 1 has length $L_1$ and is at angle $\theta_1$.
+*   Link 2 has length $L_2$ and is at angle $\theta_2$.
+
+![A 2R planar manipulator drawn in the world x–y plane. Link 1 (length L_1) leaves the fixed base joint at angle theta_1 measured from the x axis; link 2 (length L_2) is attached at the elbow at angle theta_2 measured from the extension of link 1. Dashed guide lines drop from the tip (the end-effector) to the x and y axes, marking its Cartesian coordinates (X, Y).](/images/kinematics/forward-kinematics-2r-planar.svg)
+
+**Step 1: DH Parameters**
+Using the Modified (Craig) convention from our previous lesson, we have 3 frames: Base $\{0\}$, Joint 2 $\{1\}$, and the Tip $\{2\}$.
+
+| Frame ($i$) | $\alpha_{i-1}$ | $a_{i-1}$ | $\theta_i$ | $d_i$ |
+|:------------|:--------------:|:---------:|:----------:|:-----:|
+| 1           | $0$            | $0$       | $\theta_1$ | $0$   |
+| 2           | $0$            | $L_1$     | $\theta_2$ | $0$   |
+| Tip         | $0$            | $L_2$     | $0$        | $0$   |
+
+**Step 2: Build the Individual Matrices**
+Substituting these values into the Modified DH transformation matrix template:
+
+$$
+^0_1T = \begin{bmatrix} \cos\theta_1 & -\sin\theta_1 & 0 & 0 \\ \sin\theta_1 & \cos\theta_1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+$$
+^1_2T = \begin{bmatrix} \cos\theta_2 & -\sin\theta_2 & 0 & L_1 \\ \sin\theta_2 & \cos\theta_2 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+$$
+^2_{tip}T = \begin{bmatrix} 1 & 0 & 0 & L_2 \\ 0 & 1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+
+**Step 3: Chain the Matrices**
+Multiply them together ($^0_1T \cdot ^1_2T \cdot ^2_{tip}T$). To keep the math clean, we use the shorthand $c_1 = \cos(\theta_1)$ and $s_{12} = \sin(\theta_1 + \theta_2)$. 
+After doing the matrix multiplication and applying basic trigonometric identities, the final $^0_{tip}T$ matrix becomes:
+
+$$
+^0_{tip}T = \begin{bmatrix} 
+c_{12} & -s_{12} & 0 & L_1 c_1 + L_2 c_{12} \\ 
+s_{12} & c_{12}  & 0 & L_1 s_1 + L_2 s_{12} \\ 
+0      & 0       & 1 & 0 \\ 
+0      & 0       & 0 & 1 
+\end{bmatrix}
+$$
+
+**Conclusion:**
+The Forward Kinematics equations for the position of the tip are:
+*   $X = L_1 \cos(\theta_1) + L_2 \cos(\theta_1 + \theta_2)$
+*   $Y = L_1 \sin(\theta_1) + L_2 \sin(\theta_1 + \theta_2)$
+
+This perfectly matches the geometry you would get if you just drew the triangles on a piece of paper!
 
 ## Common pitfalls
 
@@ -37,4 +125,4 @@ If you know how to get from the Base to Joint 1, and from Joint 1 to Joint 2, an
 
 ## Further reading
 
-{/* TODO(author): add references and further reading. */}
+section 3.5, 3.6 of Robotics, by Craig

@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="88 64 264 262" width="100%" height="100%" font-family="ui-sans-serif, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>2R planar manipulator geometry for forward kinematics</title>
+  <desc>A two-joint planar (2R) robot arm drawn in the world x-y plane. Link 1 of length L1 leaves the fixed base joint at angle theta1 measured from the x axis; link 2 of length L2 is attached at the elbow at angle theta2 measured from the extension of link 1. Dashed guide lines drop from the tip (the end-effector) to the x and y axes, marking its Cartesian coordinates (X, Y).</desc>
+
+  <defs>
+    <marker id="fkx" markerWidth="10" markerHeight="10" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#E2675F"/>
+    </marker>
+    <marker id="fky" markerWidth="10" markerHeight="10" refX="7.5" refY="4.5" orient="auto">
+      <path d="M0,0 L9,4.5 L0,9 z" fill="#16A34A"/>
+    </marker>
+  </defs>
+
+  <rect x="88" y="64" width="264" height="262" fill="#ffffff"/>
+
+  <!-- world axes: x (red) right, y (green) up, from the base joint O -->
+  <line x1="110" y1="300" x2="332" y2="300" stroke="#E2675F" stroke-width="1.8" marker-end="url(#fkx)"/>
+  <line x1="110" y1="300" x2="110" y2="88" stroke="#16A34A" stroke-width="1.8" marker-end="url(#fky)"/>
+  <text x="339" y="305" fill="#E2675F" font-size="16" font-style="italic">x</text>
+  <text x="102" y="82" fill="#16A34A" font-size="16" font-style="italic" text-anchor="end">y</text>
+
+  <!-- dashed extension of link 1 past the elbow (reference for theta_2) -->
+  <line x1="209.6" y1="216.4" x2="244.8" y2="186.9" stroke="#9AA1AC" stroke-width="1.4" stroke-dasharray="4 4"/>
+
+  <!-- dashed projections from the tip to each axis -->
+  <line x1="236.8" y1="115.0" x2="236.8" y2="300" stroke="#9AA1AC" stroke-width="1.4" stroke-dasharray="4 4"/>
+  <line x1="236.8" y1="115.0" x2="110" y2="115.0" stroke="#9AA1AC" stroke-width="1.4" stroke-dasharray="4 4"/>
+  <circle cx="236.8" cy="300" r="2.4" fill="#9AA1AC"/>
+  <circle cx="110" cy="115.0" r="2.4" fill="#9AA1AC"/>
+
+  <!-- links (gray bars): O -> elbow (L1) and elbow -> tip (L2) -->
+  <line x1="110" y1="300" x2="209.6" y2="216.4" stroke="#64748B" stroke-width="8" stroke-linecap="round"/>
+  <line x1="209.6" y1="216.4" x2="236.8" y2="115.0" stroke="#64748B" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- theta_1 arc at O: from +x axis to link 1 -->
+  <path d="M155,300 A 45 45 0 0 0 144.5,271.1" stroke="#D97706" stroke-width="2" fill="none"/>
+  <text x="163" y="286" fill="#D97706" font-size="16" font-style="italic" text-anchor="middle">θ<tspan baseline-shift="sub" font-size="11">1</tspan></text>
+
+  <!-- theta_2 arc at elbow: from link-1 extension to link 2 -->
+  <path d="M238.7,192.0 A 38 38 0 0 0 219.4,179.7" stroke="#D97706" stroke-width="2" fill="none"/>
+  <text x="233" y="179" fill="#D97706" font-size="16" font-style="italic" text-anchor="middle">θ<tspan baseline-shift="sub" font-size="11">2</tspan></text>
+
+  <!-- link-length labels -->
+  <text x="185" y="262" fill="#D97706" font-size="16" font-style="italic" text-anchor="middle">L<tspan baseline-shift="sub" font-size="11">1</tspan></text>
+  <text x="246" y="159" fill="#D97706" font-size="16" font-style="italic" text-anchor="middle">L<tspan baseline-shift="sub" font-size="11">2</tspan></text>
+
+  <!-- fixed base symbol at O -->
+  <line x1="96" y1="307" x2="124" y2="307" stroke="#64748B" stroke-width="2"/>
+  <g stroke="#64748B" stroke-width="1.4">
+    <line x1="100" y1="307" x2="94" y2="313"/>
+    <line x1="106" y1="307" x2="100" y2="313"/>
+    <line x1="112" y1="307" x2="106" y2="313"/>
+    <line x1="118" y1="307" x2="112" y2="313"/>
+    <line x1="124" y1="307" x2="118" y2="313"/>
+  </g>
+
+  <!-- joints: base, elbow (white), tip / end-effector (accent) -->
+  <circle cx="110" cy="300" r="5" fill="#ffffff" stroke="#64748B" stroke-width="2"/>
+  <circle cx="209.6" cy="216.4" r="5" fill="#ffffff" stroke="#64748B" stroke-width="2"/>
+  <circle cx="236.8" cy="115.0" r="5.5" fill="#2563EB"/>
+  <text x="247" y="111" fill="#2563EB" font-size="16" font-style="italic">(X, Y)</text>
+</svg>
