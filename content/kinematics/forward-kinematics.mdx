@@ -121,7 +121,9 @@ This perfectly matches the geometry you would get if you just drew the triangles
 
 ## Common pitfalls
 
-{/* TODO(author): list common pitfalls. */}
+1. **Matrix Multiplication is Not Commutative:** When writing FK in code (like Python/NumPy), order matters. $T_1 \cdot T_2$ is fundamentally different from $T_2 \cdot T_1$. Always multiply from the base outwards toward the end-effector. 
+2. **Floating Point Accumulation:** If you chain 7 different matrices for a 7-DOF arm in code using standard `float32`, tiny rounding errors in the trigonometric functions will compound at every step. Always use double precision (`float64`) when writing kinematic chains from scratch.
+
 
 ## Further reading
 
