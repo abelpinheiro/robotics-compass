@@ -3,12 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { Line, OrbitControls } from "@react-three/drei";
-
-// Link lengths of the 3-DOF arm (base column, upper arm, forearm). Exported so
-// the viz builds the matching 4x4 chain with the same geometry the scene draws.
-export const L1 = 1.2;
-export const L2 = 1.3;
-export const L3 = 1.0;
+import { L1, L2, L3 } from "./fkMath";
 
 // A strong, fixed highlight color for the Tool Center Point — used identically
 // in the 3D marker/trail and in the highlighted matrix column so the learner
@@ -21,8 +16,9 @@ interface Colors {
   link: string;
   base: string;
   grid: string;
+  danger: string;
 }
-const FALLBACK: Colors = { link: "#8aa0b2", base: "#38bdf8", grid: "#1e2a38" };
+const FALLBACK: Colors = { link: "#8aa0b2", base: "#38bdf8", grid: "#1e2a38", danger: "#e2675f" };
 
 function useColors(el: HTMLElement): Colors {
   return useMemo(() => {
@@ -32,6 +28,7 @@ function useColors(el: HTMLElement): Colors {
       link: v("--muted", FALLBACK.link),
       base: v("--accent", FALLBACK.base),
       grid: v("--viz-grid", FALLBACK.grid),
+      danger: v("--danger", FALLBACK.danger),
     };
   }, [el]);
 }
@@ -59,17 +56,21 @@ function Arm({
   t3,
   trail,
   colors,
+  target,
+  targetReachable = true,
 }: {
   t1: number;
   t2: number;
   t3: number;
   trail: P3[];
   colors: Colors;
+  target?: P3 | null;
+  targetReachable?: boolean;
 }) {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
     invalidate();
-  }, [t1, t2, t3, trail, colors, invalidate]);
+  }, [t1, t2, t3, trail, colors, target, targetReachable, invalidate]);
 
   return (
     <group rotation={[-Math.PI / 2, 0, 0]}>
@@ -79,6 +80,20 @@ function Arm({
       {/* TCP trail (robot base frame) */}
       {trail.length > 1 && (
         <Line points={trail} color={TCP_COLOR} lineWidth={2.5} />
+      )}
+
+      {/* IK target marker: a wireframe sphere in the base frame. Pink when the
+          target is reachable, danger-red when it is out of the workspace. */}
+      {target && (
+        <mesh position={target}>
+          <sphereGeometry args={[0.15, 12, 8]} />
+          <meshBasicMaterial
+            color={targetReachable ? TCP_COLOR : colors.danger}
+            wireframe
+            transparent
+            opacity={0.85}
+          />
+        </mesh>
       )}
 
       <group rotation={[0, 0, t1]}>
@@ -119,7 +134,21 @@ function Arm({
   );
 }
 
-function Scene({ t1, t2, t3, trail }: { t1: number; t2: number; t3: number; trail: P3[] }) {
+function Scene({
+  t1,
+  t2,
+  t3,
+  trail,
+  target,
+  targetReachable,
+}: {
+  t1: number;
+  t2: number;
+  t3: number;
+  trail: P3[];
+  target?: P3 | null;
+  targetReachable?: boolean;
+}) {
   const domElement = useThree((s) => s.gl.domElement);
   const colors = useColors(domElement);
   return (
@@ -127,7 +156,15 @@ function Scene({ t1, t2, t3, trail }: { t1: number; t2: number; t3: number; trai
       <ambientLight intensity={0.6} />
       <directionalLight position={[4, 6, 3]} intensity={1.15} />
       <gridHelper args={[8, 16, colors.grid, colors.grid]} position={[0, -0.001, 0]} />
-      <Arm t1={t1} t2={t2} t3={t3} trail={trail} colors={colors} />
+      <Arm
+        t1={t1}
+        t2={t2}
+        t3={t3}
+        trail={trail}
+        colors={colors}
+        target={target}
+        targetReachable={targetReachable}
+      />
       <OrbitControls
         makeDefault
         enableDamping={false}
@@ -144,11 +181,15 @@ export default function FKArmScene({
   t2,
   t3,
   trail,
+  target,
+  targetReachable,
 }: {
   t1: number;
   t2: number;
   t3: number;
   trail: P3[];
+  target?: P3 | null;
+  targetReachable?: boolean;
 }) {
   return (
     <Canvas
@@ -157,7 +198,14 @@ export default function FKArmScene({
       camera={{ position: [3.4, 2.8, 3.8], fov: 45 }}
       gl={{ alpha: true, antialias: true }}
     >
-      <Scene t1={t1} t2={t2} t3={t3} trail={trail} />
+      <Scene
+        t1={t1}
+        t2={t2}
+        t3={t3}
+        trail={trail}
+        target={target}
+        targetReachable={targetReachable}
+      />
     </Canvas>
   );
 }

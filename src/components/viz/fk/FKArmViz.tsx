@@ -4,50 +4,11 @@ import { useEffect, useRef, useState } from "react";
 import { Viz3D } from "@/components/viz/Viz3D";
 import { VizFrame } from "@/components/viz/VizFrame";
 import { MatrixDisplay } from "@/components/viz/MatrixDisplay";
-import FKArmScene, { L1, L2, L3, TCP_COLOR } from "./FKArmScene";
+import FKArmScene, { TCP_COLOR } from "./FKArmScene";
+import { linkMatrices, toRad } from "./fkMath";
+import type { Mat4, P3, Pose } from "./fkMath";
 
 const fmt = (n: number) => (Math.abs(n) < 5e-3 ? 0 : n).toFixed(2);
-const toRad = (d: number) => (d * Math.PI) / 180;
-
-type Mat4 = number[][];
-type P3 = [number, number, number];
-interface Pose {
-  t1: number;
-  t2: number;
-  t3: number;
-}
-
-function mul(a: Mat4, b: Mat4): Mat4 {
-  const o: Mat4 = [
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-  ];
-  for (let i = 0; i < 4; i++)
-    for (let j = 0; j < 4; j++)
-      for (let k = 0; k < 4; k++) o[i][j] += a[i][k] * b[k][j];
-  return o;
-}
-const rotZ = (t: number): Mat4 => {
-  const c = Math.cos(t), s = Math.sin(t);
-  return [[c, -s, 0, 0], [s, c, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
-};
-const rotY = (t: number): Mat4 => {
-  const c = Math.cos(t), s = Math.sin(t);
-  return [[c, 0, s, 0], [0, 1, 0, 0], [-s, 0, c, 0], [0, 0, 0, 1]];
-};
-const transZ = (d: number): Mat4 => [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, d], [0, 0, 0, 1]];
-const transX = (a: number): Mat4 => [[1, 0, 0, a], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
-
-// The three joint transforms, identical to the scene's nested-group chain.
-const linkMatrices = (p: Pose) => {
-  const A1 = mul(rotZ(toRad(p.t1)), transZ(L1));
-  const A2 = mul(rotY(toRad(p.t2)), transX(L2));
-  const A3 = mul(rotY(toRad(p.t3)), transX(L3));
-  const T03 = mul(mul(A1, A2), A3);
-  return { A1, A2, A3, T03 };
-};
 
 const HOME: Pose = { t1: 0, t2: 0, t3: 0 };
 const POSE_A: Pose = { t1: 40, t2: -50, t3: 80 };

@@ -9,17 +9,45 @@ prerequisites: []
 status: draft
 ---
 
+import IKArmVizEmbed from "@/components/viz/ik/IKArmVizEmbed";
+
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+When you reach out to grab a cup of coffee, it is not normal to think: *"I will rotate my shoulder by 45 degrees, my elbow by -30 degrees, and my wrist by 10 degrees."* Instead, your brain focuses on the 3D coordinates of the cup, and your subconscious automatically calculates the exact joint angles needed to place your hand there.
+
+In robotics, this subconscious process is called **Inverse Kinematics (IK)**. 
+
+In the previous chapter (Forward Kinematics), we asked: *"If I know the joint angles $\mathbf{q}$, where is the Cartesian pose $\mathbf{x}$?"* 
+Now, we are asking the much harder, but far more useful question: *"I want the tool at Cartesian pose $\mathbf{x}$, what should the joint angles $\mathbf{q}$ be?"*
+
+While Forward Kinematics is a simple with a direct solution, Inverse Kinematics is harder and might contain multiple solution, or sometimes, no solutions at all.
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+Inverse Kinematics is the inverse function of our Forward Kinematics mapping:
+
+$$
+\mathbf{q} = f^{-1}(\mathbf{x})
+$$
+
+Because the FK function $f(\mathbf{q})$ is built from chained matrix multiplications packed with non-linear trigonometric functions ($\sin$ and $\cos$), computing the exact inverse $f^{-1}$ is notoriously difficult. To solve this, roboticists generally rely on two distinct approaches:
+
+### 1. Analytical (Closed-Form) Solutions
+This approach uses math to find exact, finite formulas for each joint angle $\theta_i$. It is extremely fast, 100% accurate, and identifies all possible configurations (like "elbow-up" or "elbow-down") at once. However, it requires human ingenuity to derive, and is only possible for specific robot anatomies (like those satisfying Pieper's Criterion). 
+
+Within analytical solutions, there are two distinct techniques:
+
+*   **The Geometric Method:** This technique decomposes the spatial geometry of the robot arm into several 2D planar problems. By visualizing the links as lines and the joints as vertices, we can use classical trigonometry (Law of Cosines, Law of Sines, and right triangles) to solve for the angles. It is highly intuitive for simple robots but becomes incredibly hard to visualize for complex 6-DOF arms.
+*   **The Algebraic Method:** Instead of looking at the physical shape, this technique treats IK as a pure math puzzle. We start with the Forward Kinematics equation ($^0_nT_{goal} = ^0_1T \cdot ^1_2T \dots ^{n-1}_nT$). Since we know the numbers inside $T_{goal}$, we strategically pre-multiply both sides of the equation by the inverse matrices (e.g., $(^0_1T)^{-1}$) to move variables around until we can isolate a specific $\theta_i$ on one side of the equals sign.
+
+### 2. Numerical Solutions
+A trial and error approach where the algorithm refines the solution. The robot starts at its current position, looks at the target $\mathbf{x}$, calculates the error, and advances the joints $\mathbf{q}$ slightly in the right direction with the Jacobian Matrix. This is an universal approach, so it should work on any robot design no matter how complex it is. The dowbside of this method is that it is computationally heavier requiring multiple iterations to converge and might even never get a solution because of the local minima problem!
+
+*(Note: We will dive deeply into Numerical IK in the upcoming chapters on Velocity Kinematics and Jacobians. Below, we will focus on the Analytical approach).*
 
 ## Visualization
 
-{/* TODO(viz): wire the visualization component here via /new-viz. */}
+<IKArmVizEmbed />
 
 ## Worked example
 
