@@ -157,9 +157,11 @@ $$
 \theta_1 = \text{atan2}(Y, X) - \text{atan2}(k_2, k_1)
 $$
 Which perfectly matches our geometric result! Both tools lead to the same destination, but the Algebraic Method relies purely on expanding matrices and simplifying identities.
+
 ## Common pitfalls
 
-{/* TODO(author): list common pitfalls. */}
+1. **Unreachable Targets:** In our formula for $\theta_2$, the target distance will only be reached if the right side of the expression ($\frac{X^2 + Y^2 - L_1^2 - L_2^2}{2 L_1 L_2}$) has a value between $-1$ and $1$, since it represents the cosine of an angle. The designed algorithm must verify this mathematical constraint first to know if a physical solution actually exists. If the value is outside this range, the target is outside the robot's workspace.
+2. **Using `atan` instead of `atan2`:** Standard inverse trigonometric functions like `atan(y/x)` lose quadrant information because they only see the result of the division. For example, both $(-1)/(-1)$ and $1/1$ equal $1$, so `atan(1)` will always return $45^\circ$, even if your target is behind the robot in the third quadrant. Always use the `atan2(y, x)` function in your code—it evaluates the signs of $Y$ and $X$ separately to return the correct angle across all four quadrants ($-\pi$ to $\pi$).
 
 ## Further reading
 
