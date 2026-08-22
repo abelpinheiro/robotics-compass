@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="52 74 316 248" width="100%" height="100%" font-family="ui-sans-serif, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>Geometric inverse kinematics of a 2R planar arm</title>
+  <desc>A 2R planar arm reaching a target T = (X, Y) from the base O. Links L1 (base to elbow E) and L2 (elbow to target) form a triangle with the hypotenuse r = OT, whose square is X^2 + Y^2. The elbow joint angle theta2 follows from the law of cosines on this triangle. At the base, the shoulder angle theta1 = alpha - beta, where alpha is the angle of r from the x axis and beta is the interior triangle angle at the base. A second, ghosted arm with elbow E-prime is the mirror solution across r, showing the two elbow-up / elbow-down configurations that reach the same target.</desc>
+
+  <defs>
+    <marker id="ikax" markerWidth="9" markerHeight="9" refX="7" refY="4.2" orient="auto">
+      <path d="M0,0 L8.5,4.2 L0,8.4 z" fill="#94A3B8"/>
+    </marker>
+  </defs>
+
+  <rect x="52" y="74" width="316" height="248" fill="#ffffff"/>
+
+  <!-- world axes (muted) -->
+  <line x1="80" y1="300" x2="345" y2="300" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#ikax)"/>
+  <line x1="80" y1="300" x2="80" y2="85" stroke="#94A3B8" stroke-width="1.6" marker-end="url(#ikax)"/>
+  <text x="352" y="305" fill="#94A3B8" font-size="15" font-style="italic">x</text>
+  <text x="72" y="80" fill="#94A3B8" font-size="15" font-style="italic" text-anchor="end">y</text>
+
+  <!-- second (ghost) solution: mirror arm across r, elbow at E' -->
+  <line x1="80" y1="300" x2="97.43" y2="173.7" stroke="#CBD5E1" stroke-width="6" stroke-linecap="round"/>
+  <line x1="97.43" y1="173.7" x2="184.44" y2="129.12" stroke="#CBD5E1" stroke-width="6" stroke-linecap="round"/>
+
+  <!-- base angle arcs (drawn BEHIND the links and r): theta1 (x->L1), beta
+       (L1->r) as an inner ring, alpha (x->r) as the outer envelope = theta1+beta -->
+  <path d="M124,300 A44,44 0 0 0 102.96,262.46" stroke="#2563EB" stroke-width="1.8" fill="none"/>
+  <path d="M106,300 A26,26 0 0 0 101.30,285.09" stroke="#D97706" stroke-width="1.9" fill="none"/>
+  <path d="M101.30,285.09 A26,26 0 0 0 93.57,277.82" stroke="#16A34A" stroke-width="1.9" fill="none"/>
+
+  <!-- theta2: extension of L1 past the elbow + arc (drawn behind L2) -->
+  <line x1="184.44" y1="226.87" x2="225.40" y2="198.19" stroke="#9AA1AC" stroke-width="1.3" stroke-dasharray="4 4"/>
+  <path d="M209.01,209.66 A30,30 0 0 0 184.44,196.87" stroke="#D97706" stroke-width="1.9" fill="none"/>
+
+  <!-- hypotenuse r = OT (dashed), painted over the base arcs -->
+  <line x1="80" y1="300" x2="184.44" y2="129.12" stroke="#64748B" stroke-width="1.7" stroke-dasharray="5 4"/>
+
+  <!-- primary solution links, painted over the arcs -->
+  <line x1="80" y1="300" x2="184.44" y2="226.87" stroke="#475569" stroke-width="7" stroke-linecap="round"/>
+  <line x1="184.44" y1="226.87" x2="184.44" y2="129.12" stroke="#475569" stroke-width="7" stroke-linecap="round"/>
+
+  <!-- fixed base symbol at O -->
+  <line x1="66" y1="306" x2="94" y2="306" stroke="#64748B" stroke-width="2"/>
+  <g stroke="#64748B" stroke-width="1.4">
+    <line x1="70" y1="306" x2="64" y2="312"/>
+    <line x1="76" y1="306" x2="70" y2="312"/>
+    <line x1="82" y1="306" x2="76" y2="312"/>
+    <line x1="88" y1="306" x2="82" y2="312"/>
+    <line x1="94" y1="306" x2="88" y2="312"/>
+  </g>
+
+  <!-- joints -->
+  <circle cx="97.43" cy="173.7" r="4" fill="#ffffff" stroke="#94A3B8" stroke-width="1.6"/>
+  <circle cx="184.44" cy="226.87" r="4.5" fill="#ffffff" stroke="#475569" stroke-width="1.8"/>
+  <circle cx="80" cy="300" r="4.5" fill="#475569"/>
+  <circle cx="184.44" cy="129.12" r="5" fill="#2563EB"/>
+
+  <!-- labels (on top of everything) -->
+  <text x="114" y="205" fill="#64748B" font-size="15" font-style="italic">r</text>
+  <text x="154" y="268" fill="#475569" font-size="15" font-style="italic" text-anchor="middle">L<tspan baseline-shift="sub" font-size="10">1</tspan></text>
+  <text x="198" y="181" fill="#475569" font-size="15" font-style="italic" text-anchor="middle">L<tspan baseline-shift="sub" font-size="10">2</tspan></text>
+  <text x="112" y="290" fill="#D97706" font-size="10" font-style="italic" text-anchor="middle">θ<tspan baseline-shift="sub" font-size="6">1</tspan></text>
+  <text x="203" y="196" fill="#D97706" font-size="11" font-style="italic" text-anchor="middle">θ<tspan baseline-shift="sub" font-size="7">2</tspan></text>
+  <text x="137" y="284" fill="#2563EB" font-size="14" font-style="italic" text-anchor="middle">α</text>
+  <text x="104" y="275" fill="#16A34A" font-size="10" font-style="italic" text-anchor="middle">β</text>
+  <text x="190" y="245" fill="#475569" font-size="14" font-style="italic">E</text>
+  <text x="76" y="171" fill="#94A3B8" font-size="14" font-style="italic" text-anchor="end">E&#8242;</text>
+  <text x="72" y="296" fill="#1A1F2B" font-size="14" font-style="italic" text-anchor="end">O</text>
+  <text x="193" y="127" fill="#1A1F2B" font-size="15" font-style="italic">T = (X, Y)</text>
+</svg>

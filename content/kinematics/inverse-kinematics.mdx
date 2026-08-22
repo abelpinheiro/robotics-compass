@@ -33,15 +33,21 @@ $$
 Because the FK function $f(\mathbf{q})$ is built from chained matrix multiplications packed with non-linear trigonometric functions ($\sin$ and $\cos$), computing the exact inverse $f^{-1}$ is notoriously difficult. To solve this, roboticists generally rely on two distinct approaches:
 
 ### 1. Analytical (Closed-Form) Solutions
-This approach uses math to find exact, finite formulas for each joint angle $\theta_i$. It is extremely fast, 100% accurate, and identifies all possible configurations (like "elbow-up" or "elbow-down") at once. However, it requires human ingenuity to derive, and is only possible for specific robot anatomies (like those satisfying Pieper's Criterion). 
-
+This approach uses math to find exact, finite formulas for each joint angle $\theta_i$. It is a fast and accurate method that identifies all possible configurations (like "elbow-up" or "elbow-down") at once.
 Within analytical solutions, there are two distinct techniques:
 
-*   **The Geometric Method:** This technique decomposes the spatial geometry of the robot arm into several 2D planar problems. By visualizing the links as lines and the joints as vertices, we can use classical trigonometry (Law of Cosines, Law of Sines, and right triangles) to solve for the angles. It is highly intuitive for simple robots but becomes incredibly hard to visualize for complex 6-DOF arms.
-*   **The Algebraic Method:** Instead of looking at the physical shape, this technique treats IK as a pure math puzzle. We start with the Forward Kinematics equation ($^0_nT_{goal} = ^0_1T \cdot ^1_2T \dots ^{n-1}_nT$). Since we know the numbers inside $T_{goal}$, we strategically pre-multiply both sides of the equation by the inverse matrices (e.g., $(^0_1T)^{-1}$) to move variables around until we can isolate a specific $\theta_i$ on one side of the equals sign.
-
+*   **The Geometric Method:** This technique decomposes the spatial geometry of the robot arm into several 2D planar problems. By visualizing the links as lines and the joints as vertices, we can use basic trigonometry (Law of Cosines, Law of Sines, and right triangles) to solve for the angles. It is very intuitive at first but becomes harder and harder to visualize as we increase the number of DoFs.
+*   **The Algebraic Method:** Here we start with the Forward Kinematics equation ($^0_nT_{goal} = ^0_1T \cdot ^1_2T \dots ^{n-1}_nT$). Since we know the numbers inside $T_{goal}$, we set the _x_ and _y_ to the desired values and solve the equations algebraically. Finally, there may be multiple solutions (_e.g elbow-up and elbow-down solutions_) so the engineer must select the one most that best suits the problem.
 ### 2. Numerical Solutions
 A trial and error approach where the algorithm refines the solution. The robot starts at its current position, looks at the target $\mathbf{x}$, calculates the error, and advances the joints $\mathbf{q}$ slightly in the right direction with the Jacobian Matrix. This is an universal approach, so it should work on any robot design no matter how complex it is. The dowbside of this method is that it is computationally heavier requiring multiple iterations to converge and might even never get a solution because of the local minima problem!
+
+### 3. Pieper's Criterion
+Analytical solutions are not guaranteed for every robot. In fact, for a general 6-DOF manipulator, the algebraic equations become incredibly complex polynomials that are impossible to solve directly. However, in 1968, Donald Pieper proved that a 6-DOF robot has a guaranteed closed-form IK solution if it satisfies **Pieper's Criterion**:
+> *Three consecutive joint axes must either intersect at a single point, or be completely parallel.*
+
+The most common implementation of this criterion is the **spherical wrist** found in almost all industrial robots (joints 4, 5, and 6 intersecting). This physical design trick allows to perform **Kinematic Decoupling**: the complex 6-DOF problem is split into two much simpler 3-DOF problems. The first three joints are calculated to place the wrist at the correct *position*, and the last three joints are calculated to achieve the correct *orientation*.
+
+![A stylized 6-DOF industrial arm. Joints 1, 2 and 3 (blue) form the positioning arm that brings the wrist centre W to its target point; joints 4, 5 and 6 (amber) form a spherical wrist whose three axes all intersect at the single point W — the condition Pieper's criterion requires. A rotation arrow marks that the wrist sets the orientation. This is kinematic decoupling: joints 1-3 solve the position, joints 4-6 solve the orientation.](/images/kinematics/inverse-kinematics-pieper-wrist.svg)
 
 *(Note: We will dive deeply into Numerical IK in the upcoming chapters on Velocity Kinematics and Jacobians. Below, we will focus on the Analytical approach).*
 
@@ -51,16 +57,110 @@ A trial and error approach where the algorithm refines the solution. The robot s
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+Let's solve the Analytical IK for the same 2-DOF planar robot (link lengths $L_1$ and $L_2$) given target Cartesian coordinates $(X, Y)$. We will derive the exact same answers using both techniques to see how they differ in thought process.
 
+### Example 1: The Geometric Method
+
+![A 2R planar arm reaching a target T = (X, Y) from the base O. Links L_1 (base O to elbow E) and L_2 (elbow to target) form a triangle whose hypotenuse r is the straight-line distance from O to T, with r squared equal to X squared plus Y squared. The elbow angle theta_2 comes from the law of cosines on this triangle. At the base, the shoulder angle theta_1 = alpha - beta, where alpha is the angle of r from the x axis and beta is the triangle's interior angle at the base. A faint mirror arm with elbow E-prime is the second solution (elbow-up vs elbow-down) that reaches the same target.](/images/kinematics/inverse-kinematics-2r-geometric.svg)
+
+**1. Finding $\theta_2$ (The Elbow)**
+If we draw a line directly from the base $(0,0)$ to the target $(X,Y)$, we form a triangle with sides $L_1$, $L_2$, and a hypotenuse $r$. By the Pythagorean theorem, the square of the distance is $r^2 = X^2 + Y^2$.
+
+Using the **Law of Cosines** on this triangle, we can isolate $\theta_2$:
+$$
+X^2 + Y^2 = L_1^2 + L_2^2 - 2 L_1 L_2 \cos(180^\circ - \theta_2)
+$$
+Since $\cos(180^\circ - \theta_2) = -\cos(\theta_2)$, this simplifies to:
+$$
+\cos(\theta_2) = \frac{X^2 + Y^2 - L_1^2 - L_2^2}{2 L_1 L_2}
+$$
+
+Let's call the right side $D$. Now we take the arccosine:
+$$
+\theta_2 = \pm \arccos(D)
+$$
+Notice the $\pm$. Because cosine is symmetric, the math proves there are **two valid solutions**. The robot can reach the same $(X,Y)$ point with its elbow bent upwards ($+$) or downwards ($-$). 
+
+**2. Finding $\theta_1$ (The Shoulder)**
+Let the angle of the hypotenuse $r$ relative to the global X-axis be $\alpha$, and the internal angle of the triangle at the base be $\beta$.
+$$
+\theta_1 = \alpha - \beta
+$$
+Using basic trigonometry, $\alpha = \text{atan2}(Y, X)$. The angle $\beta$ can be found using the projection of $L_2$:
+$$
+\beta = \text{atan2}(L_2 \sin(\theta_2), L_1 + L_2 \cos(\theta_2))
+$$
+So, the final solution is:
+$$
+\theta_1 = \text{atan2}(Y, X) - \text{atan2}(L_2 \sin(\theta_2), L_1 + L_2 \cos(\theta_2))
+$$
+
+---
+
+### Example 2: The Algebraic Method
+
+Instead of drawing triangles, we use the matrices built from its Modified DH parameters. 
+
+**1. Extracting the Position Equations**
+From our DH table, we know the individual transformation matrices for the two joints are:
+$$
+^0_1T = \begin{bmatrix} \cos\theta_1 & -\sin\theta_1 & 0 & 0 \\ \sin\theta_1 & \cos\theta_1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}, \quad
+^1_2T = \begin{bmatrix} \cos\theta_2 & -\sin\theta_2 & 0 & L_1 \\ \sin\theta_2 & \cos\theta_2 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+The tool is located at distance $L_2$ along the local X-axis of joint 2 ($^2P_{tool} = [L_2, 0, 0, 1]^T$). To find the global Cartesian coordinates $(X,Y)$, we chain the matrices ($^0_2T = ^0_1T \cdot ^1_2T$) and multiply by the tool vector:
+$$
+\begin{bmatrix} X \\ Y \\ 0 \\ 1 \end{bmatrix} = ^0_1T \cdot ^1_2T \cdot \begin{bmatrix} L_2 \\ 0 \\ 0 \\ 1 \end{bmatrix}
+$$
+Performing this matrix multiplication algebraically extracts our baseline equations:
+$$
+X = L_1 \cos(\theta_1) + L_2 \cos(\theta_1 + \theta_2)
+$$
+$$
+Y = L_1 \sin(\theta_1) + L_2 \sin(\theta_1 + \theta_2)
+$$
+
+**2. Finding $\theta_2$**
+To eliminate $\theta_1$, we square both equations and add them together ($X^2 + Y^2$):
+$$
+X^2 + Y^2 = [L_1 \cos(\theta_1) + L_2 \cos(\theta_1 + \theta_2)]^2 + [L_1 \sin(\theta_1) + L_2 \sin(\theta_1 + \theta_2)]^2
+$$
+Expanding the squares and applying the identity $\sin^2(A) + \cos^2(A) = 1$, we get:
+$$
+X^2 + Y^2 = L_1^2 + L_2^2 + 2L_1L_2 [\cos(\theta_1)\cos(\theta_1+\theta_2) + \sin(\theta_1)\sin(\theta_1+\theta_2)]
+$$
+Using the cosine difference identity $\cos(A-B) = \cos(A)\cos(B) + \sin(A)\sin(B)$:
+$$
+X^2 + Y^2 = L_1^2 + L_2^2 + 2L_1L_2 \cos(\theta_2)
+$$
+Isolating $\cos(\theta_2)$ yields the exact same formula we found geometrically:
+$$
+\cos(\theta_2) = \frac{X^2 + Y^2 - L_1^2 - L_2^2}{2 L_1 L_2}
+$$
+
+**3. Finding $\theta_1$**
+To find $\theta_1$ algebraically, we expand the original FK equations using the angle addition identities $\cos(\theta_1 + \theta_2)$ and $\sin(\theta_1 + \theta_2)$, and group the terms by $\cos(\theta_1)$ and $\sin(\theta_1)$:
+$$
+X = (L_1 + L_2\cos\theta_2)\cos\theta_1 - (L_2\sin\theta_2)\sin\theta_1
+$$
+$$
+Y = (L_1 + L_2\cos\theta_2)\sin\theta_1 + (L_2\sin\theta_2)\cos\theta_1
+$$
+Let $k_1 = L_1 + L_2\cos\theta_2$ and $k_2 = L_2\sin\theta_2$. The system becomes a set of linear equations:
+$$
+X = k_1\cos\theta_1 - k_2\sin\theta_1
+$$
+$$
+Y = k_1\sin\theta_1 + k_2\cos\theta_1
+$$
+If we solve this system for $\sin\theta_1$ and $\cos\theta_1$, and plug them into $\text{atan2}$, we get:
+$$
+\theta_1 = \text{atan2}(Y, X) - \text{atan2}(k_2, k_1)
+$$
+Which perfectly matches our geometric result! Both tools lead to the same destination, but the Algebraic Method relies purely on expanding matrices and simplifying identities.
 ## Common pitfalls
 
 {/* TODO(author): list common pitfalls. */}
 
-## Exercises
-
-{/* TODO(author): add exercises. */}
-
 ## Further reading
 
-{/* TODO(author): add references and further reading. */}
+section 4.4, 4.5 and 4.6 of Robotics, by Craig
