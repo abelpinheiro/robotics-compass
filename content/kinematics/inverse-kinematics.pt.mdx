@@ -1,0 +1,168 @@
+---
+title: "Cinemática inversa"
+area: kinematics
+slug: inverse-kinematics
+order: 3
+summary: ""
+difficulty: ""
+prerequisites: []
+status: draft
+---
+
+import IKArmVizEmbed from "@/components/viz/ik/IKArmVizEmbed";
+
+## Intuição
+
+Quando você estende a mão para pegar uma xícara de café, não é normal pensar: *"Vou girar meu ombro 45 graus, meu cotovelo -30 graus e meu punho 10 graus."* Em vez disso, seu cérebro foca nas coordenadas 3D da xícara, e seu subconsciente calcula automaticamente os ângulos exatos das juntas necessários para colocar sua mão ali.
+
+Na robótica, esse processo subconsciente é chamado de **Cinemática Inversa (IK)**.
+
+No capítulo anterior (Cinemática Direta), perguntamos: *"Se eu conheço os ângulos das juntas $\mathbf{q}$, onde está a pose cartesiana $\mathbf{x}$?"*
+Agora, fazemos a pergunta muito mais difícil, porém muito mais útil: *"Quero a ferramenta na pose cartesiana $\mathbf{x}$, quais devem ser os ângulos das juntas $\mathbf{q}$?"*
+
+Enquanto a cinemática direta é simples e tem solução direta, a cinemática inversa é mais difícil e pode ter múltiplas soluções — ou, às vezes, nenhuma.
+
+## Definição formal
+
+A cinemática inversa é a função inversa do nosso mapeamento de cinemática direta:
+
+$$
+\mathbf{q} = f^{-1}(\mathbf{x})
+$$
+
+Como a função de FK $f(\mathbf{q})$ é construída a partir de multiplicações de matrizes encadeadas, repletas de funções trigonométricas não lineares ($\sin$ e $\cos$), calcular a inversa exata $f^{-1}$ é notoriamente difícil. Para resolver isso, os roboticistas geralmente recorrem a duas abordagens distintas:
+
+### 1. Soluções analíticas (forma fechada)
+Essa abordagem usa matemática para encontrar fórmulas exatas e finitas para cada ângulo de junta $\theta_i$. É um método rápido e preciso que identifica todas as configurações possíveis (como "cotovelo para cima" ou "cotovelo para baixo") de uma só vez.
+Dentro das soluções analíticas, há duas técnicas distintas:
+
+*   **O método geométrico:** Essa técnica decompõe a geometria espacial do braço robótico em vários problemas planares 2D. Ao visualizar os elos como retas e as juntas como vértices, podemos usar trigonometria básica (lei dos cossenos, lei dos senos e triângulos retângulos) para resolver os ângulos. É muito intuitivo no início, mas fica cada vez mais difícil de visualizar à medida que aumentamos o número de graus de liberdade.
+*   **O método algébrico:** Aqui partimos da equação de cinemática direta ($^0_nT_{goal} = ^0_1T \cdot ^1_2T \dots ^{n-1}_nT$). Como conhecemos os números dentro de $T_{goal}$, igualamos $x$ e $y$ aos valores desejados e resolvemos as equações algebricamente. Por fim, pode haver múltiplas soluções (*por exemplo, cotovelo para cima e cotovelo para baixo*), então o engenheiro precisa selecionar a que melhor se adequa ao problema.
+
+### 2. Soluções numéricas
+Uma abordagem de tentativa e erro em que o algoritmo refina a solução. O robô parte de sua posição atual, olha para o alvo $\mathbf{x}$, calcula o erro e avança as juntas $\mathbf{q}$ ligeiramente na direção certa usando a matriz Jacobiana. É uma abordagem universal, então deve funcionar em qualquer projeto de robô, por mais complexo que seja. A desvantagem desse método é que ele é computacionalmente mais pesado, exigindo várias iterações para convergir, e pode até nunca chegar a uma solução por causa do problema dos mínimos locais!
+
+### 3. Critério de Pieper
+Soluções analíticas não são garantidas para todo robô. De fato, para um manipulador genérico de 6 graus de liberdade, as equações algébricas se tornam polinômios incrivelmente complexos, impossíveis de resolver diretamente. No entanto, em 1968, Donald Pieper provou que um robô de 6 GDL tem solução de IK em forma fechada garantida se satisfizer o **critério de Pieper**:
+> *Três eixos de junta consecutivos devem ou se intersectar em um único ponto, ou ser completamente paralelos.*
+
+A implementação mais comum desse critério é o **punho esférico** encontrado em quase todos os robôs industriais (juntas 4, 5 e 6 se intersectando). Esse truque de projeto físico permite realizar o **desacoplamento cinemático**: o complexo problema de 6 GDL é dividido em dois problemas de 3 GDL muito mais simples. As três primeiras juntas são calculadas para colocar o punho na *posição* correta, e as três últimas juntas são calculadas para alcançar a *orientação* correta.
+
+![Um braço industrial de 6 GDL estilizado. As juntas 1, 2 e 3 (azul) formam o braço posicionador que leva o centro do punho W até o ponto alvo; as juntas 4, 5 e 6 (âmbar) formam um punho esférico cujos três eixos se intersectam todos no único ponto W — a condição que o critério de Pieper exige. Uma seta de rotação indica que o punho define a orientação. Isto é o desacoplamento cinemático: as juntas 1-3 resolvem a posição, e as juntas 4-6 resolvem a orientação.](/images/kinematics/inverse-kinematics-pieper-wrist.svg)
+
+*(Nota: Vamos nos aprofundar na IK numérica nos próximos capítulos sobre Cinemática de Velocidade e Jacobianas. A seguir, focaremos na abordagem analítica.)*
+
+## Visualização
+
+<IKArmVizEmbed />
+
+## Exemplo resolvido
+
+Vamos resolver a IK analítica para o mesmo robô planar de 2 GDL (comprimentos de elo $L_1$ e $L_2$), dadas as coordenadas cartesianas alvo $(X, Y)$. Vamos derivar exatamente as mesmas respostas usando as duas técnicas, para ver como elas diferem no raciocínio.
+
+### Exemplo 1: O método geométrico
+
+![Um braço planar 2R alcançando um alvo T = (X, Y) a partir da base O. Os elos L_1 (da base O ao cotovelo E) e L_2 (do cotovelo ao alvo) formam um triângulo cuja hipotenusa r é a distância em linha reta de O a T, com r ao quadrado igual a X ao quadrado mais Y ao quadrado. O ângulo do cotovelo theta_2 vem da lei dos cossenos nesse triângulo. Na base, o ângulo do ombro theta_1 = alpha - beta, onde alpha é o ângulo de r em relação ao eixo x e beta é o ângulo interno do triângulo na base. Um braço espelhado esmaecido, com cotovelo E-linha, é a segunda solução (cotovelo para cima vs. para baixo) que alcança o mesmo alvo.](/images/kinematics/inverse-kinematics-2r-geometric.svg)
+
+**1. Encontrando $\theta_2$ (o cotovelo)**
+Se traçarmos uma linha direto da base $(0,0)$ até o alvo $(X,Y)$, formamos um triângulo com lados $L_1$, $L_2$ e uma hipotenusa $r$. Pelo teorema de Pitágoras, o quadrado da distância é $r^2 = X^2 + Y^2$.
+
+Usando a **lei dos cossenos** nesse triângulo, podemos isolar $\theta_2$:
+$$
+X^2 + Y^2 = L_1^2 + L_2^2 - 2 L_1 L_2 \cos(180^\circ - \theta_2)
+$$
+Como $\cos(180^\circ - \theta_2) = -\cos(\theta_2)$, isso simplifica para:
+$$
+\cos(\theta_2) = \frac{X^2 + Y^2 - L_1^2 - L_2^2}{2 L_1 L_2}
+$$
+
+Vamos chamar o lado direito de $D$. Agora tomamos o arco-cosseno:
+$$
+\theta_2 = \pm \arccos(D)
+$$
+Repare no $\pm$. Como o cosseno é simétrico, a matemática prova que há **duas soluções válidas**. O robô pode alcançar o mesmo ponto $(X,Y)$ com o cotovelo dobrado para cima ($+$) ou para baixo ($-$).
+
+**2. Encontrando $\theta_1$ (o ombro)**
+Seja $\alpha$ o ângulo da hipotenusa $r$ em relação ao eixo X global, e $\beta$ o ângulo interno do triângulo na base.
+$$
+\theta_1 = \alpha - \beta
+$$
+Usando trigonometria básica, $\alpha = \text{atan2}(Y, X)$. O ângulo $\beta$ pode ser encontrado usando a projeção de $L_2$:
+$$
+\beta = \text{atan2}(L_2 \sin(\theta_2), L_1 + L_2 \cos(\theta_2))
+$$
+Então, a solução final é:
+$$
+\theta_1 = \text{atan2}(Y, X) - \text{atan2}(L_2 \sin(\theta_2), L_1 + L_2 \cos(\theta_2))
+$$
+
+---
+
+### Exemplo 2: O método algébrico
+
+Em vez de desenhar triângulos, usamos as matrizes construídas a partir dos parâmetros DH Modificados do robô.
+
+**1. Extraindo as equações de posição**
+Da nossa tabela DH, sabemos que as matrizes de transformação individuais das duas juntas são:
+$$
+^0_1T = \begin{bmatrix} \cos\theta_1 & -\sin\theta_1 & 0 & 0 \\ \sin\theta_1 & \cos\theta_1 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}, \quad
+^1_2T = \begin{bmatrix} \cos\theta_2 & -\sin\theta_2 & 0 & L_1 \\ \sin\theta_2 & \cos\theta_2 & 0 & 0 \\ 0 & 0 & 1 & 0 \\ 0 & 0 & 0 & 1 \end{bmatrix}
+$$
+A ferramenta está localizada a uma distância $L_2$ ao longo do eixo X local da junta 2 ($^2P_{tool} = [L_2, 0, 0, 1]^T$). Para encontrar as coordenadas cartesianas globais $(X,Y)$, encadeamos as matrizes ($^0_2T = ^0_1T \cdot ^1_2T$) e multiplicamos pelo vetor da ferramenta:
+$$
+\begin{bmatrix} X \\ Y \\ 0 \\ 1 \end{bmatrix} = ^0_1T \cdot ^1_2T \cdot \begin{bmatrix} L_2 \\ 0 \\ 0 \\ 1 \end{bmatrix}
+$$
+Realizando essa multiplicação de matrizes algebricamente, extraímos nossas equações de base:
+$$
+X = L_1 \cos(\theta_1) + L_2 \cos(\theta_1 + \theta_2)
+$$
+$$
+Y = L_1 \sin(\theta_1) + L_2 \sin(\theta_1 + \theta_2)
+$$
+
+**2. Encontrando $\theta_2$**
+Para eliminar $\theta_1$, elevamos ambas as equações ao quadrado e as somamos ($X^2 + Y^2$):
+$$
+X^2 + Y^2 = [L_1 \cos(\theta_1) + L_2 \cos(\theta_1 + \theta_2)]^2 + [L_1 \sin(\theta_1) + L_2 \sin(\theta_1 + \theta_2)]^2
+$$
+Expandindo os quadrados e aplicando a identidade $\sin^2(A) + \cos^2(A) = 1$, obtemos:
+$$
+X^2 + Y^2 = L_1^2 + L_2^2 + 2L_1L_2 [\cos(\theta_1)\cos(\theta_1+\theta_2) + \sin(\theta_1)\sin(\theta_1+\theta_2)]
+$$
+Usando a identidade da diferença de cossenos $\cos(A-B) = \cos(A)\cos(B) + \sin(A)\sin(B)$:
+$$
+X^2 + Y^2 = L_1^2 + L_2^2 + 2L_1L_2 \cos(\theta_2)
+$$
+Isolando $\cos(\theta_2)$, chegamos exatamente à mesma fórmula que encontramos geometricamente:
+$$
+\cos(\theta_2) = \frac{X^2 + Y^2 - L_1^2 - L_2^2}{2 L_1 L_2}
+$$
+
+**3. Encontrando $\theta_1$**
+Para encontrar $\theta_1$ algebricamente, expandimos as equações originais de FK usando as identidades de adição de ângulos $\cos(\theta_1 + \theta_2)$ e $\sin(\theta_1 + \theta_2)$, e agrupamos os termos por $\cos(\theta_1)$ e $\sin(\theta_1)$:
+$$
+X = (L_1 + L_2\cos\theta_2)\cos\theta_1 - (L_2\sin\theta_2)\sin\theta_1
+$$
+$$
+Y = (L_1 + L_2\cos\theta_2)\sin\theta_1 + (L_2\sin\theta_2)\cos\theta_1
+$$
+Sejam $k_1 = L_1 + L_2\cos\theta_2$ e $k_2 = L_2\sin\theta_2$. O sistema se torna um conjunto de equações lineares:
+$$
+X = k_1\cos\theta_1 - k_2\sin\theta_1
+$$
+$$
+Y = k_1\sin\theta_1 + k_2\cos\theta_1
+$$
+Se resolvermos esse sistema para $\sin\theta_1$ e $\cos\theta_1$ e os substituirmos em $\text{atan2}$, obtemos:
+$$
+\theta_1 = \text{atan2}(Y, X) - \text{atan2}(k_2, k_1)
+$$
+Que corresponde perfeitamente ao nosso resultado geométrico! Ambas as ferramentas levam ao mesmo destino, mas o método algébrico se baseia puramente em expandir matrizes e simplificar identidades.
+
+## Erros comuns
+
+{/* TODO(author): list common pitfalls. */}
+
+## Leituras adicionais
+
+Seções 4.4, 4.5 e 4.6 de *Robotics*, de Craig
