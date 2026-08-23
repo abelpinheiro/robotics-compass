@@ -131,8 +131,8 @@ export default function FKArmViz() {
 
   return (
     <VizFrame
-      title="Forward kinematics: joint angles → TCP pose"
-      caption="Move the joint sliders (or animate to a preset) and watch the 4×4 transforms chain into ⁰₃T. The pink last column of ⁰₃T is the tool center point — the same pink dot and trail you see in 3D."
+      title="Forward kinematics: Obtaining the TCP pose from joint angles"
+      caption="Move the joint sliders (or animate to a preset) and watch the 4x4 transforms chain into ⁰₃T. The pink last column of ⁰₃T is the tool center point which is the same pink dot and trail you see in 3D."
       textAlternative={description}
       controls={
         <>

@@ -146,7 +146,7 @@ export default function IKArmViz() {
 
   return (
     <VizFrame
-      title="Inverse kinematics: TCP target → joint angles"
+      title="Inverse kinematics: Obtaining the joint angles from TCP target"
       caption="Move the target position (or animate to a preset) and the arm solves for the joint angles that reach it. Toggle elbow-up / elbow-down to see the two solutions. Feed the solved angles back through forward kinematics and the pink last column of ⁰₃T returns your target."
       textAlternative={description}
       controls={
@@ -197,15 +197,15 @@ export default function IKArmViz() {
 
       <div className="mt-3 space-y-3 overflow-x-auto text-sm">
         <div>
-          <span className="text-muted">Target (input) </span>
+          <span className="text-muted">Target </span>
           <span className="font-mono font-semibold tabular-nums" style={{ color: TCP_COLOR }}>
             (x, y, z) = ({fmt(target[0])}, {fmt(target[1])}, {fmt(target[2])})
           </span>
           {sol.reachable ? (
-            <span className="ml-2 text-muted">— in reach (two solutions: elbow-up / elbow-down)</span>
+            <span className="ml-2 text-muted"> in reach (two solutions: elbow-up / elbow-down)</span>
           ) : (
             <span className="ml-2 font-medium" style={{ color: "var(--danger)" }}>
-              — out of reach; showing the closest pose
+              out of reach; showing the closest pose
             </span>
           )}
         </div>
@@ -226,7 +226,7 @@ export default function IKArmViz() {
             highlightColor={TCP_COLOR}
             ariaLabel="forward-kinematics check of the solved joint angles"
           />
-          <span className="text-muted">← last column returns the target</span>
+          <span className="text-muted"> last column returns the target</span>
         </div>
       </div>
     </VizFrame>
