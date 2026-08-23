@@ -3,19 +3,92 @@ title: "Velocity kinematics and Jacobians"
 area: kinematics
 slug: velocity-kinematics
 order: 4
-summary: ""
+summary: "Understanding linear and angular velocities of robot links and how they relate to joint speeds"
 difficulty: ""
-prerequisites: []
+prerequisites: ["forward-kinematics"]
 status: draft
 ---
 
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+So far, we only studied relative to static poses: *"Where is the robot right now?"* or *"What angles do I need to reach this specific point?"*
+
+In this section, we will take time into consideration. If a robotic arm is holding a spray gun to paint a car, just reaching the right positions isn't enough. If the robot moves too fast, the paint layer will be too thin. If it moves too slowly, the paint will drip. 
+
+To control a robot in the real world, we must understand its motion. We need to answer: *"If my motors are spinning at a certain speed, how fast is the tool moving through the air?"* 
+
+This is the study of **Velocity Kinematics**. Instead of mapping joint *angles* to Cartesian *positions*, we will map joint *speeds* to Cartesian *velocities*.
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+When a rigid body (like a robot's link) moves through space, its motion is entirely described by two distinct components: **Linear Velocity** and **Angular Velocity**. 
+
+Because a robot is made of multiple moving links, we must be extremely precise about **where** we are measuring the velocity and in **which frame** we are expressing it. We will use Craig's notation to keep track of this.
+
+### 1. Linear Velocity ($v$) and Frame Notation
+Linear velocity describes how fast a specific point is moving along a straight line. If we have a position vector $P$ describing a point $Q$ relative to a frame $\{A\}$, its linear velocity is the time derivative of that position:
+
+$$
+^A v_Q = \frac{d}{dt} (^A P_Q)
+$$
+*Here, the leading superscript $A$ means "velocity expressed in frame $\{A\}$".*
+
+If you know the velocity of a point in frame $\{B\}$, but you want to express it in frame $\{A\}$, you simply multiply it by the rotation matrix between the two frames. Notice that because velocity is a vector (not a point), we only rotate it; we do not translate it:
+$$
+^A v = ^A_B R \cdot ^B v
+$$
+
+### 2. Angular Velocity ($\omega$)
+Angular velocity describes how fast a body is rotating and around which axis. It is represented as a $3 \times 1$ vector denoted by $\omega$.
+*   **The direction** of $\omega$ indicates the axis of rotation (determined by the right-hand rule).
+*   **The magnitude** of $||\omega||$ represents the rotational speed (rad/s).
+
+Just like linear velocity, angular velocity must be tied to a reference frame. $^A \omega_B$ means *"the angular velocity of frame $\{B\}$ relative to, and expressed in, frame $\{A\}$"*. We can also rotate angular velocity vectors between frames:
+$$
+^A \omega = ^A_B R \cdot ^B \omega
+$$
+
+### 3. Velocity of a Point on a Rotating Body
+If a link is rotating with angular velocity $\omega$, and a point on that link is located at a position vector $r$ relative to the center of rotation, the linear velocity $v$ of that point is given by the **cross product**:
+
+$$
+v = \omega \times r
+$$
+This equation states that the linear velocity is always perpendicular to both the axis of rotation and the radius vector.
+
+### 4. The Derivative of a Rotation Matrix
+How does angular velocity relate to the rotation matrices ($R$) we used in Forward Kinematics? 
+If a frame $\{B\}$ is rotating relative to frame $\{A\}$, its rotation matrix $^A_B R$ is changing over time. The derivative of this matrix over time ($\dot{R}$) is mathematically tied to the angular velocity.
+
+To express this without cross products, roboticists convert the $3 \times 1$ angular velocity vector $\omega = [\omega_x, \omega_y, \omega_z]^T$ into a $3 \times 3$ **skew-symmetric matrix** denoted as $S(\omega)$ or $[\omega \times]$:
+
+$$
+S(\omega) = \begin{bmatrix} 
+0 & -\omega_z & \omega_y \\ 
+\omega_z & 0 & -\omega_x \\ 
+-\omega_y & \omega_x & 0 
+\end{bmatrix}
+$$
+
+Using this matrix, the time derivative of a rotation matrix is beautifully defined as:
+$$
+^A_B \dot{R} = S(^A \omega_B) \cdot ^A_B R
+$$
+This is a foundational theorem in kinematics. It proves that the rate of change of a body's orientation is exactly its current orientation scaled by its angular velocity!
+
+---
+
+### The Jacobian Matrix ($J$)
+
+{/* TODO(author): Explain how we group linear and angular velocities into a 6x1 vector (Twist) and introduce the Jacobian matrix mapping: V = J * \dot{q} */}
+
+### Velocity Propagation from Link to Link
+
+{/* TODO(author): Explain Craig's method of propagating velocities from the base to the end-effector (v_i and \omega_i). */}
+
+### Static Forces (The Jacobian Transpose)
+
+{/* TODO(author): Explain the duality of the Jacobian: \tau = J^T * F */}
 
 ## Visualization
 
