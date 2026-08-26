@@ -9,6 +9,8 @@ prerequisites: ["forward-kinematics"]
 status: draft
 ---
 
+import CrossProductVizEmbed from "@/components/viz/crossproduct/CrossProductVizEmbed";
+
 ## Intuition
 
 So far, we only studied relative to static poses: *"Where is the robot right now?"* or *"What angles do I need to reach this specific point?"*
@@ -92,7 +94,7 @@ This is a foundational theorem in kinematics. It proves that the rate of change 
 
 ## Visualization
 
-{/* TODO(viz): wire the visualization component here via /new-viz. */}
+<CrossProductVizEmbed />
 
 ## Worked example
 
