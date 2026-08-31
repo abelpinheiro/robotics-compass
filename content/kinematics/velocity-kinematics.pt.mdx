@@ -1,0 +1,142 @@
+---
+title: "Cinemática de velocidade e Jacobianas"
+area: kinematics
+slug: velocity-kinematics
+order: 4
+summary: "Entender as velocidades linear e angular dos elos de um robô e como elas se relacionam com as velocidades das juntas"
+difficulty: ""
+prerequisites: ["forward-kinematics"]
+status: draft
+---
+
+import CrossProductVizEmbed from "@/components/viz/crossproduct/CrossProductVizEmbed";
+
+## Intuição
+
+Até aqui, só estudamos poses estáticas: *"Onde o robô está agora?"* ou *"Quais ângulos preciso para alcançar este ponto específico?"*
+
+Nesta seção, vamos levar o tempo em consideração. Se um braço robótico está segurando uma pistola para pintar um carro, apenas alcançar as posições certas não é suficiente. Se o robô se move rápido demais, a camada de tinta fica fina demais. Se ele se move devagar demais, a tinta escorre.
+
+Para controlar um robô no mundo real, precisamos entender seu movimento. Precisamos responder: *"Se meus motores estão girando a uma certa velocidade, com que rapidez a ferramenta se move pelo ar?"*
+
+Este é o estudo da **cinemática de velocidade**. Em vez de mapear *ângulos* de junta para *posições* cartesianas, vamos mapear *velocidades* de junta para *velocidades* cartesianas.
+
+## Definição formal
+
+Quando um corpo rígido (como um elo de robô) se move pelo espaço, seu movimento é inteiramente descrito por dois componentes distintos: **velocidade linear** e **velocidade angular**.
+
+Como um robô é feito de vários elos em movimento, precisamos ser extremamente precisos sobre **onde** estamos medindo a velocidade e em **qual referencial** a estamos expressando. Usaremos a notação de Craig para controlar isso.
+
+### 1. Velocidade linear ($v$) e notação de referencial
+A velocidade linear descreve com que rapidez um ponto específico se move ao longo de uma linha reta. Se temos um vetor posição $P$ descrevendo um ponto $Q$ em relação a um referencial $\{A\}$, sua velocidade linear é a derivada temporal dessa posição:
+
+$$
+{}^{A}v_{Q} = \frac{d}{dt}\,\left({}^{A}P_{Q}\right)
+$$
+
+Aqui, o sobrescrito $A$ carrega **dois** significados ao mesmo tempo: o referencial em relação ao qual a velocidade é *derivada* **e** o referencial no qual ela é *expressa*. Na notação de Craig, um único sobrescrito sinaliza que esses dois referenciais coincidem.
+
+
+Agora suponha que você já conhece uma velocidade em um referencial e quer o **mesmo vetor físico escrito nos eixos de outro referencial**. Você rotaciona suas coordenadas pela matriz de rotação.
+$$
+{}^{A}\!\left({}^{B}v\right) = {}^{A}_{B}R \, {}^{B}v
+$$
+
+> Você lê a equação acima como "derivada em $\{B\}$, escrita/expressa nos eixos de $\{A\}$". Isto *não* é ${}^{A}v$ ("derivada em $\{A\}$"). Os dois são iguais **apenas quando ${}^{A}_{B}R$ é constante** (quando $\{B\}$ não rotaciona em relação a $\{A\}$)
+
+### 2. Velocidade angular ($\omega$)
+A velocidade angular descreve com que rapidez um corpo está rotacionando e em torno de qual eixo. É representada como um vetor $3 \times 1$ denotado por $\omega$.
+*   **A direção** de $\omega$ indica o eixo de rotação (determinado pela regra da mão direita).
+*   **A magnitude** $||\omega||$ representa a velocidade de rotação (rad/s).
+
+Assim como a velocidade linear, a velocidade angular precisa estar atrelada a um referencial. $^A \omega_B$ significa *"a velocidade angular do referencial $\{B\}$ em relação a, e expressa em, referencial $\{A\}$"*. Também podemos rotacionar vetores de velocidade angular entre referenciais:
+$$
+^A \omega = ^A_B R \cdot ^B \omega
+$$
+
+### 3. Velocidade de um ponto em um corpo em rotação
+Se um elo está rotacionando com velocidade angular $\omega$, e um ponto nesse elo está localizado no vetor posição $r$ em relação ao centro de rotação, a velocidade linear $v$ desse ponto é dada pelo **produto vetorial**:
+
+$$
+v = \omega \times r
+$$
+Essa equação afirma que a velocidade linear é sempre perpendicular tanto ao eixo de rotação quanto ao vetor raio.
+
+### 3b. Caso geral: velocidade linear e angular simultâneas
+
+As seções 1 e 3 são dois casos especiais de uma única fórmula. Quando o referencial $\{B\}$ ao mesmo tempo **translada** e **rotaciona** em relação a $\{A\}$, e um ponto $Q$ também pode estar se movendo *dentro* de $\{B\}$, a velocidade de $Q$ vista de $\{A\}$ é a soma de três contribuições:
+
+$$
+{}^{A}V_{Q} = \underbrace{{}^{A}V_{B\text{ORG}}}_{\text{translação da origem}} + \underbrace{{}^{A}_{B}R\,{}^{B}V_{Q}}_{\text{movimento dentro de }\{B\}} + \underbrace{{}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q}_{\text{induzida pela rotação}} \tag{Craig 5.13}
+$$
+
+onde ${}^{A}V_{B\text{ORG}}$ é a velocidade linear da **origem** de $\{B\}$ através de $\{A\}$, ${}^{B}V_{Q}$ é como $Q$ se move *medido dentro* de $\{B\}$, e ${}^{A}\Omega_{B}$ é a velocidade angular de $\{B\}$ em relação a $\{A\}$.
+
+Dois casos especiais recuperam o que vimos antes:
+
+- Se ${}^{A}_{B}R$ é **constante** (sem rotação relativa), o último termo se anula e recuperamos a pura reexpressão da Seção 1.
+- Se as origens coincidem e $Q$ é **fixo em $\{B\}$** (então ${}^{B}V_{Q}=0$), só o termo de rotação sobrevive:
+$$
+{}^{A}V_{Q} = {}^{A}\Omega_{B} \times {}^{A}Q \tag{Craig 5.10}
+$$
+que é exatamente a regra do produto vetorial $v = \omega \times r$ da Seção 3.
+
+**Velocidades angulares se somam.** Diferente da velocidade linear, a velocidade angular é um vetor livre *puro*: isso significa que ela não tem ponto de aplicação, então reexpressá-la é sempre apenas uma rotação (não há análogo de $\omega \times r$ para ela). É por isso que, uma vez escritas em um referencial comum, as velocidades angulares simplesmente se somam:
+
+$$
+{}^{A}\omega_{C} = {}^{A}\omega_{B} + {}^{A}_{B}R\,{}^{B}\omega_{C}
+$$
+
+Essa aditividade é a chave que torna possível a propagação de velocidade de elo em elo, porque cada junta contribui com sua própria velocidade angular, e elas se acumulam ao longo da cadeia.
+
+### 4. A derivada de uma matriz de rotação
+Como a velocidade angular se relaciona com as matrizes de rotação ($R$) que usamos na cinemática direta?
+Se um referencial $\{B\}$ está rotacionando em relação ao referencial $\{A\}$, sua matriz de rotação $^A_B R$ muda com o tempo. A derivada dessa matriz no tempo ($\dot{R}$) está matematicamente ligada à velocidade angular.
+
+A matriz antissimétrica $S(\omega)$ é apenas o produto vetorial $S(\omega)\,r = \omega \times r$. Reescrevê-lo dessa forma é útil porque uma matriz se compõe de forma limpa com as matrizes de rotação $R$, o que um simples produto vetorial não faz.
+
+Para expressar isso sem produtos vetoriais, convertemos o vetor de velocidade angular $3 \times 1$ $\omega = [\omega_x, \omega_y, \omega_z]^T$ em uma **matriz antissimétrica** $3 \times 3$ denotada por $S(\omega)$:
+
+$$
+S(\omega) = \begin{bmatrix} 
+0 & -\omega_z & \omega_y \\ 
+\omega_z & 0 & -\omega_x \\ 
+-\omega_y & \omega_x & 0 
+\end{bmatrix}
+$$
+
+Usando essa matriz, a derivada temporal de uma matriz de rotação é definida como:
+$$
+^A_B \dot{R} = S(^A \omega_B) \cdot ^A_B R
+$$
+A equação acima diz que a taxa de variação da orientação de um corpo é sua orientação atual **pré-multiplicada pelo operador antissimétrico de sua velocidade angular**.
+
+### A matriz Jacobiana ($J$)
+
+{/* TODO(author): Explain how we group linear and angular velocities into a 6x1 vector (Twist) and introduce the Jacobian matrix mapping: V = J * \dot{q} */}
+
+### Propagação de velocidade de elo em elo
+
+{/* TODO(author): Explain Craig's method of propagating velocities from the base to the end-effector (v_i and \omega_i). */}
+
+### Forças estáticas (a transposta da Jacobiana)
+
+{/* TODO(author): Explain the duality of the Jacobian: \tau = J^T * F */}
+
+<CrossProductVizEmbed />
+
+## Exemplo resolvido
+
+{/* TODO(author): write a worked example. */}
+
+## Erros comuns
+
+{/* TODO(author): list common pitfalls. */}
+
+## Exercícios
+
+{/* TODO(author): add exercises. */}
+
+## Leituras adicionais
+
+{/* TODO(author): add references and further reading. */}
