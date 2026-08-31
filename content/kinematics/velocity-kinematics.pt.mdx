@@ -10,6 +10,7 @@ status: draft
 ---
 
 import CrossProductVizEmbed from "@/components/viz/crossproduct/CrossProductVizEmbed";
+import GeneralVelocityVizEmbed from "@/components/viz/generalvelocity/GeneralVelocityVizEmbed";
 
 ## Intuição
 
@@ -44,6 +45,8 @@ $$
 
 > Você lê a equação acima como "derivada em $\{B\}$, escrita/expressa nos eixos de $\{A\}$". Isto *não* é ${}^{A}v$ ("derivada em $\{A\}$"). Os dois são iguais **apenas quando ${}^{A}_{B}R$ é constante** (quando $\{B\}$ não rotaciona em relação a $\{A\}$)
 
+![Dois painéis comparando o mesmo vetor velocidade de um ponto Q, derivado no referencial A, expresso em dois referenciais. Esquerda: expresso no referencial A — lido nos eixos de A. Direita: a mesma seta física expressa no referencial B, que é o referencial A girado por theta — lida nos eixos girados de B, dando componentes diferentes. O ponto Q fica na cauda do vetor; só o referencial de expressão muda, então os dois se relacionam pela matriz de rotação B-de-A R.](/images/kinematics/velocity-kinematics-frame-notation.svg)
+
 ### 2. Velocidade angular ($\omega$)
 A velocidade angular descreve com que rapidez um corpo está rotacionando e em torno de qual eixo. É representada como um vetor $3 \times 1$ denotado por $\omega$.
 *   **A direção** de $\omega$ indica o eixo de rotação (determinado pela regra da mão direita).
@@ -71,6 +74,8 @@ $$
 $$
 
 onde ${}^{A}V_{B\text{ORG}}$ é a velocidade linear da **origem** de $\{B\}$ através de $\{A\}$, ${}^{B}V_{Q}$ é como $Q$ se move *medido dentro* de $\{B\}$, e ${}^{A}\Omega_{B}$ é a velocidade angular de $\{B\}$ em relação a $\{A\}$.
+
+![Um referencial fixo do mundo A e um referencial móvel B cuja origem translada com velocidade A-V-Borg (azul) e gira com velocidade angular A-Omega-B (laranja). Um ponto Q está na posição r dentro de B. A velocidade de Q vista de A é a soma tip-to-tail de três contribuições em Q: a translação da origem (azul), o movimento de Q dentro de B reexpresso em A (verde), e o termo induzido pela rotação Omega vetorial r, perpendicular a r (laranja). A soma vetorial é a velocidade total A-V-Q (rosa).](/images/kinematics/velocity-kinematics-general-velocity.svg)
 
 Dois casos especiais recuperam o que vimos antes:
 
@@ -110,6 +115,8 @@ $$
 ^A_B \dot{R} = S(^A \omega_B) \cdot ^A_B R
 $$
 A equação acima diz que a taxa de variação da orientação de um corpo é sua orientação atual **pré-multiplicada pelo operador antissimétrico de sua velocidade angular**.
+
+<GeneralVelocityVizEmbed />
 
 ### A matriz Jacobiana ($J$)
 

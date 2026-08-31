@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 680 384" width="100%" height="100%" font-family="ui-sans-serif, system-ui, 'Segoe UI', Helvetica, Arial, sans-serif">
+  <title>Frame notation: the velocity of point Q expressed in A vs B</title>
+  <desc>Two panels compare the same velocity vector of a point Q, differentiated in frame A, expressed in two different frames. Left: expressed in frame A (single leading superscript A) — the arrow is read off A's axes. Right: expressed in frame B (leading superscript B over an inner superscript A) — the exact same physical arrow is read off frame B's axes, which are frame A rotated by theta, giving different components. The point Q sits at the tail of the arrow; the vector does not change, only the expressing frame, so the two are related by the rotation matrix B-from-A R.</desc>
+
+  <defs>
+    <marker id="fnA" markerWidth="9" markerHeight="9" refX="7" refY="4.2" orient="auto"><path d="M0,0 L8,4.2 L0,8.4 z" fill="#D97706"/></marker>
+    <marker id="fnB" markerWidth="9" markerHeight="9" refX="7" refY="4.2" orient="auto"><path d="M0,0 L8,4.2 L0,8.4 z" fill="#2563EB"/></marker>
+    <marker id="fnV" markerWidth="10" markerHeight="10" refX="7.5" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#16A34A"/></marker>
+    <marker id="fnAf" markerWidth="8" markerHeight="8" refX="6.5" refY="4" orient="auto"><path d="M0,0 L7.5,4 L0,8 z" fill="#EBC18C"/></marker>
+  </defs>
+
+  <rect x="0" y="0" width="680" height="384" fill="#ffffff"/>
+  <line x1="340" y1="30" x2="340" y2="330" stroke="#E3E6EB" stroke-width="1.4"/>
+
+  <!-- ============ LEFT PANEL: differentiated in A, expressed in A ============ -->
+  <text x="150" y="56" text-anchor="middle" font-size="25" font-style="italic" fill="#1A1F2B"><tspan baseline-shift="super" font-size="15" fill="#D97706">A</tspan>V<tspan baseline-shift="sub" font-size="13">Q</tspan></text>
+
+  <!-- frame A axes -->
+  <line x1="95" y1="285" x2="285" y2="285" stroke="#D97706" stroke-width="1.8" marker-end="url(#fnA)"/>
+  <line x1="95" y1="285" x2="95" y2="100" stroke="#D97706" stroke-width="1.8" marker-end="url(#fnA)"/>
+  <text x="292" y="290" font-size="13" font-style="italic" fill="#D97706">x<tspan baseline-shift="sub" font-size="9">A</tspan></text>
+  <text x="84" y="96" font-size="13" font-style="italic" fill="#D97706">y<tspan baseline-shift="sub" font-size="9">A</tspan></text>
+
+  <!-- projections onto A's axes -->
+  <line x1="174.5" y1="157.8" x2="174.5" y2="285" stroke="#94A3B8" stroke-width="1.3" stroke-dasharray="4 4"/>
+  <line x1="174.5" y1="157.8" x2="95" y2="157.8" stroke="#94A3B8" stroke-width="1.3" stroke-dasharray="4 4"/>
+  <circle cx="174.5" cy="285" r="2.3" fill="#94A3B8"/>
+  <circle cx="95" cy="157.8" r="2.3" fill="#94A3B8"/>
+
+  <!-- the velocity vector of Q -->
+  <line x1="95" y1="285" x2="174.5" y2="157.8" stroke="#16A34A" stroke-width="3.4" marker-end="url(#fnV)"/>
+  <text x="118" y="212" font-size="15" font-style="italic" font-weight="600" fill="#16A34A">V<tspan baseline-shift="sub" font-size="10">Q</tspan></text>
+
+  <!-- point Q at the tail of the velocity -->
+  <circle cx="95" cy="285" r="3.6" fill="#16A34A"/>
+  <text x="80" y="303" text-anchor="end" font-size="13" font-style="italic" font-weight="600" fill="#16A34A">Q</text>
+
+  <!-- ============ RIGHT PANEL: differentiated in A, expressed in B ============ -->
+  <text x="500" y="56" text-anchor="middle" font-size="25" font-style="italic" fill="#1A1F2B"><tspan baseline-shift="super" font-size="15" fill="#2563EB">B</tspan>(<tspan baseline-shift="super" font-size="15" fill="#D97706">A</tspan>V<tspan baseline-shift="sub" font-size="13">Q</tspan>)</text>
+
+  <!-- faint reference frame A (B is A rotated by theta) -->
+  <line x1="435" y1="285" x2="576" y2="285" stroke="#EBC18C" stroke-width="1.3" marker-end="url(#fnAf)"/>
+  <line x1="435" y1="285" x2="435" y2="152" stroke="#EBC18C" stroke-width="1.3" marker-end="url(#fnAf)"/>
+  <text x="582" y="289" font-size="11" font-style="italic" fill="#EBC18C">x<tspan baseline-shift="sub" font-size="8">A</tspan></text>
+
+  <!-- rotation angle theta between A and B -->
+  <path d="M481,285 A46 46 0 0 0 474,260.6" stroke="#D97706" stroke-width="1.6" fill="none"/>
+  <text x="489" y="271" font-size="12.5" font-style="italic" fill="#D97706">θ</text>
+
+  <!-- frame B axes (A rotated by theta) -->
+  <line x1="435" y1="285" x2="596.1" y2="184.3" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fnB)"/>
+  <line x1="435" y1="285" x2="336.95" y2="128.1" stroke="#2563EB" stroke-width="1.8" marker-end="url(#fnB)"/>
+  <text x="600" y="182" font-size="13" font-style="italic" fill="#2563EB">x<tspan baseline-shift="sub" font-size="9">B</tspan></text>
+  <text x="322" y="124" font-size="13" font-style="italic" fill="#2563EB">y<tspan baseline-shift="sub" font-size="9">B</tspan></text>
+
+  <!-- projections onto B's (rotated) axes -->
+  <line x1="514.5" y1="157.8" x2="549.3" y2="213.6" stroke="#94A3B8" stroke-width="1.3" stroke-dasharray="4 4"/>
+  <line x1="514.5" y1="157.8" x2="400.1" y2="229.2" stroke="#94A3B8" stroke-width="1.3" stroke-dasharray="4 4"/>
+  <circle cx="549.3" cy="213.6" r="2.3" fill="#94A3B8"/>
+  <circle cx="400.1" cy="229.2" r="2.3" fill="#94A3B8"/>
+
+  <!-- the SAME velocity vector of Q (same screen direction and length) -->
+  <line x1="435" y1="285" x2="514.5" y2="157.8" stroke="#16A34A" stroke-width="3.4" marker-end="url(#fnV)"/>
+  <text x="460" y="208" font-size="15" font-style="italic" font-weight="600" fill="#16A34A">V<tspan baseline-shift="sub" font-size="10">Q</tspan></text>
+
+  <!-- point Q at the tail -->
+  <circle cx="435" cy="285" r="3.6" fill="#16A34A"/>
+  <text x="420" y="303" text-anchor="end" font-size="13" font-style="italic" font-weight="600" fill="#16A34A">Q</text>
+
+  <!-- ============ relation ============ -->
+  <text x="340" y="364" text-anchor="middle" font-size="16" font-style="italic" fill="#1A1F2B"><tspan baseline-shift="super" font-size="10" fill="#2563EB">B</tspan>(<tspan baseline-shift="super" font-size="10" fill="#D97706">A</tspan>V<tspan baseline-shift="sub" font-size="9">Q</tspan>) = <tspan baseline-shift="super" font-size="10" fill="#2563EB">B</tspan><tspan baseline-shift="sub" font-size="10" dx="-6" fill="#D97706">A</tspan>R <tspan baseline-shift="super" font-size="10" fill="#D97706">A</tspan>V<tspan baseline-shift="sub" font-size="9">Q</tspan></text>
+</svg>

@@ -10,6 +10,7 @@ status: draft
 ---
 
 import CrossProductVizEmbed from "@/components/viz/crossproduct/CrossProductVizEmbed";
+import GeneralVelocityVizEmbed from "@/components/viz/generalvelocity/GeneralVelocityVizEmbed";
 
 ## Intuition
 
@@ -44,6 +45,8 @@ $$
 
 > You read the equation above as "differentiated in $\{B\}$, written/expressed in $\{A\}$'s axes". This is *not* ${}^{A}v$ ("differentiated in $\{A\}$"). The two are equal **only when ${}^{A}_{B}R$ is constant** (when $\{B\}$ does not rotate relative to $\{A\}$)
 
+![Two panels comparing the same velocity vector of a point Q, differentiated in frame A, expressed in two frames. Left: expressed in frame A — read off A's axes. Right: the same physical arrow expressed in frame B, which is frame A rotated by theta — read off B's rotated axes, giving different components. The point Q sits at the tail of the arrow; only the expressing frame changes, so the two are related by the rotation matrix B-from-A R.](/images/kinematics/velocity-kinematics-frame-notation.svg)
+
 ### 2. Angular Velocity ($\omega$)
 Angular velocity describes how fast a body is rotating and around which axis. It is represented as a $3 \times 1$ vector denoted by $\omega$.
 *   **The direction** of $\omega$ indicates the axis of rotation (determined by the right-hand rule).
@@ -71,6 +74,8 @@ $$
 $$
 
 where ${}^{A}V_{B\text{ORG}}$ is the linear velocity of the **origin** of $\{B\}$ through $\{A\}$, ${}^{B}V_{Q}$ is how $Q$ moves *as measured inside* $\{B\}$, and ${}^{A}\Omega_{B}$ is the angular velocity of $\{B\}$ relative to $\{A\}$.
+
+![A fixed world frame A and a moving frame B whose origin translates with velocity A-V-Borg (blue) and rotates with angular velocity A-Omega-B (orange). A point Q sits at position r inside B. The velocity of Q seen from A is the tip-to-tail sum of three contributions at Q: the origin translation (blue), the motion of Q within B re-expressed in A (green), and the rotation-induced term Omega cross r, perpendicular to r (orange). Their vector sum is the total A-V-Q (pink).](/images/kinematics/velocity-kinematics-general-velocity.svg)
 
 Two special cases recover what we saw earlier:
 
@@ -110,6 +115,8 @@ $$
 ^A_B \dot{R} = S(^A \omega_B) \cdot ^A_B R
 $$
 The equation above says the rate of change of a body's orientation is its current orientation **pre-multiplied by the skew-symmetric operator of its angular velocity**.
+
+<GeneralVelocityVizEmbed />
 
 ### The Jacobian Matrix ($J$)
 
