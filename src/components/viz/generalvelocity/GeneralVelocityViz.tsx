@@ -26,7 +26,7 @@ interface State {
   showRot: boolean;
 }
 
-function Canvas2D({ width, height, st }: { width: number; height: number; st: State }) {
+function Canvas2D({ width, height, st, paused }: { width: number; height: number; st: State; paused: boolean }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const angle = useRef(0.5); // current orientation of {B} (persists across redraws)
 
@@ -207,7 +207,7 @@ function Canvas2D({ width, height, st }: { width: number; height: number; st: St
     const reduce =
       typeof window !== "undefined" &&
       !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
-    const spinning = st.omega !== 0 && !reduce;
+    const spinning = st.omega !== 0 && !reduce && !paused;
     const tick = (now: number) => {
       const dt = Math.min(0.05, (now - last) / 1000);
       last = now;
@@ -221,7 +221,7 @@ function Canvas2D({ width, height, st }: { width: number; height: number; st: St
       raf = requestAnimationFrame(tick);
     }
     return () => cancelAnimationFrame(raf);
-  }, [draw, st.omega]);
+  }, [draw, st.omega, paused]);
 
   return <canvas ref={ref} style={{ width, height }} className="touch-none" aria-hidden="true" />;
 }
@@ -304,6 +304,7 @@ function Toggle({
 
 export default function GeneralVelocityViz() {
   const [st, setSt] = useState<State>(INIT);
+  const [paused, setPaused] = useState(false);
   const set = (patch: Partial<State>) => setSt((s) => ({ ...s, ...patch }));
 
   const vB = st.showBorg ? st.vBorg : 0;
@@ -338,7 +339,22 @@ export default function GeneralVelocityViz() {
             <Toggle on={st.showBorg} color="var(--accent)" label="translation" onClick={() => set({ showBorg: !st.showBorg })} />
             <Toggle on={st.showMotion} color="var(--success)" label="motion in {B}" onClick={() => set({ showMotion: !st.showMotion })} />
             <Toggle on={st.showRot} color="var(--warning)" label="rotation Ω×r" onClick={() => set({ showRot: !st.showRot })} />
-            <button type="button" onClick={() => setSt(INIT)} className={btn}>
+            <button
+              type="button"
+              onClick={() => setPaused((p) => !p)}
+              aria-pressed={paused}
+              className={btn}
+            >
+              {paused ? "Resume" : "Pause"}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSt(INIT);
+                setPaused(false);
+              }}
+              className={btn}
+            >
               Reset
             </button>
           </div>
@@ -346,7 +362,7 @@ export default function GeneralVelocityViz() {
       }
     >
       <Viz2D aspectRatio={1.55}>
-        {({ width, height }) => <Canvas2D width={width} height={height} st={st} />}
+        {({ width, height }) => <Canvas2D width={width} height={height} st={st} paused={paused} />}
       </Viz2D>
 
       <div className="mt-3 space-y-2 text-sm">
