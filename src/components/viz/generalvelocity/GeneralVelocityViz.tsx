@@ -133,19 +133,30 @@ function Canvas2D({ width, height, st, paused }: { width: number; height: number
       arrow(B_ORG, [B_ORG[0] + 1.3 * ca, B_ORG[1] + 1.3 * sa], col.muted, 1.6, "xB");
       arrow(B_ORG, [B_ORG[0] - 1.05 * sa, B_ORG[1] + 1.05 * ca], col.muted, 1.6, "yB");
 
-      // angular velocity indicator at B's origin
+      // angular-velocity indicator: a curved arrow that turns the SAME way the
+      // frame spins — counter-clockwise on screen for Ω > 0 (right-hand rule).
+      // Drawn from explicit points (not ctx.arc) so the screen direction matches
+      // the manual y-up mapping used everywhere else in this canvas.
       if (Math.abs(st.omega) > 1e-3) {
         const rr = 0.42 * scale;
         const bx = X(B_ORG[0]), by = Y(B_ORG[1]);
-        const dir = st.omega > 0 ? 1 : -1; // ccw in world = ccw on screen (Y flipped handled below)
+        const sign = st.omega > 0 ? 1 : -1; // +1 = counter-clockwise on screen
+        const psi0 = -0.5;
+        const sweep = Math.PI * 1.5;
+        const pt = (psi: number): [number, number] => [bx + rr * Math.cos(psi), by - rr * Math.sin(psi)];
         ctx.strokeStyle = col.rot;
         ctx.lineWidth = 1.8;
         ctx.beginPath();
-        ctx.arc(bx, by, rr, -0.4, Math.PI * 1.3, dir < 0);
+        const N = 44;
+        for (let i = 0; i <= N; i++) {
+          const [px, py] = pt(psi0 + sign * sweep * (i / N));
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
         ctx.stroke();
-        const ea = dir > 0 ? Math.PI * 1.3 : -0.4;
-        const ex = bx + rr * Math.cos(ea), ey = by + rr * Math.sin(ea);
-        const ta = ea + dir * Math.PI / 2;
+        const pe = psi0 + sign * sweep;
+        const [ex, ey] = pt(pe);
+        const ta = Math.atan2(sign * -Math.cos(pe), sign * -Math.sin(pe)); // travel direction (screen)
         ctx.fillStyle = col.rot;
         ctx.beginPath();
         ctx.moveTo(ex, ey);
@@ -153,7 +164,6 @@ function Canvas2D({ width, height, st, paused }: { width: number; height: number
         ctx.lineTo(ex - 8 * Math.cos(ta + 0.42), ey - 8 * Math.sin(ta + 0.42));
         ctx.closePath();
         ctx.fill();
-        ctx.fillStyle = col.rot;
         ctx.font = "italic 12px ui-sans-serif, system-ui, sans-serif";
         ctx.fillText("Ω", bx - rr - 16, by - 2);
       }
