@@ -31,14 +31,18 @@ Because a robot is made of multiple moving links, we must be extremely precise a
 Linear velocity describes how fast a specific point is moving along a straight line. If we have a position vector $P$ describing a point $Q$ relative to a frame $\{A\}$, its linear velocity is the time derivative of that position:
 
 $$
-^A v_Q = \frac{d}{dt} (^A P_Q)
+{}^{A}v_{Q} = \frac{d}{dt}\,\left({}^{A}P_{Q}\right)
 $$
-*Here, the leading superscript $A$ means "velocity expressed in frame $\{A\}$".*
 
-If you know the velocity of a point in frame $\{B\}$, but you want to express it in frame $\{A\}$, you simply multiply it by the rotation matrix between the two frames. Notice that because velocity is a vector (not a point), we only rotate it; we do not translate it:
+Here the superscript $A$ carries **two** meanings at once: the frame the velocity is *differentiated with respect to* **and** the frame it is *expressed in*. In Craig's notation a single superscript signals that these two frames coincide.
+
+
+Now suppose you already know a velocity in one frame and want the **same physical vector written in another frame's axes**. You rotate its coordinates by the rotation matrix. 
 $$
-^A v = ^A_B R \cdot ^B v
+{}^{A}\!\left({}^{B}v\right) = {}^{A}_{B}R \, {}^{B}v
 $$
+
+> You read the equation above as "differentiated in $\{B\}$, written/expressed in $\{A\}$'s axes". This is *not* ${}^{A}v$ ("differentiated in $\{A\}$"). The two are equal **only when ${}^{A}_{B}R$ is constant** (when $\{B\}$ does not rotate relative to $\{A\}$)
 
 ### 2. Angular Velocity ($\omega$)
 Angular velocity describes how fast a body is rotating and around which axis. It is represented as a $3 \times 1$ vector denoted by $\omega$.
@@ -58,11 +62,40 @@ v = \omega \times r
 $$
 This equation states that the linear velocity is always perpendicular to both the axis of rotation and the radius vector.
 
+### 3b. General Case: Simultaneous Linear and Angular Velocity
+
+Sections 1 and 3 are two special cases of a single formula. When frame $\{B\}$ both **translates** and **rotates** relative to $\{A\}$, and a point $Q$ may also be moving *within* $\{B\}$, the velocity of $Q$ seen from $\{A\}$ is the sum of three contributions:
+
+$$
+{}^{A}V_{Q} = \underbrace{{}^{A}V_{B\text{ORG}}}_{\text{origin translation}} + \underbrace{{}^{A}_{B}R\,{}^{B}V_{Q}}_{\text{motion within }\{B\}} + \underbrace{{}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q}_{\text{induced by rotation}} \tag{Craig 5.13}
+$$
+
+where ${}^{A}V_{B\text{ORG}}$ is the linear velocity of the **origin** of $\{B\}$ through $\{A\}$, ${}^{B}V_{Q}$ is how $Q$ moves *as measured inside* $\{B\}$, and ${}^{A}\Omega_{B}$ is the angular velocity of $\{B\}$ relative to $\{A\}$.
+
+Two special cases recover what we saw earlier:
+
+- If ${}^{A}_{B}R$ is **constant** (no relative rotation), the last term vanishes and we recover the pure re-expression from Section 1.
+- If the origins coincide and $Q$ is **fixed in $\{B\}$** (so ${}^{B}V_{Q}=0$), only the rotation term survives:
+$$
+{}^{A}V_{Q} = {}^{A}\Omega_{B} \times {}^{A}Q \tag{Craig 5.10}
+$$
+which is exactly the cross-product rule $v = \omega \times r$ from Section 3.
+
+**Angular velocities add.** Unlike linear velocity, angular velocity is a *pure* free vector: that means that it has no point of application, so re-expressing it is always just a rotation (there is no $\omega \times r$ analogue for it). This is why, once written in a common frame, angular velocities simply add:
+
+$$
+{}^{A}\omega_{C} = {}^{A}\omega_{B} + {}^{A}_{B}R\,{}^{B}\omega_{C}
+$$
+
+This additivity is the key that makes velocity propagation from link to link possible, because each joint contributes its own angular velocity, and they accumulate down the chain.
+
 ### 4. The Derivative of a Rotation Matrix
 How does angular velocity relate to the rotation matrices ($R$) we used in Forward Kinematics? 
 If a frame $\{B\}$ is rotating relative to frame $\{A\}$, its rotation matrix $^A_B R$ is changing over time. The derivative of this matrix over time ($\dot{R}$) is mathematically tied to the angular velocity.
 
-To express this without cross products, roboticists convert the $3 \times 1$ angular velocity vector $\omega = [\omega_x, \omega_y, \omega_z]^T$ into a $3 \times 3$ **skew-symmetric matrix** denoted as $S(\omega)$ or $[\omega \times]$:
+The skew-symmetric matrix $S(\omega)$ is just the cross product $S(\omega)\,r = \omega \times r$. Rewriting it this way is useful because a matrix composes cleanly with the rotation matrices $R$, which a simple cross product does not.
+
+To express this without cross products, we convert the $3 \times 1$ angular velocity vector $\omega = [\omega_x, \omega_y, \omega_z]^T$ into a $3 \times 3$ **skew-symmetric matrix** denoted as $S(\omega)$:
 
 $$
 S(\omega) = \begin{bmatrix} 
@@ -72,13 +105,11 @@ S(\omega) = \begin{bmatrix}
 \end{bmatrix}
 $$
 
-Using this matrix, the time derivative of a rotation matrix is beautifully defined as:
+Using this matrix, the time derivative of a rotation matrix is defined as:
 $$
 ^A_B \dot{R} = S(^A \omega_B) \cdot ^A_B R
 $$
-This is a foundational theorem in kinematics. It proves that the rate of change of a body's orientation is exactly its current orientation scaled by its angular velocity!
-
----
+The equation above says the rate of change of a body's orientation is its current orientation **pre-multiplied by the skew-symmetric operator of its angular velocity**.
 
 ### The Jacobian Matrix ($J$)
 
@@ -91,8 +122,6 @@ This is a foundational theorem in kinematics. It proves that the rate of change 
 ### Static Forces (The Jacobian Transpose)
 
 {/* TODO(author): Explain the duality of the Jacobian: \tau = J^T * F */}
-
-## Visualization
 
 <CrossProductVizEmbed />
 
