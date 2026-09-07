@@ -2,7 +2,9 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Viz2D } from "@/components/viz/Viz2D";
+import { Viz3D } from "@/components/viz/Viz3D";
 import { VizFrame } from "@/components/viz/VizFrame";
+import GeneralVelocity3DScene from "./GeneralVelocity3DScene";
 
 // Fixed geometry (world units). {B}'s origin sits here; the point Q is fixed in
 // {B} at distance R_Q along B's x-axis, so it orbits B's origin as {B} spins.
@@ -315,6 +317,12 @@ function Toggle({
 export default function GeneralVelocityViz() {
   const [st, setSt] = useState<State>(INIT);
   const [paused, setPaused] = useState(false);
+  const [mode, setMode] = useState<"2d" | "3d">("2d");
+  const [reduce] = useState(
+    () =>
+      typeof window !== "undefined" &&
+      !!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches,
+  );
   const set = (patch: Partial<State>) => setSt((s) => ({ ...s, ...patch }));
 
   const vB = st.showBorg ? st.vBorg : 0;
@@ -326,7 +334,7 @@ export default function GeneralVelocityViz() {
     "rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-surface-2";
 
   const description =
-    `A moving frame {B} on a light 2D canvas: its origin translates with velocity ` +
+    `A moving frame {B}, shown as a 2D diagram or (via the view toggle) a 3D scene: its origin translates with velocity ` +
     `A-V-Borg and it spins with angular velocity Ω = ${fmt(st.omega)} rad/s. A point Q is ` +
     `fixed in {B} at distance ${fmt(R_Q)} from its origin, so Q orbits as {B} turns. The ` +
     `velocity of Q seen from the world frame {A} is drawn tip-to-tail as the sum of three ` +
@@ -338,7 +346,7 @@ export default function GeneralVelocityViz() {
   return (
     <VizFrame
       title="Velocity of a point in a moving, rotating frame"
-      caption="Frame {B} translates and spins; point Q is fixed in {B}. The velocity of Q seen from {A} is the tip-to-tail sum of three contributions — origin translation (blue), motion within {B} (green), and the rotation term Ω × r (orange) — giving the total ᴬV_Q (pink). Scale each term or toggle it off to see what it contributes."
+      caption="Switch between a 2D diagram and a 3D scene. Frame {B} translates and spins; point Q is fixed in {B}. The velocity of Q seen from {A} is the tip-to-tail sum of three contributions — origin translation (blue), motion within {B} (green), and the rotation term Ω × r (orange) — giving the total ᴬV_Q (pink). Scale each term or toggle it off to see what it contributes."
       textAlternative={description}
       controls={
         <>
@@ -371,9 +379,41 @@ export default function GeneralVelocityViz() {
         </>
       }
     >
-      <Viz2D aspectRatio={1.55}>
-        {({ width, height }) => <Canvas2D width={width} height={height} st={st} paused={paused} />}
-      </Viz2D>
+      {/* view toggle: 2D diagram vs 3D scene */}
+      <div className="mb-3 flex w-fit items-center gap-1 rounded-md border border-border p-0.5">
+        {(["2d", "3d"] as const).map((m) => (
+          <button
+            key={m}
+            type="button"
+            onClick={() => setMode(m)}
+            aria-pressed={mode === m}
+            className={`rounded px-3 py-1.5 text-sm font-medium ${
+              mode === m ? "bg-accent text-white" : "text-muted hover:bg-surface-2"
+            }`}
+          >
+            {m === "2d" ? "2D diagram" : "3D scene"}
+          </button>
+        ))}
+      </div>
+
+      {mode === "2d" ? (
+        <Viz2D aspectRatio={1.55}>
+          {({ width, height }) => <Canvas2D width={width} height={height} st={st} paused={paused} />}
+        </Viz2D>
+      ) : (
+        <Viz3D aspectRatio={16 / 10}>
+          <GeneralVelocity3DScene
+            omega={st.omega}
+            vBorg={st.vBorg}
+            vQb={st.vQb}
+            showBorg={st.showBorg}
+            showMotion={st.showMotion}
+            showRot={st.showRot}
+            paused={paused}
+            reduce={reduce}
+          />
+        </Viz3D>
+      )}
 
       <div className="mt-3 space-y-2 text-sm">
         <div className="flex flex-wrap items-center gap-x-5 gap-y-1 font-mono tabular-nums">

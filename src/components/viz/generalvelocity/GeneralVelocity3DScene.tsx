@@ -30,6 +30,9 @@ interface Props {
   omega: number;
   vBorg: number;
   vQb: number;
+  showBorg: boolean;
+  showMotion: boolean;
+  showRot: boolean;
   paused: boolean;
   reduce: boolean;
 }
@@ -147,9 +150,15 @@ function Scene(props: Props) {
     const qWorld = bOrg.clone().add(rWorld);
 
     // velocity contributions in world axes (display-scaled)
-    const vBorgVec = new THREE.Vector3(bdir.current * vBorg, 0, 0).multiplyScalar(VEL_SCALE);
-    const motionVec = new THREE.Vector3(c, 0, -s).multiplyScalar(vQb * VEL_SCALE); // along B's x-axis
-    const omegaRVec = new THREE.Vector3(rWorld.z, 0, -rWorld.x).multiplyScalar(omega * VEL_SCALE); // Ω(ŷ)×r
+    const vBorgVec = props.showBorg
+      ? new THREE.Vector3(bdir.current * vBorg, 0, 0).multiplyScalar(VEL_SCALE)
+      : new THREE.Vector3();
+    const motionVec = props.showMotion
+      ? new THREE.Vector3(c, 0, -s).multiplyScalar(vQb * VEL_SCALE) // along B's x-axis
+      : new THREE.Vector3();
+    const omegaRVec = props.showRot
+      ? new THREE.Vector3(rWorld.z, 0, -rWorld.x).multiplyScalar(omega * VEL_SCALE) // Ω(ŷ)×r
+      : new THREE.Vector3();
     const resVec = vBorgVec.clone().add(motionVec).add(omegaRVec);
 
     // tip-to-tail at Q, plus the resultant from Q
@@ -163,10 +172,11 @@ function Scene(props: Props) {
     if (animating(props)) invalidate();
   });
 
-  const showRot = Math.abs(omega) > 0.02;
-  const showBorg = vBorg > 0.02;
-  const showMotion = vQb > 0.02;
+  const showRot = props.showRot && Math.abs(omega) > 0.02;
+  const showBorg = props.showBorg && vBorg > 0.02;
+  const showMotion = props.showMotion && vQb > 0.02;
   const showRes = showBorg || showMotion || showRot;
+  const showOmega = Math.abs(omega) > 0.02; // Ω vector shown whenever the frame spins
 
   return (
     <>
@@ -200,7 +210,7 @@ function Scene(props: Props) {
       </group>
 
       {/* Ω vector (scales with |Ω|) + contributions + resultant, updated in world space */}
-      <Arrow ref={omegaRef} color={C.omega} shaft={0.024} label="Ω" show={showRot} />
+      <Arrow ref={omegaRef} color={C.omega} shaft={0.024} label="Ω" show={showOmega} />
       <Arrow ref={vBorgRef} color={C.vBorg} label="V_Borg" show={showBorg} />
       <Arrow ref={motionRef} color={C.motion} label="R·ᴮV_Q" show={showMotion} />
       <Arrow ref={omegaRRef} color={C.omegaR} label="Ω×r" show={showRot} />
