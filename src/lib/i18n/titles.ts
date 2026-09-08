@@ -28,8 +28,8 @@ const lessonTitlesPt: Record<string, string> = {
   "modeling-manipulators": "Modelagem de manipuladores",
   "forward-kinematics": "Cinemática direta",
   "inverse-kinematics": "Cinemática inversa",
-  "velocity-kinematics": "Cinemática de velocidade e Jacobianas",
-  "inverse-differential-kinematics": "Cinemática diferencial inversa",
+  "velocity-kinematics": "Cinemática de velocidade",
+  "inverse-differential-kinematics": "Jacobianas e cinemática diferencial inversa",
   singularities: "Singularidades",
   // dynamics
   "newton-euler": "Dinâmica de Newton–Euler",

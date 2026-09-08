@@ -33,8 +33,8 @@ _Prereqs: foundations (frames, SE(3))._
 1. `modeling-manipulators`
 2. `forward-kinematics`
 3. `inverse-kinematics`
-4. `velocity-kinematics` (Velocity kinematics and Jacobians)
-5. `inverse-differential-kinematics`
+4. `velocity-kinematics` (Velocity kinematics)
+5. `inverse-differential-kinematics` (Jacobians and inverse differential kinematics)
 6. `singularities`
 
 ### 3. dynamics
