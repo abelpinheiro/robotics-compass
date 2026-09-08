@@ -1,0 +1,137 @@
+---
+title: "Jacobians"
+area: kinematics
+slug: jacobians
+order: 5
+summary: ""
+---
+
+## Intuition
+Because the robot's posture is constantly shifting, the kinematic relationship between the motors and the tool is constantly changing. In some postures, a $1 \text{ rad/s}$ rotation of the shoulder might cause the tool to fly forward at $2 \text{ m/s}$. A few milliseconds later, in a different posture, that exact same motor speed might only move the tool at $0.1 \text{ m/s}$. 
+
+The Jacobian is a mathematical matrix that captures the exact instantaneous relationship between the Joint Space ($\dot{q}$) and the Cartesian Space ($V$).
+
+## Formal definition
+
+In the previous chapter, we propagated linear ($v$) and angular ($\omega$) velocities from link to link. If we stack these two $3 \times 1$ vectors into a single $6 \times 1$ spatial velocity vector (often called a *Twist*), we can factor out the joint speeds ($\dot{q}$) into a linear equation:
+
+$$
+\begin{bmatrix} v \\ \omega \end{bmatrix} = J(q) \dot{q}
+$$
+
+Here, $J(q)$ is the **Jacobian Matrix**. For an $N$-DOF manipulator, $J$ is a $6 \times N$ matrix. 
+Crucially, $J$ is a function of $q$ ($J(q)$). This means the numbers inside the matrix change every time the robot moves. It is a "snapshot" of the robot's kinematics at one specific microsecond in time.
+
+### 1. Constructing the Jacobian Column by Column
+Instead of deriving the massive velocity propagation equations and attempting to factor them, we can build the Jacobian geometrically, column by column. Each column $i$ of the matrix represents how much joint $i$ contributes to the total velocity of the end-effector.
+
+Using the vectors we already extracted from our Forward Kinematics matrices (the $Z$-axis vector $Z_i$ and the origin position $P_i$ of each frame), the $i$-th column of the base-frame Jacobian $^0J$ is defined as:
+
+**For a Revolute Joint:**
+$$
+J_i = \begin{bmatrix} Z_{i-1} \times (P_n - P_{i-1}) \\ Z_{i-1} \end{bmatrix}
+$$
+*(The linear part is the cross product of the joint's axis of rotation and the distance to the tool tip. The angular part is simply the axis of rotation itself).*
+
+**For a Prismatic Joint:**
+$$
+J_i = \begin{bmatrix} Z_{i-1} \\ 0 \end{bmatrix}
+$$
+*(A sliding joint adds linear velocity directly along its axis, and adds absolutely zero angular velocity).*
+
+### 2. Inverse Differential Kinematics
+Once we have constructed $J(q)$, we can solve the inverse problem: *"To make the tool move at exactly $V$, how fast should each motor spin?"*
+We simply invert the matrix:
+$$
+\dot{q} = J(q)^{-1} V
+$$
+
+**Numerical Inverse Kinematics:** This exact equation is the secret engine behind solving complex IK for 6-DOF robots when Analytical IK fails. By treating positional error ($\Delta x$) as a small velocity over time, we can use the **Newton-Raphson method**:
+$$
+q_{k+1} = q_k + J(q_k)^{-1} (x_{target} - x_{current})
+$$
+The algorithm computes the Jacobian at the current pose, nudges the joints slightly toward the target, recalculates the Jacobian for the new pose, and repeats until the error is zero. 
+
+### 3. Singularities (When the Math Breaks)
+To calculate $J^{-1}$, the matrix $J$ must be square and invertible. A matrix is invertible only if its determinant is non-zero ($\det(J) \neq 0$). 
+
+When $\det(J) = 0$, the robot is in a **Singularity**. Physically, this happens when two or more joint axes align, or when the arm reaches its absolute maximum extension. At a singularity:
+* The robot loses at least one degree of freedom in Cartesian space.
+* $J^{-1}$ explodes to infinity. If you command a velocity strictly along the blocked direction, the math will request infinite motor speeds, causing physical robots to crash or violently fault.
+
+### 4. Kinematic Posture and Manipulability
+How close is a robot to a singularity? To measure the "quality" of a kinematic posture, we analyze the **Manipulability Ellipsoid**. If we limit all joint speeds to a maximum of $1$, the set of all possible Cartesian velocities the tool can achieve forms an ellipsoid in 3D space. Near a singularity, this ellipsoid flattens into a pancake.
+
+To quantify this, we use the **Yoshikawa Manipulability Index** ($w$):
+$$
+w = \sqrt{\det(J(q) J(q)^T)}
+$$
+A higher $w$ means the robot has excellent mechanical leverage and can easily move in any direction. When $w = 0$, the robot is at a singularity.
+
+In modern trajectory planning, this index is vital. For example, when training Deep Reinforcement Learning (DRL) policies—such as PPO agents—to control industrial manipulators like a UR20 in physics simulators like PyBullet, the Yoshikawa index is often embedded directly into the reward function. This teaches the neural network to naturally favor configurations with high manipulability, preventing the agent from driving the arm into kinematic singularities during execution.
+
+### 5. Static Forces: The Jacobian Duality
+The Jacobian holds one final, profound secret. By applying the principle of virtual work, roboticists discovered that the exact same matrix used for velocities also maps Cartesian forces to joint torques:
+
+$$
+\tau = J(q)^T F
+$$
+
+Where $F$ is a $6 \times 1$ vector of forces and moments applied at the tool tip, and $\tau$ is the vector of torques felt by the motors. Notice that we use the **Transpose** ($J^T$), not the inverse. This means that a singularity ($\det(J)=0$), which is the worst possible posture for generating *velocity*, is mathematically the best possible posture for resisting *force*!
+
+## Visualization
+
+{/* TODO(viz): Add a 3D visualization of a 2-DOF arm with the Manipulability Ellipsoid drawn at the end-effector. As the user drags the arm near its outer boundary (full extension), the ellipsoid should dynamically squash into a flat line, visually demonstrating the loss of a degree of freedom and the approach of a singularity. */}
+
+## Worked example
+
+Let's construct the Jacobian for the standard 2-DOF planar robot (link lengths $L_1, L_2$) directly from the column-by-column method. 
+
+We need the $Z$-axes and Origin points of Frame $\{0\}$, Frame $\{1\}$, and the Tool Frame $\{2\}$. Because it is a planar robot operating in the XY plane, all $Z$-axes point straight out of the screen: $Z_0 = Z_1 = [0, 0, 1]^T$.
+
+From Forward Kinematics, the origins are:
+* $P_0 = [0, 0, 0]^T$
+* $P_1 = [L_1 \cos\theta_1, \ L_1 \sin\theta_1, \ 0]^T$
+* $P_2 = [L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2), \ L_1 \sin\theta_1 + L_2 \sin(\theta_1+\theta_2), \ 0]^T$
+
+**Column 1 (Joint 1's contribution):**
+The linear portion is $Z_0 \times (P_2 - P_0)$. Since $P_0$ is the origin, this is just $Z_0 \times P_2$:
+$$
+\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times \begin{bmatrix} P_{2x} \\ P_{2y} \\ 0 \end{bmatrix} = \begin{bmatrix} -P_{2y} \\ P_{2x} \\ 0 \end{bmatrix}
+$$
+$$
+J_1 = \begin{bmatrix} -L_1 \sin\theta_1 - L_2 \sin(\theta_1+\theta_2) \\ L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2) \\ 0 \\ 0 \\ 0 \\ 1 \end{bmatrix}
+$$
+
+**Column 2 (Joint 2's contribution):**
+The linear portion is $Z_1 \times (P_2 - P_1)$:
+$$
+P_2 - P_1 = \begin{bmatrix} L_2 \cos(\theta_1+\theta_2) \\ L_2 \sin(\theta_1+\theta_2) \\ 0 \end{bmatrix}
+$$
+$$
+\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times (P_2 - P_1) = \begin{bmatrix} -L_2 \sin(\theta_1+\theta_2) \\ L_2 \cos(\theta_1+\theta_2) \\ 0 \end{bmatrix}
+$$
+$$
+J_2 = \begin{bmatrix} -L_2 \sin(\theta_1+\theta_2) \\ L_2 \cos(\theta_1+\theta_2) \\ 0 \\ 0 \\ 0 \\ 1 \end{bmatrix}
+$$
+
+**The Final Jacobian:**
+Assembling the columns yields the full $6 \times 2$ matrix. Since this is a planar robot, the Z-velocity and X/Y angular velocities are always zero. We can extract just the top-left $2 \times 2$ matrix that maps $\dot{\theta}_1, \dot{\theta}_2$ to $\dot{X}, \dot{Y}$:
+
+$$
+J_{2\times2} = \begin{bmatrix} 
+-L_1 \sin\theta_1 - L_2 \sin(\theta_1+\theta_2) & -L_2 \sin(\theta_1+\theta_2) \\ 
+L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2) & L_2 \cos(\theta_1+\theta_2) 
+\end{bmatrix}
+$$
+
+To find the singularities, we calculate the determinant:
+$$
+\det(J) = L_1 L_2 \sin(\theta_2)
+$$
+The determinant is zero when $\sin(\theta_2) = 0$, which means $\theta_2 = 0^\circ$ (arm fully straight) or $\theta_2 = 180^\circ$ (arm fully folded). At these exact angles, the robot loses the ability to move radially inward or outward!
+
+## Common pitfalls
+
+1. **Pseudo-Inverse in Redundant Robots:** If a robot has 7 DOFs (like a human arm) and is trying to reach a 6-DOF pose, the Jacobian is $6 \times 7$. You cannot compute the standard inverse of a non-square matrix. In code, you must use the Moore-Penrose Pseudo-Inverse ($J^+$). Failing to account for this will throw immediate dimensionality errors in libraries like NumPy.
+2. **Singularity Proximity Spikes:** You do not have to be exactly at $\det(J) = 0$ for a physical robot to fail. If you are very close to a singularity, $\det(J)$ is a tiny decimal. Because $J^{-1}$ involves dividing by the determinant, this tiny decimal causes the requested joint velocities to spike to massive values, exceeding the motor's safety limits. Robust IK solvers always damp the inverse using techniques like Damped Least Squares (Levenberg-Marquardt) to prevent these velocity spikes.

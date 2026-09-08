@@ -57,8 +57,7 @@ export const curriculum: Area[] = [
       { slug: "forward-kinematics", title: "Forward kinematics", order: 2, status: "published", difficulty: "core", prerequisites: ["modeling-manipulators"] },
       { slug: "inverse-kinematics", title: "Inverse kinematics", order: 3, status: "published", difficulty: "core", prerequisites: ["forward-kinematics"] },
       { slug: "velocity-kinematics", title: "Velocity kinematics", order: 4, status: "published", difficulty: "core", prerequisites: ["forward-kinematics"] },
-      { slug: "inverse-differential-kinematics", title: "Jacobians and inverse differential kinematics", order: 5, status: "draft", difficulty: "core", prerequisites: ["velocity-kinematics"] },
-      { slug: "singularities", title: "Singularities", order: 6, status: "draft", difficulty: "advanced", prerequisites: ["velocity-kinematics"] },
+      { slug: "jacobians", title: "Jacobians", order: 5, status: "published", difficulty: "core", prerequisites: ["velocity-kinematics"] },
     ],
   },
   {

@@ -29,8 +29,7 @@ const lessonTitlesPt: Record<string, string> = {
   "forward-kinematics": "Cinemática direta",
   "inverse-kinematics": "Cinemática inversa",
   "velocity-kinematics": "Cinemática de velocidade",
-  "inverse-differential-kinematics": "Jacobianas e cinemática diferencial inversa",
-  singularities: "Singularidades",
+  jacobians: "Jacobianas",
   // dynamics
   "newton-euler": "Dinâmica de Newton–Euler",
   "lagrangian-dynamics": "Dinâmica lagrangiana",

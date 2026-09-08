@@ -34,8 +34,7 @@ _Prereqs: foundations (frames, SE(3))._
 2. `forward-kinematics`
 3. `inverse-kinematics`
 4. `velocity-kinematics` (Velocity kinematics)
-5. `inverse-differential-kinematics` (Jacobians and inverse differential kinematics)
-6. `singularities`
+5. `jacobians` (Jacobians — includes inverse differential kinematics, singularities, manipulability, and the Jacobian transpose)
 
 ### 3. dynamics
 _Prereqs: kinematics (velocity kinematics / Jacobians)._
