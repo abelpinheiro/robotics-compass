@@ -7,6 +7,7 @@ summary: ""
 ---
 
 import SingularitiesVizEmbed from "@/components/viz/singularities/SingularitiesVizEmbed";
+import ManipulabilityVizEmbed from "@/components/viz/manipulability/ManipulabilityVizEmbed";
 
 ## Intuition
 Because the robot's posture is constantly shifting, the kinematic relationship between the motors and the tool is constantly changing. In some postures, a $1 \text{ rad/s}$ rotation of the shoulder might cause the tool to fly forward at $2 \text{ m/s}$. A few milliseconds later, in a different posture, that exact same motor speed might only move the tool at $0.1 \text{ m/s}$. 
@@ -85,7 +86,7 @@ Where $F$ is a $6 \times 1$ vector of forces and moments applied at the tool tip
 
 ## Visualization
 
-{/* TODO(viz): Add a 3D visualization of a 2-DOF arm with the Manipulability Ellipsoid drawn at the end-effector. As the user drags the arm near its outer boundary (full extension), the ellipsoid should dynamically squash into a flat line, visually demonstrating the loss of a degree of freedom and the approach of a singularity. */}
+<ManipulabilityVizEmbed />
 
 ## Worked example
 
