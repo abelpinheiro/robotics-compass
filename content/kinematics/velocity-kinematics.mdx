@@ -1,5 +1,5 @@
 ---
-title: "Velocity kinematics and Jacobians"
+title: "Velocity kinematics"
 area: kinematics
 slug: velocity-kinematics
 order: 4
@@ -118,32 +118,105 @@ The equation above says the rate of change of a body's orientation is its curren
 
 <GeneralVelocityVizEmbed />
 
-### The Jacobian Matrix ($J$)
-
-{/* TODO(author): Explain how we group linear and angular velocities into a 6x1 vector (Twist) and introduce the Jacobian matrix mapping: V = J * \dot{q} */}
-
 ### Velocity Propagation from Link to Link
+Differentiating the entire Forward Kinematics matrix ($^0_nT$) to find the end-effector's velocity results in a massive algebraic equation. Instead, we can find it by computing velocities recursively.
+To propagate velocities from frame ${i}$ to frame ${i+1}$, we use the rotation matrices $^{i+1}_iR$ and position matrices $^{i}P_{i+1}$
 
-{/* TODO(author): Explain Craig's method of propagating velocities from the base to the end-effector (v_i and \omega_i). */}
+#### For revolute joints
+A revolute joint adds angular velocity around the $Z$-axis, but adds no independent linear sliding.
 
-### Static Forces (The Jacobian Transpose)
+1. **Angular velocity**: The angular velocity of link $i+1$ is the angular velocity of link $i$ (rotated into the new frame) plus the new rotation from the motor 
 
-{/* TODO(author): Explain the duality of the Jacobian: \tau = J^T * F */}
+$$
+{}^{i+1}\omega_{i+1}
+=
+{}^{i+1}_{i}R \, {}^{i}\omega_i
++
+\begin{bmatrix}
+0 \\
+0 \\
+\dot{\theta}_{i+1}
+\end{bmatrix}
+$$
+
+2. **Linear Velocity**: The linear velocity of the origin of frame $\{i+1\}$ is the linear velocity of frame $\{i\}$'s origin, plus the tangential velocity caused by frame $\{i\}$ rotating the new origin through space (the $\omega \times r$ cross product we defined earlier). The whole result is then rotated into frame
+
+$$
+{}^{i+1}v_{i+1}
+=
+{}^{i+1}_{i}R
+\left(
+{}^{i}v_i
++
+{}^{i}\omega_i \times {}^{i}P_{i+1}
+\right)
+$$
+
+#### For a Prismatic Joint
+A prismatic joint adds linear velocity along the $Z$-axis, but adds no rotation.
+
+1. **Angular Velocity**: Because the joint does not rotate, link $i+1$ shares the exact same angular velocity as link $i$. We only need to rotate the vector into the new frame.
+
+$$
+^{i+1}\omega_{i+1} = ^{i+1}_iR \, ^i\omega_i
+$$
+
+2. **Linear Velocity**: The linear velocity calculation is identical to the revolute case, but we add the physical sliding speed of the joint $\dot{d}_{i+1}$ along the new $Z$-axis.
+
+$$
+^{i+1}v_{i+1} = ^{i+1}_iR \left( ^iv_i + ^i\omega_i \times ^iP_{i+1} \right) + \begin{bmatrix} 0 \\ 0 \\ \dot{d}_{i+1} \end{bmatrix}
+$$
 
 <CrossProductVizEmbed />
 
-## Worked example
+## Worked example: Propagating Velocities on a 2-DOF Arm
+Let's calculate the velocity of the end-effector for a 2-DOF planar robot (link lengths $L_1$ and $L_2$) moving with joint speeds $\dot{\theta}_1$ and $\dot{\theta}_2$. We will use the recursive propagation method from the base $\{0\}$ to the tool frame $\{3\}$.
 
-{/* TODO(author): write a worked example. */}
+**1. Base to Link 1**
+The base does not move, so $^0\omega_0 = 0$ and $^0v_0 = 0$. 
+Joint 1 is a revolute joint rotating around the Z-axis. Since frame $\{0\}$ and $\{1\}$ share the same origin in our DH setup ($^0P_1 = [0,0,0]^T$), the linear velocity remains zero.
+$$
+^1\omega_1 = ^1_0R \, ^0\omega_0 + \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 \end{bmatrix}
+$$
+$$
+^1v_1 = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}
+$$
+
+**2. Link 1 to Link 2**
+Frame $\{2\}$ is translated by $L_1$ along the X-axis of frame $\{1\}$, so $^1P_2 = [L_1, 0, 0]^T$. The rotation matrix $^2_1R$ is a standard Z-axis rotation by $\theta_2$.
+
+First, we propagate the angular velocity. Since the Z-axes are always parallel in planar robots, the Z-component passes through directly:
+$$
+^2\omega_2 = ^2_1R \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 \end{bmatrix} + \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 + \dot{\theta}_2 \end{bmatrix}
+$$
+
+Next, the linear velocity. We take the cross product of $^1\omega_1$ and $^1P_2$:
+$$
+^1\omega_1 \times ^1P_2 = \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 \end{bmatrix} \times \begin{bmatrix} L_1 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 0 \\ L_1 \dot{\theta}_1 \\ 0 \end{bmatrix}
+$$
+Now we rotate this into frame $\{2\}$ using $^2_1R$:
+$$
+^2v_2 = \begin{bmatrix} \cos\theta_2 & \sin\theta_2 & 0 \\ -\sin\theta_2 & \cos\theta_2 & 0 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} 0 \\ L_1 \dot{\theta}_1 \\ 0 \end{bmatrix} = \begin{bmatrix} L_1 \dot{\theta}_1 \sin\theta_2 \\ L_1 \dot{\theta}_1 \cos\theta_2 \\ 0 \end{bmatrix}
+$$
+
+**3. Link 2 to the End-Effector (Frame 3)**
+The tool is fixed at the end of Link 2, so $^2P_3 = [L_2, 0, 0]^T$ and there is no new joint rotation ($^3_2R$ is the identity matrix, and $\dot{\theta}_3 = 0$).
+$$
+^3\omega_3 = ^2\omega_2 = \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 + \dot{\theta}_2 \end{bmatrix}
+$$
+We compute the cross product $^2\omega_2 \times ^2P_3$:
+$$
+\begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 + \dot{\theta}_2 \end{bmatrix} \times \begin{bmatrix} L_2 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 0 \\ L_2(\dot{\theta}_1 + \dot{\theta}_2) \\ 0 \end{bmatrix}
+$$
+Adding this to the linear velocity of frame 2 ($^2v_2$) gives the final linear velocity of the tool, expressed entirely in its own local frame:
+$$
+^3v_3 = \begin{bmatrix} L_1 \dot{\theta}_1 \sin\theta_2 \\ L_1 \dot{\theta}_1 \cos\theta_2 \\ 0 \end{bmatrix} + \begin{bmatrix} 0 \\ L_2(\dot{\theta}_1 + \dot{\theta}_2) \\ 0 \end{bmatrix} = \begin{bmatrix} L_1 \dot{\theta}_1 \sin\theta_2 \\ L_1 \dot{\theta}_1 \cos\theta_2 + L_2(\dot{\theta}_1 + \dot{\theta}_2) \\ 0 \end{bmatrix}
+$$
 
 ## Common pitfalls
-
-{/* TODO(author): list common pitfalls. */}
-
-## Exercises
-
-{/* TODO(author): add exercises. */}
-
+1. **Adding Vectors from Different Frames:** The single most common math error in velocity propagation is attempting to add a vector expressed in Frame $i$ directly to a vector expressed in Frame $i+1$. You must *always* pre-multiply by the rotation matrix $^{i+1}_iR$ before adding.
+2. **Cross Product Ordering:** The cross product is anti-commutative. This means $v = \omega \times r$ is different from $r \times \omega$. Reversing the order flips the sign of the resulting velocity vector, indicating that the math that your robot is moving backward.
 ## Further reading
 
-{/* TODO(author): add references and further reading. */}
+Section 5.1 to 5.6 of Robotics, by Craig
+
