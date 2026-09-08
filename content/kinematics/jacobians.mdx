@@ -6,6 +6,8 @@ order: 5
 summary: ""
 ---
 
+import SingularitiesVizEmbed from "@/components/viz/singularities/SingularitiesVizEmbed";
+
 ## Intuition
 Because the robot's posture is constantly shifting, the kinematic relationship between the motors and the tool is constantly changing. In some postures, a $1 \text{ rad/s}$ rotation of the shoulder might cause the tool to fly forward at $2 \text{ m/s}$. A few milliseconds later, in a different posture, that exact same motor speed might only move the tool at $0.1 \text{ m/s}$. 
 
@@ -58,6 +60,8 @@ To calculate $J^{-1}$, the matrix $J$ must be square and invertible. A matrix is
 When $\det(J) = 0$, the robot is in a **Singularity**. Physically, this happens when two or more joint axes align, or when the arm reaches its absolute maximum extension. At a singularity:
 * The robot loses at least one degree of freedom in Cartesian space.
 * $J^{-1}$ explodes to infinity. If you command a velocity strictly along the blocked direction, the math will request infinite motor speeds, causing physical robots to crash or violently fault.
+
+<SingularitiesVizEmbed />
 
 ### 4. Kinematic Posture and Manipulability
 How close is a robot to a singularity? To measure the "quality" of a kinematic posture, we analyze the **Manipulability Ellipsoid**. If we limit all joint speeds to a maximum of $1$, the set of all possible Cartesian velocities the tool can achieve forms an ellipsoid in 3D space. Near a singularity, this ellipsoid flattens into a pancake.
