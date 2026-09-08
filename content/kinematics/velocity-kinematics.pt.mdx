@@ -1,5 +1,5 @@
 ---
-title: "Cinemática de velocidade e Jacobianas"
+title: "Cinemática de velocidade"
 area: kinematics
 slug: velocity-kinematics
 order: 4
@@ -118,32 +118,104 @@ A equação acima diz que a taxa de variação da orientação de um corpo é su
 
 <GeneralVelocityVizEmbed />
 
-### A matriz Jacobiana ($J$)
-
-{/* TODO(author): Explain how we group linear and angular velocities into a 6x1 vector (Twist) and introduce the Jacobian matrix mapping: V = J * \dot{q} */}
-
 ### Propagação de velocidade de elo em elo
+Diferenciar a matriz inteira de cinemática direta ($^0_nT$) para encontrar a velocidade do efetuador resulta em uma equação algébrica gigantesca. Em vez disso, podemos encontrá-la calculando as velocidades recursivamente.
+Para propagar as velocidades do referencial ${i}$ ao referencial ${i+1}$, usamos as matrizes de rotação $^{i+1}_iR$ e as matrizes de posição $^{i}P_{i+1}$
 
-{/* TODO(author): Explain Craig's method of propagating velocities from the base to the end-effector (v_i and \omega_i). */}
+#### Para juntas rotacionais
+Uma junta rotacional adiciona velocidade angular em torno do eixo $Z$, mas não adiciona deslizamento linear independente.
 
-### Forças estáticas (a transposta da Jacobiana)
+1. **Velocidade angular**: A velocidade angular do elo $i+1$ é a velocidade angular do elo $i$ (rotacionada para o novo referencial) mais a nova rotação vinda do motor
 
-{/* TODO(author): Explain the duality of the Jacobian: \tau = J^T * F */}
+$$
+{}^{i+1}\omega_{i+1}
+=
+{}^{i+1}_{i}R \, {}^{i}\omega_i
++
+\begin{bmatrix}
+0 \\
+0 \\
+\dot{\theta}_{i+1}
+\end{bmatrix}
+$$
+
+2. **Velocidade linear**: A velocidade linear da origem do referencial $\{i+1\}$ é a velocidade linear da origem do referencial $\{i\}$, mais a velocidade tangencial causada pelo referencial $\{i\}$ girando a nova origem pelo espaço (o produto vetorial $\omega \times r$ que definimos antes). Todo o resultado é então rotacionado para o novo referencial.
+
+$$
+{}^{i+1}v_{i+1}
+=
+{}^{i+1}_{i}R
+\left(
+{}^{i}v_i
++
+{}^{i}\omega_i \times {}^{i}P_{i+1}
+\right)
+$$
+
+#### Para juntas prismáticas
+Uma junta prismática adiciona velocidade linear ao longo do eixo $Z$, mas não adiciona rotação.
+
+1. **Velocidade angular**: Como a junta não rotaciona, o elo $i+1$ compartilha exatamente a mesma velocidade angular do elo $i$. Só precisamos rotacionar o vetor para o novo referencial.
+
+$$
+^{i+1}\omega_{i+1} = ^{i+1}_iR \, ^i\omega_i
+$$
+
+2. **Velocidade linear**: O cálculo da velocidade linear é idêntico ao caso rotacional, mas adicionamos a velocidade física de deslizamento da junta $\dot{d}_{i+1}$ ao longo do novo eixo $Z$.
+
+$$
+^{i+1}v_{i+1} = ^{i+1}_iR \left( ^iv_i + ^i\omega_i \times ^iP_{i+1} \right) + \begin{bmatrix} 0 \\ 0 \\ \dot{d}_{i+1} \end{bmatrix}
+$$
 
 <CrossProductVizEmbed />
 
-## Exemplo resolvido
+## Exemplo resolvido: propagando velocidades em um braço 2-DOF
+Vamos calcular a velocidade do efetuador de um robô planar de 2 GDL (comprimentos de elo $L_1$ e $L_2$) movendo-se com velocidades de junta $\dot{\theta}_1$ e $\dot{\theta}_2$. Usaremos o método de propagação recursiva da base $\{0\}$ até o referencial da ferramenta $\{3\}$.
 
-{/* TODO(author): write a worked example. */}
+**1. Da base ao Elo 1**
+A base não se move, então $^0\omega_0 = 0$ e $^0v_0 = 0$.
+A Junta 1 é uma junta rotacional girando em torno do eixo Z. Como os referenciais $\{0\}$ e $\{1\}$ compartilham a mesma origem no nosso arranjo DH ($^0P_1 = [0,0,0]^T$), a velocidade linear permanece zero.
+$$
+^1\omega_1 = ^1_0R \, ^0\omega_0 + \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 \end{bmatrix}
+$$
+$$
+^1v_1 = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}
+$$
+
+**2. Do Elo 1 ao Elo 2**
+O referencial $\{2\}$ está transladado por $L_1$ ao longo do eixo X do referencial $\{1\}$, então $^1P_2 = [L_1, 0, 0]^T$. A matriz de rotação $^2_1R$ é uma rotação padrão em torno do eixo Z por $\theta_2$.
+
+Primeiro, propagamos a velocidade angular. Como os eixos Z são sempre paralelos em robôs planares, a componente Z passa direto:
+$$
+^2\omega_2 = ^2_1R \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 \end{bmatrix} + \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_2 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 + \dot{\theta}_2 \end{bmatrix}
+$$
+
+Em seguida, a velocidade linear. Tomamos o produto vetorial de $^1\omega_1$ e $^1P_2$:
+$$
+^1\omega_1 \times ^1P_2 = \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 \end{bmatrix} \times \begin{bmatrix} L_1 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 0 \\ L_1 \dot{\theta}_1 \\ 0 \end{bmatrix}
+$$
+Agora rotacionamos isso para o referencial $\{2\}$ usando $^2_1R$:
+$$
+^2v_2 = \begin{bmatrix} \cos\theta_2 & \sin\theta_2 & 0 \\ -\sin\theta_2 & \cos\theta_2 & 0 \\ 0 & 0 & 1 \end{bmatrix} \begin{bmatrix} 0 \\ L_1 \dot{\theta}_1 \\ 0 \end{bmatrix} = \begin{bmatrix} L_1 \dot{\theta}_1 \sin\theta_2 \\ L_1 \dot{\theta}_1 \cos\theta_2 \\ 0 \end{bmatrix}
+$$
+
+**3. Do Elo 2 ao efetuador (Referencial 3)**
+A ferramenta é fixa na extremidade do Elo 2, então $^2P_3 = [L_2, 0, 0]^T$ e não há nova rotação de junta ($^3_2R$ é a matriz identidade, e $\dot{\theta}_3 = 0$).
+$$
+^3\omega_3 = ^2\omega_2 = \begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 + \dot{\theta}_2 \end{bmatrix}
+$$
+Calculamos o produto vetorial $^2\omega_2 \times ^2P_3$:
+$$
+\begin{bmatrix} 0 \\ 0 \\ \dot{\theta}_1 + \dot{\theta}_2 \end{bmatrix} \times \begin{bmatrix} L_2 \\ 0 \\ 0 \end{bmatrix} = \begin{bmatrix} 0 \\ L_2(\dot{\theta}_1 + \dot{\theta}_2) \\ 0 \end{bmatrix}
+$$
+Somando isso à velocidade linear do referencial 2 ($^2v_2$), obtemos a velocidade linear final da ferramenta, expressa inteiramente no seu próprio referencial local:
+$$
+^3v_3 = \begin{bmatrix} L_1 \dot{\theta}_1 \sin\theta_2 \\ L_1 \dot{\theta}_1 \cos\theta_2 \\ 0 \end{bmatrix} + \begin{bmatrix} 0 \\ L_2(\dot{\theta}_1 + \dot{\theta}_2) \\ 0 \end{bmatrix} = \begin{bmatrix} L_1 \dot{\theta}_1 \sin\theta_2 \\ L_1 \dot{\theta}_1 \cos\theta_2 + L_2(\dot{\theta}_1 + \dot{\theta}_2) \\ 0 \end{bmatrix}
+$$
 
 ## Erros comuns
-
-{/* TODO(author): list common pitfalls. */}
-
-## Exercícios
-
-{/* TODO(author): add exercises. */}
-
+1. **Somar vetores de referenciais diferentes:** O erro matemático mais comum na propagação de velocidade é tentar somar um vetor expresso no Referencial $i$ diretamente a um vetor expresso no Referencial $i+1$. Você deve *sempre* pré-multiplicar pela matriz de rotação $^{i+1}_iR$ antes de somar.
+2. **Ordem do produto vetorial:** O produto vetorial é anticomutativo. Isso significa que $v = \omega \times r$ é diferente de $r \times \omega$. Inverter a ordem troca o sinal do vetor velocidade resultante, fazendo a matemática indicar que o robô está se movendo para trás.
 ## Leituras adicionais
 
-{/* TODO(author): add references and further reading. */}
+Seções 5.1 a 5.6 de *Robotics*, de Craig
