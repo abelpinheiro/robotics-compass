@@ -8,6 +8,7 @@ summary: ""
 
 import SingularitiesVizEmbed from "@/components/viz/singularities/SingularitiesVizEmbed";
 import ManipulabilityVizEmbed from "@/components/viz/manipulability/ManipulabilityVizEmbed";
+import StaticForcesVizEmbed from "@/components/viz/staticforces/StaticForcesVizEmbed";
 
 ## Intuition
 Because the robot's posture is constantly shifting, the kinematic relationship between the motors and the tool is constantly changing. In some postures, a $1 \text{ rad/s}$ rotation of the shoulder might cause the tool to fly forward at $2 \text{ m/s}$. A few milliseconds later, in a different posture, that exact same motor speed might only move the tool at $0.1 \text{ m/s}$. 
@@ -84,9 +85,12 @@ $$
 
 Where $F$ is a $6 \times 1$ vector of forces and moments applied at the tool tip, and $\tau$ is the vector of torques felt by the motors. Notice that we use the **Transpose** ($J^T$), not the inverse. This means that a singularity ($\det(J)=0$), which is the worst possible posture for generating *velocity*, is mathematically the best possible posture for resisting *force*!
 
+<StaticForcesVizEmbed />
+
 ## Visualization
 
 <ManipulabilityVizEmbed />
+
 
 ## Worked example
 
