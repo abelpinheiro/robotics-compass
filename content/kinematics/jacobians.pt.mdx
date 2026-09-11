@@ -1,0 +1,229 @@
+---
+title: "Jacobianas"
+area: kinematics
+slug: jacobians
+order: 5
+summary: ""
+---
+
+import SingularitiesVizEmbed from "@/components/viz/singularities/SingularitiesVizEmbed";
+import ManipulabilityVizEmbed from "@/components/viz/manipulability/ManipulabilityVizEmbed";
+import StaticForcesVizEmbed from "@/components/viz/staticforces/StaticForcesVizEmbed";
+
+## Intuição
+Como a postura do robô muda constantemente, a relação cinemática entre os motores e a ferramenta também muda o tempo todo. Em algumas posturas, uma rotação de $1 \text{ rad/s}$ do ombro pode fazer a ferramenta avançar a $2 \text{ m/s}$. Alguns milissegundos depois, em uma postura diferente, essa mesma velocidade de motor pode mover a ferramenta a apenas $0.1 \text{ m/s}$.
+
+A Jacobiana é uma matriz que captura a relação instantânea exata entre o espaço das juntas ($\dot{q}$) e o espaço cartesiano ($V$).
+
+## Definição formal
+
+No capítulo anterior, propagamos as velocidades linear ($v$) e angular ($\omega$) de elo em elo. Se empilharmos esses dois vetores $3 \times 1$ em um único vetor de velocidade espacial $6 \times 1$, podemos fatorar as velocidades das juntas ($\dot{q}$) em uma equação linear:
+
+$$
+\begin{bmatrix} v \\ \omega \end{bmatrix} = J(q) \dot{q}
+$$
+
+Aqui, $J(q)$ é a **matriz Jacobiana**. Para um manipulador de $N$ graus de liberdade, $J$ é uma matriz $6 \times N$. Essa matriz representa os valores de $q$ em um dado instante, então os números dentro dela mudam toda vez que o robô se move.
+Existem três métodos principais para encontrar essa matriz, dependendo da aplicação e da complexidade do robô:
+
+### 1. O método geométrico (coluna por coluna)
+Podemos construir a Jacobiana geometricamente, considerando que cada coluna $i$ da matriz representa quanto a junta $i$ contribui para a velocidade total do efetuador.
+
+Usando os vetores que já extraímos das matrizes de cinemática direta (o vetor do eixo $Z$, $Z_i$, e a posição da origem $P_i$ de cada referencial), a $i$-ésima coluna da Jacobiana no referencial da base $^0J$ é definida como:
+
+**Para uma junta rotacional:**
+$$
+J_i = \begin{bmatrix} Z_{i-1} \times (P_n - P_{i-1}) \\ Z_{i-1} \end{bmatrix}
+$$
+*(A parte linear é o produto vetorial entre o eixo de rotação da junta e a distância até a ponta da ferramenta. A parte angular é simplesmente o próprio eixo de rotação.)*
+
+**Para uma junta prismática:**
+$$
+J_i = \begin{bmatrix} Z_{i-1} \\ 0 \end{bmatrix}
+$$
+*(Uma junta deslizante adiciona velocidade linear diretamente ao longo do seu eixo e adiciona velocidade angular nula.)*
+
+### 2. O método da diferenciação parcial
+Para encontrar a Jacobiana analítica, podemos seguir o processo abaixo.
+
+1. **Use a tabela DH:** comece construindo os parâmetros de Denavit-Hartenberg do robô.
+2. **Monte a cinemática direta:** construa as matrizes de transformação de cada referencial e multiplique-as para obter a matriz de transformação homogênea final da base até a ponta (${}^0_nT$). Essa matriz $4 \times 4$ é composta pela matriz de rotação $3 \times 3$ ($R$) e pelo vetor posição $3 \times 1$ ($P$), acima de uma última linha de zeros e um:
+$$
+{}^0_nT = \begin{bmatrix} R & P \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 
+r_{11} & r_{12} & r_{13} & P_x \\ 
+r_{21} & r_{22} & r_{23} & P_y \\ 
+r_{31} & r_{32} & r_{33} & P_z \\ 
+0 & 0 & 0 & 1 
+\end{bmatrix}
+$$
+3. **Extraia posição e rotação:** dessa matriz final, isole o vetor posição do efetuador $P = [P_x, P_y, P_z]^T$ e sua matriz de rotação $3 \times 3$ $R$.
+4. **Diferencie para a velocidade linear:** tome o vetor posição $P$ e calcule sua derivada parcial em relação a cada variável de junta ($\theta_i$ para rotacional, $d_i$ para prismática). Isso cria as 3 primeiras linhas da Jacobiana ($J_v$). Com isso, obtemos
+
+$$
+    \dot{P} = J_v \dot{q}
+$$
+
+5. **Diferencie para a velocidade angular:** extraia um conjunto de ângulos de orientação 3D (como os ângulos de Euler: rolagem, arfagem e guinada — $\alpha, \beta, \gamma$) da matriz de rotação $R$. Calcule as derivadas parciais desses ângulos em relação a cada junta para formar as 3 últimas linhas ($J_\omega$).
+
+$$
+J_{a\_\omega} = \begin{bmatrix} 
+\frac{\partial \alpha}{\partial q_1} & \frac{\partial \alpha}{\partial q_2} & \dots & \frac{\partial \alpha}{\partial q_n} \\ 
+\frac{\partial \beta}{\partial q_1} & \frac{\partial \beta}{\partial q_2} & \dots & \frac{\partial \beta}{\partial q_n} \\ 
+\frac{\partial \gamma}{\partial q_1} & \frac{\partial \gamma}{\partial q_2} & \dots & \frac{\partial \gamma}{\partial q_n} 
+\end{bmatrix}
+$$
+
+6. **Reunindo os dois componentes:**
+Empilhamos a parte linear ($J_v$) sobre a parte angular ($J_{a\_\omega}$) para formar a matriz Jacobiana analítica $6 \times N$ completa ($J_a$):
+
+$$
+J_a = \begin{bmatrix} J_v \\ J_{a\_\omega} \end{bmatrix} = \begin{bmatrix} 
+\frac{\partial x}{\partial q_1} & \dots & \frac{\partial x}{\partial q_n} \\ 
+\vdots & \ddots & \vdots \\ 
+\frac{\partial \gamma}{\partial q_1} & \dots & \frac{\partial \gamma}{\partial q_n} 
+\end{bmatrix}
+$$
+
+Essa matriz mapeia as velocidades das juntas ($\dot{q}$) diretamente para a taxa de variação das variáveis de pose do efetuador:
+$$
+\begin{bmatrix} \dot{x} \\ \dot{y} \\ \dot{z} \\ \dot{\alpha} \\ \dot{\beta} \\ \dot{\gamma} \end{bmatrix} = J_a \begin{bmatrix} \dot{q}_1 \\ \dot{q}_2 \\ \vdots \\ \dot{q}_n \end{bmatrix}
+$$
+
+### 3. O método da propagação de velocidade
+O método da propagação usa as equações recursivas que aprendemos no capítulo de **Cinemática de velocidade**. Começamos no referencial da base e propagamos as velocidades linear ($v_i$) e angular ($\omega_i$) para fora, até o referencial final $\{n\}$. Uma vez obtidas as equações finais de $^n v_n$ e $^n \omega_n$, fatoramos as variáveis $\dot{q}$ para revelar a Jacobiana expressa no referencial da ferramenta ($^n J$). Se precisarmos dela no referencial da base, pré-multiplicamos por uma matriz de rotação $^0_n R$.
+
+Em passos, o processo é o seguinte:
+1. **Inicialize na base:** comece com a base estacionária do robô, definindo suas velocidades iniciais como zero: $^0v_0 = 0$ e $^0\omega_0 = 0$.
+2. **Propague para o próximo elo:** calcule as velocidades linear e angular de cada elo seguinte. Por exemplo, para uma junta rotacional, você aplica:
+
+$$ 
+   ^{i+1}\omega_{i+1} = ^{i+1}_iR \, ^i\omega_i + \begin{bmatrix} 0 & 0 & \dot{\theta}_{i+1} \end{bmatrix}^T 
+$$
+
+$$
+    ^{i+1}v_{i+1} = ^{i+1}_iR \left( ^iv_i + ^i\omega_i \times ^iP_{i+1} \right) 
+$$
+
+3. **Chegue ao efetuador:** continue esse laço até calcular as velocidades finais do referencial da ferramenta $\{n\}$, resultando nos vetores $^n v_n$ e $^n \omega_n$.
+4. **Fatore as velocidades das juntas ($\dot{q}$):** como as velocidades são combinações estritamente lineares das velocidades das juntas ($\dot{\theta}_i$ ou $\dot{d}_i$), você pode fatorar o vetor de velocidades das juntas das equações finais. O que resta é uma matriz $6 \times N$.
+
+$$
+    \begin{matrix}
+    v_x &=& c_{11}\dot{q}_1 &+& c_{12}\dot{q}_2 &+& \dots &+& c_{1n}\dot{q}_n \\
+    v_y &=& c_{21}\dot{q}_1 &+& c_{22}\dot{q}_2 &+& \dots &+& c_{2n}\dot{q}_n \\
+    v_z &=& c_{31}\dot{q}_1 &+& c_{32}\dot{q}_2 &+& \dots &+& c_{3n}\dot{q}_n \\
+    \omega_x &=& c_{41}\dot{q}_1 &+& c_{42}\dot{q}_2 &+& \dots &+& c_{4n}\dot{q}_n \\
+    \omega_y &=& c_{51}\dot{q}_1 &+& c_{52}\dot{q}_2 &+& \dots &+& c_{5n}\dot{q}_n \\
+    \omega_z &=& c_{61}\dot{q}_1 &+& c_{62}\dot{q}_2 &+& \dots &+& c_{6n}\dot{q}_n 
+    \end{matrix}
+$$
+   
+   $$
+   \begin{bmatrix} ^n v_n \\ ^n \omega_n \end{bmatrix} = \underbrace{\begin{bmatrix} \text{...} & \text{...} & \text{...} \\ \text{...} & ^nJ & \text{...} \\ \text{...} & \text{...} & \text{...} \end{bmatrix}}_{\text{A Jacobiana no referencial } n} \begin{bmatrix} \dot{q}_1 \\ \dot{q}_2 \\ \vdots \\ \dot{q}_n \end{bmatrix}
+   $$
+5. **Rotacione para o referencial da base:** o passo 4 fornece a Jacobiana expressa no referencial local da ferramenta ($^nJ$). Para expressá-la no referencial global da base ($^0J$), você pré-multiplica por uma matriz de rotação $6 \times 6$:
+   $$
+   ^0J = \begin{bmatrix} ^0_nR & 0_{3 \times 3} \\ 0_{3 \times 3} & ^0_nR \end{bmatrix} ^nJ
+   $$
+
+---
+
+### Cinemática diferencial inversa
+Agora que obtivemos $J(q)$, podemos resolver o problema inverso: *"Para fazer a ferramenta se mover exatamente a $V$, com que velocidade cada motor deve girar?"*
+Para isso, basta inverter a matriz:
+$$
+\dot{q} = J(q)^{-1} V
+$$
+
+Uma forma de resolver essa equação é usando o **método de Newton-Raphson**, que trata o erro de posição ($\Delta x$) como uma pequena velocidade ao longo do tempo.
+$$
+q_{k+1} = q_k + J(q_k)^{-1} (x_{target} - x_{current})
+$$
+O algoritmo calcula a Jacobiana na pose atual, move as juntas ligeiramente em direção ao alvo, recalcula a Jacobiana para a nova pose e repete até que o erro seja zero. Esse método é usado como alternativa à cinemática inversa analítica.
+
+### Singularidades
+Para calcular $J^{-1}$, a matriz $J$ deve ser quadrada e invertível. Uma matriz é invertível apenas se seu determinante for diferente de zero ($\det(J) \neq 0$).
+
+Quando $\det(J) = 0$, o robô está em uma **singularidade**. Fisicamente, isso acontece quando dois ou mais eixos de junta se alinham, ou quando o braço atinge sua extensão máxima absoluta. Em uma singularidade:
+* O robô perde ao menos um grau de liberdade no espaço cartesiano.
+* $J^{-1}$ explode para o infinito. Se você comandar uma velocidade estritamente ao longo da direção bloqueada, a velocidade do motor aumentará em direção ao infinito, levando o robô a falhar.
+
+<SingularitiesVizEmbed />
+
+### Postura cinemática e manipulabilidade
+Quão perto um robô está de uma singularidade? Para medir a "qualidade" de uma postura cinemática, analisamos o **elipsoide de manipulabilidade**. Se limitarmos todas as velocidades das juntas a um máximo de $1$, o conjunto de todas as velocidades cartesianas que a ferramenta pode alcançar forma um elipsoide no espaço 3D. Perto de uma singularidade, esse elipsoide se achata.
+
+Uma forma de quantificar isso é usando o **índice de manipulabilidade de Yoshikawa** ($w$):
+$$
+w = \sqrt{\det(J(q) J(q)^T)}
+$$
+Um $w$ maior significa que o robô tem excelente manipulabilidade mecânica e pode se mover em qualquer direção. Quando $w = 0$, o robô está em uma singularidade.
+
+### Forças estáticas: a dualidade da Jacobiana
+As Jacobianas também mapeiam forças cartesianas para torques de junta:
+
+$$
+\tau = J(q)^T F
+$$
+
+$F$ é um vetor $6 \times 1$ de forças e momentos aplicados na ponta da ferramenta, e $\tau$ é o vetor de torques sentidos pelos motores. Aqui usamos a **transposta** ($J^T$), não a inversa. Isso indica que uma singularidade ($\det(J)=0$), que é a pior postura possível para gerar *velocidade*, é matematicamente a melhor postura possível para resistir a *força*!
+
+<StaticForcesVizEmbed />
+
+## Visualização
+
+<ManipulabilityVizEmbed />
+
+
+## Exemplo resolvido
+
+Vamos construir a Jacobiana para o robô planar padrão de 2 GDL (comprimentos de elo $L_1, L_2$) diretamente pelo método coluna por coluna.
+
+Precisamos dos eixos $Z$ e das origens do referencial $\{0\}$, do referencial $\{1\}$ e do referencial da ferramenta $\{2\}$. Como é um robô planar operando no plano XY, todos os eixos $Z$ apontam para fora da tela: $Z_0 = Z_1 = [0, 0, 1]^T$.
+
+Pela cinemática direta, as origens são:
+* $P_0 = [0, 0, 0]^T$
+* $P_1 = [L_1 \cos\theta_1, \ L_1 \sin\theta_1, \ 0]^T$
+* $P_2 = [L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2), \ L_1 \sin\theta_1 + L_2 \sin(\theta_1+\theta_2), \ 0]^T$
+
+**Coluna 1 (contribuição da junta 1):**
+A parte linear é $Z_0 \times (P_2 - P_0)$. Como $P_0$ é a origem, isso é simplesmente $Z_0 \times P_2$:
+$$
+\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times \begin{bmatrix} P_{2x} \\ P_{2y} \\ 0 \end{bmatrix} = \begin{bmatrix} -P_{2y} \\ P_{2x} \\ 0 \end{bmatrix}
+$$
+$$
+J_1 = \begin{bmatrix} -L_1 \sin\theta_1 - L_2 \sin(\theta_1+\theta_2) \\ L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2) \\ 0 \\ 0 \\ 0 \\ 1 \end{bmatrix}
+$$
+
+**Coluna 2 (contribuição da junta 2):**
+A parte linear é $Z_1 \times (P_2 - P_1)$:
+$$
+P_2 - P_1 = \begin{bmatrix} L_2 \cos(\theta_1+\theta_2) \\ L_2 \sin(\theta_1+\theta_2) \\ 0 \end{bmatrix}
+$$
+$$
+\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times (P_2 - P_1) = \begin{bmatrix} -L_2 \sin(\theta_1+\theta_2) \\ L_2 \cos(\theta_1+\theta_2) \\ 0 \end{bmatrix}
+$$
+$$
+J_2 = \begin{bmatrix} -L_2 \sin(\theta_1+\theta_2) \\ L_2 \cos(\theta_1+\theta_2) \\ 0 \\ 0 \\ 0 \\ 1 \end{bmatrix}
+$$
+
+**A Jacobiana final:**
+Montando as colunas, obtemos a matriz $6 \times 2$ completa. Como este é um robô planar, a velocidade em Z e as velocidades angulares em X/Y são sempre zero. Podemos extrair apenas a submatriz $2 \times 2$ do canto superior esquerdo que mapeia $\dot{\theta}_1, \dot{\theta}_2$ para $\dot{X}, \dot{Y}$:
+
+$$
+J_{2\times2} = \begin{bmatrix} 
+-L_1 \sin\theta_1 - L_2 \sin(\theta_1+\theta_2) & -L_2 \sin(\theta_1+\theta_2) \\ 
+L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2) & L_2 \cos(\theta_1+\theta_2) 
+\end{bmatrix}
+$$
+
+Para encontrar as singularidades, calculamos o determinante:
+$$
+\det(J) = L_1 L_2 \sin(\theta_2)
+$$
+O determinante é zero quando $\sin(\theta_2) = 0$, ou seja, $\theta_2 = 0^\circ$ (braço totalmente esticado) ou $\theta_2 = 180^\circ$ (braço totalmente dobrado). Nesses ângulos exatos, o robô perde a capacidade de se mover radialmente para dentro ou para fora!
+
+## Erros comuns
+
+1. **Pseudoinversa em robôs redundantes:** se um robô tem 7 GDL e está tentando alcançar uma pose de 6 GDL, a Jacobiana é $6 \times 7$. Não é possível calcular a inversa padrão de uma matriz não quadrada. Para isso, você deve usar a pseudoinversa de Moore-Penrose ($J^+$).
+2. **Picos por proximidade de singularidade:** você não precisa estar exatamente em $\det(J) = 0$ para um robô físico falhar. Se você estiver muito perto de uma singularidade, $\det(J)$ é um decimal minúsculo. Ao dividir pelo determinante, esses valores pequenos fazem as velocidades de junta solicitadas dispararem para valores enormes, excedendo os limites de segurança do motor. Uma forma de resolver isso é usar técnicas como Mínimos Quadrados Amortecidos (Damped Least Squares) para evitar esses picos de velocidade.
