@@ -17,17 +17,17 @@ The Jacobian is a mathematical matrix that captures the exact instantaneous rela
 
 ## Formal definition
 
-In the previous chapter, we propagated linear ($v$) and angular ($\omega$) velocities from link to link. If we stack these two $3 \times 1$ vectors into a single $6 \times 1$ spatial velocity vector (often called a *Twist*), we can factor out the joint speeds ($\dot{q}$) into a linear equation:
+In the previous chapter, we propagated linear ($v$) and angular ($\omega$) velocities from link to link. If we stack these two $3 \times 1$ vectors into a single $6 \times 1$ spatial velocity vector, we can factor out the joint speeds ($\dot{q}$) into a linear equation:
 
 $$
 \begin{bmatrix} v \\ \omega \end{bmatrix} = J(q) \dot{q}
 $$
 
-Here, $J(q)$ is the **Jacobian Matrix**. For an $N$-DOF manipulator, $J$ is a $6 \times N$ matrix. 
-Crucially, $J$ is a function of $q$ ($J(q)$). This means the numbers inside the matrix change every time the robot moves. It is a "snapshot" of the robot's kinematics at one specific microsecond in time.
+Here, $J(q)$ is the **Jacobian Matrix**. For an $N$-DOF manipulator, $J$ is a $6 \times N$ matrix. This matrix represents the values of $q$ at a given instant, so the numbers inside of it change every time the robot moves.
+There are three primary methods to find this matrix, depending on the application and the complexity of the robot:
 
-### 1. Constructing the Jacobian Column by Column
-Instead of deriving the massive velocity propagation equations and attempting to factor them, we can build the Jacobian geometrically, column by column. Each column $i$ of the matrix represents how much joint $i$ contributes to the total velocity of the end-effector.
+### 1. The Geometric Method (Column by Column)
+We can build the Jacobian geometrically by considering that each column $i$ of the matrix represents how much joint $i$ contributes to the total velocity of the end-effector.
 
 Using the vectors we already extracted from our Forward Kinematics matrices (the $Z$-axis vector $Z_i$ and the origin position $P_i$ of each frame), the $i$-th column of the base-frame Jacobian $^0J$ is defined as:
 
@@ -41,49 +41,132 @@ $$
 $$
 J_i = \begin{bmatrix} Z_{i-1} \\ 0 \end{bmatrix}
 $$
-*(A sliding joint adds linear velocity directly along its axis, and adds absolutely zero angular velocity).*
+*(A sliding joint adds linear velocity directly along its axis, and adds zero angular velocity).*
 
-### 2. Inverse Differential Kinematics
-Once we have constructed $J(q)$, we can solve the inverse problem: *"To make the tool move at exactly $V$, how fast should each motor spin?"*
-We simply invert the matrix:
+### 2. The Partial Differentiation Method
+To find the Analytical Jacobian, we can follow the process below.
+
+1. **Use the DH Table:** Start by building the robot's Denavit-Hartenberg parameters.
+2. **Build the Forward Kinematics:** Construct the transformation matrices for each frame and multiply them to obtain the final base-to-tip Homogeneous Transformation Matrix (${}^0_nT$). This $4 \times 4$ matrix is composed of the $3 \times 3$ Rotation matrix ($R$) and the $3 \times 1$ Position vector ($P$), sitting above a bottom row of zeros and a one:
+$$
+{}^0_nT = \begin{bmatrix} R & P \\ 0 & 1 \end{bmatrix} = \begin{bmatrix} 
+r_{11} & r_{12} & r_{13} & P_x \\ 
+r_{21} & r_{22} & r_{23} & P_y \\ 
+r_{31} & r_{32} & r_{33} & P_z \\ 
+0 & 0 & 0 & 1 
+\end{bmatrix}
+$$
+3. **Extract Position and Rotation:** From this final matrix, isolate the end-effector's Position vector $P = [P_x, P_y, P_z]^T$ and its $3 \times 3$ Rotation matrix $R$.
+4. **Differentiate for Linear Velocity:** Take the position vector $P$ and calculate its partial derivative with respect to each joint variable ($\theta_i$ for revolute, $d_i$ for prismatic). This creates the top 3 rows of the Jacobian ($J_v$). With this, we get 
+
+$$
+    \dot{P} = J_v \dot{q}
+$$
+
+5. **Differentiate for Angular Velocity:** Extract a set of 3D orientation angles (such as Euler angles: Roll, Pitch, Yaw — $\alpha, \beta, \gamma$) from the Rotation matrix $R$. Calculate the partial derivatives of these angles with respect to each joint to form the bottom 3 rows ($J_\omega$).
+
+$$
+J_{a\_\omega} = \begin{bmatrix} 
+\frac{\partial \alpha}{\partial q_1} & \frac{\partial \alpha}{\partial q_2} & \dots & \frac{\partial \alpha}{\partial q_n} \\ 
+\frac{\partial \beta}{\partial q_1} & \frac{\partial \beta}{\partial q_2} & \dots & \frac{\partial \beta}{\partial q_n} \\ 
+\frac{\partial \gamma}{\partial q_1} & \frac{\partial \gamma}{\partial q_2} & \dots & \frac{\partial \gamma}{\partial q_n} 
+\end{bmatrix}
+$$
+
+6. **Gathering both components:**
+We stack the linear part ($J_v$) on top of the angular part ($J_{a\_\omega}$) to form the complete $6 \times N$ Analytical Jacobian matrix ($J_a$):
+
+$$
+J_a = \begin{bmatrix} J_v \\ J_{a\_\omega} \end{bmatrix} = \begin{bmatrix} 
+\frac{\partial x}{\partial q_1} & \dots & \frac{\partial x}{\partial q_n} \\ 
+\vdots & \ddots & \vdots \\ 
+\frac{\partial \gamma}{\partial q_1} & \dots & \frac{\partial \gamma}{\partial q_n} 
+\end{bmatrix}
+$$
+
+This matrix maps the joint velocities ($\dot{q}$) directly to the rate of change of the end-effector's pose variables:
+$$
+\begin{bmatrix} \dot{x} \\ \dot{y} \\ \dot{z} \\ \dot{\alpha} \\ \dot{\beta} \\ \dot{\gamma} \end{bmatrix} = J_a \begin{bmatrix} \dot{q}_1 \\ \dot{q}_2 \\ \vdots \\ \dot{q}_n \end{bmatrix}
+$$
+
+### 3. The Velocity Propagation Method
+The Propagation method uses the recursive equations we learned in the **Velocity Kinematics** chapter. We start at the base frame and propagate the linear ($v_i$) and angular ($\omega_i$) velocities outward to the final frame $\{n\}$. Once we have the final equations for $^n v_n$ and $^n \omega_n$, we factor out the $\dot{q}$ variables to reveal the Jacobian expressed in the tool frame ($^n J$). If we need it in the base frame, we pre-multiply by a rotation matrix $^0_n R$.
+
+In steps, the process can be seen below:
+1. **Initialize at the Base:** Start with the robot's stationary base, setting its initial velocities to zero: $^0v_0 = 0$ and $^0\omega_0 = 0$.
+2. **Propagate to the next link:**  Calculate the linear and angular velocity of each subsequent link. For example, for a revolute joint, you apply:
+
+$$ 
+   ^{i+1}\omega_{i+1} = ^{i+1}_iR \, ^i\omega_i + \begin{bmatrix} 0 & 0 & \dot{\theta}_{i+1} \end{bmatrix}^T 
+$$
+
+$$
+    ^{i+1}v_{i+1} = ^{i+1}_iR \left( ^iv_i + ^i\omega_i \times ^iP_{i+1} \right) 
+$$
+
+3. **Reach the End-Effector:** Continue this loop until you compute the final velocities of the tool frame $\{n\}$, resulting in the vectors $^n v_n$ and $^n \omega_n$.
+4. **Factor Out the Joint Velocities ($\dot{q}$):** Because the velocities are strictly linear combinations of the joint speeds ($\dot{\theta}_i$ or $\dot{d}_i$), you can factor the joint velocity vector out of the final equations. What remains is a $6 \times N$ matrix.
+
+$$
+    \begin{matrix}
+    v_x &=& c_{11}\dot{q}_1 &+& c_{12}\dot{q}_2 &+& \dots &+& c_{1n}\dot{q}_n \\
+    v_y &=& c_{21}\dot{q}_1 &+& c_{22}\dot{q}_2 &+& \dots &+& c_{2n}\dot{q}_n \\
+    v_z &=& c_{31}\dot{q}_1 &+& c_{32}\dot{q}_2 &+& \dots &+& c_{3n}\dot{q}_n \\
+    \omega_x &=& c_{41}\dot{q}_1 &+& c_{42}\dot{q}_2 &+& \dots &+& c_{4n}\dot{q}_n \\
+    \omega_y &=& c_{51}\dot{q}_1 &+& c_{52}\dot{q}_2 &+& \dots &+& c_{5n}\dot{q}_n \\
+    \omega_z &=& c_{61}\dot{q}_1 &+& c_{62}\dot{q}_2 &+& \dots &+& c_{6n}\dot{q}_n 
+    \end{matrix}
+$$
+   
+   $$
+   \begin{bmatrix} ^n v_n \\ ^n \omega_n \end{bmatrix} = \underbrace{\begin{bmatrix} \text{...} & \text{...} & \text{...} \\ \text{...} & ^nJ & \text{...} \\ \text{...} & \text{...} & \text{...} \end{bmatrix}}_{\text{The Jacobian in Frame } n} \begin{bmatrix} \dot{q}_1 \\ \dot{q}_2 \\ \vdots \\ \dot{q}_n \end{bmatrix}
+   $$
+5. **Rotate to the Base Frame:** Step 4 gives you the Jacobian expressed in the tool's local frame ($^nJ$). To express it in the global base frame ($^0J$) you pre-multiply it by a $6 \times 6$ rotation matrix:
+   $$
+   ^0J = \begin{bmatrix} ^0_nR & 0_{3 \times 3} \\ 0_{3 \times 3} & ^0_nR \end{bmatrix} ^nJ
+   $$
+
+---
+
+### Inverse Differential Kinematics
+Now that we obtained $J(q)$, we can solve the inverse problem: *"To make the tool move at exactly $V$, how fast should each motor spin?"*
+For this, we just invert the matrix:
 $$
 \dot{q} = J(q)^{-1} V
 $$
 
-**Numerical Inverse Kinematics:** This exact equation is the secret engine behind solving complex IK for 6-DOF robots when Analytical IK fails. By treating positional error ($\Delta x$) as a small velocity over time, we can use the **Newton-Raphson method**:
+One way to solve this equation is by using the **Newton-Raphson method**, that treats positional error ($\Delta x$) as a small velocity over time.
 $$
 q_{k+1} = q_k + J(q_k)^{-1} (x_{target} - x_{current})
 $$
-The algorithm computes the Jacobian at the current pose, nudges the joints slightly toward the target, recalculates the Jacobian for the new pose, and repeats until the error is zero. 
+The algorithm computes the Jacobian at the current pose, moves the joints slightly toward the target, recalculates the Jacobian for the new pose, and repeats until the error is zero. This method is used as an alternative to analytical Inverse Kinematics.
 
-### 3. Singularities (When the Math Breaks)
+### Singularities
 To calculate $J^{-1}$, the matrix $J$ must be square and invertible. A matrix is invertible only if its determinant is non-zero ($\det(J) \neq 0$). 
 
 When $\det(J) = 0$, the robot is in a **Singularity**. Physically, this happens when two or more joint axes align, or when the arm reaches its absolute maximum extension. At a singularity:
 * The robot loses at least one degree of freedom in Cartesian space.
-* $J^{-1}$ explodes to infinity. If you command a velocity strictly along the blocked direction, the math will request infinite motor speeds, causing physical robots to crash or violently fault.
+* $J^{-1}$ explodes to infinity. If you command a velocity strictly along the blocked direction, the motor speed will increase towards infinity, leading the robot to crash.
 
 <SingularitiesVizEmbed />
 
-### 4. Kinematic Posture and Manipulability
-How close is a robot to a singularity? To measure the "quality" of a kinematic posture, we analyze the **Manipulability Ellipsoid**. If we limit all joint speeds to a maximum of $1$, the set of all possible Cartesian velocities the tool can achieve forms an ellipsoid in 3D space. Near a singularity, this ellipsoid flattens into a pancake.
+### Kinematic Posture and Manipulability
+How close is a robot to a singularity? To measure the "quality" of a kinematic posture, we analyze the **Manipulability Ellipsoid**. If we limit all joint speeds to a maximum of $1$, the set of all possible Cartesian velocities the tool can achieve forms an ellipsoid in 3D space. Near a singularity, this ellipsoid flattens.
 
-To quantify this, we use the **Yoshikawa Manipulability Index** ($w$):
+One way to quantify this is by using the **Yoshikawa Manipulability Index** ($w$):
 $$
 w = \sqrt{\det(J(q) J(q)^T)}
 $$
-A higher $w$ means the robot has excellent mechanical leverage and can easily move in any direction. When $w = 0$, the robot is at a singularity.
+A higher $w$ means the robot has excellent mechanical manipulability and can move in any direction. When $w = 0$, the robot is at a singularity.
 
-In modern trajectory planning, this index is vital. For example, when training Deep Reinforcement Learning (DRL) policies—such as PPO agents—to control industrial manipulators like a UR20 in physics simulators like PyBullet, the Yoshikawa index is often embedded directly into the reward function. This teaches the neural network to naturally favor configurations with high manipulability, preventing the agent from driving the arm into kinematic singularities during execution.
-
-### 5. Static Forces: The Jacobian Duality
-The Jacobian holds one final, profound secret. By applying the principle of virtual work, roboticists discovered that the exact same matrix used for velocities also maps Cartesian forces to joint torques:
+### Static Forces: The Jacobian Duality
+Jacobians can also map Cartesian forces to joint torques:
 
 $$
 \tau = J(q)^T F
 $$
 
-Where $F$ is a $6 \times 1$ vector of forces and moments applied at the tool tip, and $\tau$ is the vector of torques felt by the motors. Notice that we use the **Transpose** ($J^T$), not the inverse. This means that a singularity ($\det(J)=0$), which is the worst possible posture for generating *velocity*, is mathematically the best possible posture for resisting *force*!
+$F$ is a $6 \times 1$ vector of forces and moments applied at the tool tip, and $\tau$ is the vector of torques felt by the motors. Here we use the **Transpose** ($J^T$), not the inverse. This indicates that a singularity ($\det(J)=0$), which is the worst possible posture for generating *velocity*, is mathematically the best possible posture for resisting *force*!
 
 <StaticForcesVizEmbed />
 
@@ -142,5 +225,5 @@ The determinant is zero when $\sin(\theta_2) = 0$, which means $\theta_2 = 0^\ci
 
 ## Common pitfalls
 
-1. **Pseudo-Inverse in Redundant Robots:** If a robot has 7 DOFs (like a human arm) and is trying to reach a 6-DOF pose, the Jacobian is $6 \times 7$. You cannot compute the standard inverse of a non-square matrix. In code, you must use the Moore-Penrose Pseudo-Inverse ($J^+$). Failing to account for this will throw immediate dimensionality errors in libraries like NumPy.
-2. **Singularity Proximity Spikes:** You do not have to be exactly at $\det(J) = 0$ for a physical robot to fail. If you are very close to a singularity, $\det(J)$ is a tiny decimal. Because $J^{-1}$ involves dividing by the determinant, this tiny decimal causes the requested joint velocities to spike to massive values, exceeding the motor's safety limits. Robust IK solvers always damp the inverse using techniques like Damped Least Squares (Levenberg-Marquardt) to prevent these velocity spikes.
+1. **Pseudo-Inverse in Redundant Robots:** If a robot has 7 DOFs and is trying to reach a 6-DOF pose, the Jacobian is $6 \times 7$. You cannot compute the standard inverse of a non-square matrix. For this, you must use the Moore-Penrose Pseudo-Inverse ($J^+$).
+2. **Singularity Proximity Spikes:** You do not have to be exactly at $\det(J) = 0$ for a physical robot to fail. If you are very close to a singularity, $\det(J)$ is a tiny decimal. When dividing by the determinant, these small values causes the requested joint velocities to spike to massive values, exceeding the motor's safety limits. One way to solve this is using techniques like Damped Least Squares to prevent these velocity spikes.
