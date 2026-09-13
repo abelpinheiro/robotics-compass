@@ -11,6 +11,8 @@ status: in-progress
 
 import UR20FKVizEmbed from "@/components/viz/ur20/UR20FKVizEmbed";
 import UR20IKVizEmbed from "@/components/viz/ur20/UR20IKVizEmbed";
+import UR20JacobianVizEmbed from "@/components/viz/ur20/UR20JacobianVizEmbed";
+import UR20SingularityVizEmbed from "@/components/viz/ur20/UR20SingularityVizEmbed";
 
 ## Overview & specifications
 
@@ -84,9 +86,42 @@ where $J_v$ is the linear (position) block of the geometric Jacobian and $\lambd
 
 {/* TODO(author): construct the UR20 Jacobian and the joint-velocity ↔ tool-velocity mapping. */}
 
+The geometric Jacobian $J(q)$ maps joint rates $\dot q$ to the tool twist (linear velocity $v$ and angular velocity $\omega$):
+
+$$
+\begin{bmatrix} v \\ \omega \end{bmatrix} = J(q)\,\dot q, \qquad
+J(q) = \begin{bmatrix} J_v \\ J_\omega \end{bmatrix} \in \mathbb{R}^{6\times 6}.
+$$
+
+Every UR20 joint is revolute, so for joint $i$ with axis $z_{i-1}$ and frame origin $o_{i-1}$ (both in the base frame, read from the forward-kinematics chain), and tool position $o_6$, the $i$-th column is
+
+$$
+J_{:,i} = \begin{bmatrix} z_{i-1} \times (o_6 - o_{i-1}) \\ z_{i-1} \end{bmatrix}.
+$$
+
+The image of the linear block $J_v$ over unit-norm joint rates is the **velocity manipulability ellipsoid**; its semi-axes are the singular values $\sigma_1 \ge \sigma_2 \ge \sigma_3$ of $J_v$, and the Yoshikawa index $w = \lvert\det J\rvert$ measures the volume of dexterity.
+
+<UR20JacobianVizEmbed />
+
 ## Singularities & workspace
 
 {/* TODO(author): analyze the UR20's singular configurations and reachable workspace. */}
+
+A configuration $q$ is **singular** when the Jacobian loses rank — equivalently, when the manipulability drops to zero:
+
+$$
+\operatorname{rank} J(q) < 6 \iff \det J(q) = 0 \iff w(q) = 0.
+$$
+
+There the smallest singular value of $J$ goes to zero and the tool loses the ability to move (or reorient) in at least one direction. Like every wrist-partitioned 6R arm, the UR20 has three singularity families:
+
+- **Wrist** — $\theta_5 = 0$, so joint axes 4 and 6 become collinear (a lost *orientation* freedom).
+- **Elbow** — the arm is fully extended, $\theta_3 = 0$.
+- **Shoulder** — the wrist centre lies on the axis of joint 1.
+
+The reachable workspace is bounded by the 1750 mm reach. The heatmap below plots $w$ over a 2-joint slice of configuration space; the singular manifolds are the dark curves where $w \to 0$.
+
+<UR20SingularityVizEmbed />
 
 ## Dynamics
 

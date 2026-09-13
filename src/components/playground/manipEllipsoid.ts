@@ -65,8 +65,9 @@ function eig3(a: number[][]): { values: number[]; vectors: Vec3[] } {
   };
 }
 
-/** Build the display ellipsoid from Jacobian columns (each length 6; first 3 = linear). */
-export function ellipsoidFromCols(cols: number[][], center: Vec3, target = 0.28): Ellipsoid {
+// Accumulate the 3×3 linear velocity matrix Jᵥ·Jᵥᵀ from the Jacobian columns
+// (each length 6; first 3 rows = linear block Jᵥ).
+function linearGram(cols: number[][]): number[][] {
   const A = [
     [0, 0, 0],
     [0, 0, 0],
@@ -78,9 +79,25 @@ export function ellipsoidFromCols(cols: number[][], center: Vec3, target = 0.28)
     A[1][0] += l1 * l0; A[1][1] += l1 * l1; A[1][2] += l1 * l2;
     A[2][0] += l2 * l0; A[2][1] += l2 * l1; A[2][2] += l2 * l2;
   }
-  const { values, vectors } = eig3(A);
+  return A;
+}
+
+/** Build the display ellipsoid from Jacobian columns (each length 6; first 3 = linear). */
+export function ellipsoidFromCols(cols: number[][], center: Vec3, target = 0.28): Ellipsoid {
+  const { values, vectors } = eig3(linearGram(cols));
   const sigma = values.map((v) => Math.sqrt(Math.max(0, v)));
   const maxS = Math.max(sigma[0], sigma[1], sigma[2], 1e-9);
   const radii = sigma.map((s) => Math.max((s / maxS) * target, 1e-3)) as [number, number, number];
   return { center, axes: vectors as [Vec3, Vec3, Vec3], radii };
+}
+
+/**
+ * Singular values σ₁ ≥ σ₂ ≥ σ₃ of the linear velocity block Jᵥ (the true
+ * semi-axis lengths of the velocity ellipsoid, in m per unit joint rate). Their
+ * ratio σ₁/σ₃ is the condition number, which blows up near a singularity.
+ */
+export function linearSingularValues(cols: number[][]): [number, number, number] {
+  const { values } = eig3(linearGram(cols));
+  const s = values.map((v) => Math.sqrt(Math.max(0, v))).sort((a, b) => b - a);
+  return [s[0], s[1], s[2]];
 }
