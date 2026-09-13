@@ -1,0 +1,108 @@
+<?xml version="1.0"?>
+<!--
+  Flat URDF for the Universal Robots UR20, authored from the official
+  Universal_Robots_ROS2_Description (BSD-3-Clause) config:
+   - joint origins  ← config/ur20/default_kinematics.yaml
+   - visual offsets ← config/ur20/visual_parameters.yaml
+   - all joint axes 0 0 1, chain per urdf/ur_macro.xacro
+  Visual meshes (.dae) and texture are the official UR20 assets under visual/.
+-->
+<robot name="ur20">
+  <link name="base_link"/>
+
+  <link name="base_link_inertia">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 3.141592653589793"/>
+      <geometry><mesh filename="package://ur20/visual/base.dae"/></geometry>
+    </visual>
+  </link>
+  <joint name="base_link-base_link_inertia" type="fixed">
+    <parent link="base_link"/>
+    <child link="base_link_inertia"/>
+    <origin xyz="0 0 0" rpy="0 0 3.141592653589793"/>
+  </joint>
+
+  <link name="shoulder_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 3.141592653589793"/>
+      <geometry><mesh filename="package://ur20/visual/shoulder.dae"/></geometry>
+    </visual>
+  </link>
+  <joint name="shoulder_pan_joint" type="revolute">
+    <parent link="base_link_inertia"/>
+    <child link="shoulder_link"/>
+    <origin xyz="0 0 0.2363" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000" velocity="2.0943951"/>
+  </joint>
+
+  <link name="upper_arm_link">
+    <visual>
+      <origin xyz="0 0 0.260" rpy="1.5707963267948966 0 -1.5707963267948966"/>
+      <geometry><mesh filename="package://ur20/visual/upperarm.dae"/></geometry>
+    </visual>
+  </link>
+  <joint name="shoulder_lift_joint" type="revolute">
+    <parent link="shoulder_link"/>
+    <child link="upper_arm_link"/>
+    <origin xyz="0 0 0" rpy="1.570796327 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000" velocity="2.0943951"/>
+  </joint>
+
+  <link name="forearm_link">
+    <visual>
+      <origin xyz="0 0 0.043" rpy="1.5707963267948966 0 -1.5707963267948966"/>
+      <geometry><mesh filename="package://ur20/visual/forearm.dae"/></geometry>
+    </visual>
+  </link>
+  <joint name="elbow_joint" type="revolute">
+    <parent link="upper_arm_link"/>
+    <child link="forearm_link"/>
+    <origin xyz="-0.862 0 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-3.141592653589793" upper="3.141592653589793" effort="1000" velocity="2.6179939"/>
+  </joint>
+
+  <link name="wrist_1_link">
+    <visual>
+      <origin xyz="0 0 -0.0775" rpy="1.5707963267948966 0 0"/>
+      <geometry><mesh filename="package://ur20/visual/wrist1.dae"/></geometry>
+    </visual>
+  </link>
+  <joint name="wrist_1_joint" type="revolute">
+    <parent link="forearm_link"/>
+    <child link="wrist_1_link"/>
+    <origin xyz="-0.7287 0 0.201" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000" velocity="3.1415927"/>
+  </joint>
+
+  <link name="wrist_2_link">
+    <visual>
+      <origin xyz="0 0 -0.0749" rpy="0 0 0"/>
+      <geometry><mesh filename="package://ur20/visual/wrist2.dae"/></geometry>
+    </visual>
+  </link>
+  <joint name="wrist_2_joint" type="revolute">
+    <parent link="wrist_1_link"/>
+    <child link="wrist_2_link"/>
+    <origin xyz="0 -0.1593 0" rpy="1.570796327 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000" velocity="3.1415927"/>
+  </joint>
+
+  <link name="wrist_3_link">
+    <visual>
+      <origin xyz="0 0 -0.07" rpy="1.5707963267948966 0 0"/>
+      <geometry><mesh filename="package://ur20/visual/wrist3.dae"/></geometry>
+    </visual>
+  </link>
+  <joint name="wrist_3_joint" type="revolute">
+    <parent link="wrist_2_link"/>
+    <child link="wrist_3_link"/>
+    <origin xyz="0 0.1543 0" rpy="1.5707963265897931 3.1415926535897931 3.1415926535897931"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-6.283185307179586" upper="6.283185307179586" effort="1000" velocity="3.1415927"/>
+  </joint>
+</robot>

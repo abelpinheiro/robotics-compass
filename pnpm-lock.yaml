@@ -65,6 +65,9 @@ importers:
       three:
         specifier: ^0.184.0
         version: 0.184.0
+      urdf-loader:
+        specifier: ^0.13.1
+        version: 0.13.1(three@0.184.0)
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4.3.0
@@ -1629,6 +1632,7 @@ packages:
   eslint@9.39.4:
     resolution: {integrity: sha512-XoMjdBOwe/esVgEvLmNsD3IRHkm7fbKIUGvrleloJXUZgDHig2IPWNniv+GwjyJXzuNqVjlr5+4yVUZjycJwfQ==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+    deprecated: This version is no longer supported. Please see https://eslint.org/version-support for other options.
     hasBin: true
     peerDependencies:
       jiti: '*'
@@ -3022,6 +3026,11 @@ packages:
     hasBin: true
     peerDependencies:
       browserslist: '>= 4.21.0'
+
+  urdf-loader@0.13.1:
+    resolution: {integrity: sha512-bHHoh0Yxrgrw91dPAmVnzKleA8HiVMeHy6xYqOVRw3LuZ2hDOwUiQVCbrzPZckO5S30F1Yym8zLCINN0HfcM3w==}
+    peerDependencies:
+      three: '>=0.152.0'
 
   uri-js@4.4.1:
     resolution: {integrity: sha512-7rKUyy33Q1yc98pQ1DAmLtwX109F7TIfWlW1Ydo8Wl1ii1SeHieeh0HHfPeL2fMXK6z0s8ecKs9frCuLJvndBg==}
@@ -6805,6 +6814,10 @@ snapshots:
       browserslist: 4.28.2
       escalade: 3.2.0
       picocolors: 1.1.1
+
+  urdf-loader@0.13.1(three@0.184.0):
+    dependencies:
+      three: 0.184.0
 
   uri-js@4.4.1:
     dependencies:

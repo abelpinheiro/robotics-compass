@@ -30,7 +30,8 @@
     "remark-math": "^6.0.0",
     "remark-mdx-frontmatter": "^5.2.0",
     "shiki": "^4.2.0",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "urdf-loader": "^0.13.1"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.3.0",
