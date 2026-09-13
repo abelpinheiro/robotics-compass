@@ -23,8 +23,11 @@ the curriculum taxonomy, design tokens, or dependencies need explicit sign-off (
   **Needs a dependency/approach decision before starting.**
 
 ### Simulator / playground page
-- [ ] A dedicated **dark-themed** playground route (the theme rules already reserve dark for
-  this). Good home for a free-roam planner / robot sandbox, separate from the light lessons.
+- [x] A dedicated **dark-themed** playground route at `/playground` (full-screen overlay,
+  scoped `theme-dark`; linked from the header). First sandbox: a **robot-arm simulator**
+  (6-DOF + SCARA) reusing `singularitiesMath` + `SingularitiesScene` — joint sliders, live
+  FK end-effector pose, Yoshikawa manipulability, and singularity detection/presets. Built to
+  take a second tab later (e.g. a free-roam path-planner).
 
 ### More visualizations (start with foundations, then kinematics)
 - [x] **Foundations:** all done — `vectors-and-frames`, `rotations-2d`, `rotations-3d` (SO(3)),

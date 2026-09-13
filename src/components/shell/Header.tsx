@@ -22,7 +22,13 @@ export function Header() {
           </span>
           <span>Robotics Compass</span>
         </Link>
-        <div className="ml-auto">
+        <div className="ml-auto flex items-center gap-3">
+          <Link
+            href="/playground"
+            className="rounded-md px-2 py-1 text-sm font-medium text-muted hover:bg-surface-2 hover:text-foreground"
+          >
+            Playground
+          </Link>
           <LanguageToggle />
         </div>
       </div>
