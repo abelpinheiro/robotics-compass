@@ -73,13 +73,13 @@ const en: Dictionary = {
   home: {
     kicker: "Robotics, visualized",
     tagline:
-      "An interactive, visualization-first guide to robotics — broad across the field and deepest on path planning. Every topic carries a live, manipulable visualization.",
+      "An interactive guide to robotics! I  try to cover all topics regarding the field of robotics and focus on the path planning, my master's line of research. This website is essentially a collection of notes I took while studying each topic, along with visualizations that helped me better understand the concepts.",
     calloutTitle: "Early skeleton",
     calloutBody:
-      "The curriculum is being authored as draft lessons. Browse the areas in the sidebar, or follow the suggested learning path below — it is ordered by each topic's prerequisites.",
+      "The curriculum is still being drafted. Browse the areas in the sidebar, or follow the suggested learning path below.",
     roadmapTitle: "Suggested learning path",
     roadmapSubtitle:
-      "How the areas build on each other — pick any to start.",
+      "How the areas build on each other. Feel free to pick any to start.",
     roadmapAria:
       "Curriculum dependency map: areas connected by prerequisite arrows.",
   },
@@ -130,13 +130,13 @@ const pt: Dictionary = {
   home: {
     kicker: "Robótica, visualizada",
     tagline:
-      "Um guia interativo de robótica, com visualizações! Com foco em planejamento de trajetórias. Cada tópico tenta trazer uma abordagem interativa com visualizações.",
+      "Um guia interativo de robótica! Procuro cobrir todos os tópicos da área de robótica, com foco em planejamento de trajetórias, minha linha de pesquisa no mestrado. Este site é essencialmente uma coletânea das anotações que fiz ao estudar cada tópico, junto com as visualizações que me ajudaram a entender melhor os conceitos.",
     calloutTitle: "Esqueleto inicial",
     calloutBody:
-      "O currículo está sendo escrito como lições em rascunho. Navegue pelas áreas na barra lateral, ou siga o caminho de estudo sugerido abaixo — ordenado pelos pré-requisitos de cada tópico.",
+      "O currículo ainda está sendo redigido. Navegue pelas áreas na barra lateral ou siga o caminho de estudo sugerido abaixo.",
     roadmapTitle: "Caminho de estudo sugerido",
     roadmapSubtitle:
-      "Como as áreas se constroem umas sobre as outras — escolha uma para começar.",
+      "Como as áreas se constroem umas sobre as outras. Fique à vontade para começar por qualquer uma.",
     roadmapAria:
       "Mapa de dependências do currículo: áreas conectadas por setas de pré-requisito.",
   },
