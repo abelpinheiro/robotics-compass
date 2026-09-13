@@ -9,6 +9,7 @@ import { ur20FK, ur20Singularity, UR20_HOME, UR20_JOINT_NAMES, UR20_SINGULARITIE
 import { kukaFK, kukaSingularity, KUKA_HOME, KUKA_JOINT_NAMES, KUKA_SINGULARITIES } from "./kukaMath";
 import { iiwaFK, iiwaSingularity, IIWA_HOME, IIWA_JOINT_NAMES, IIWA_SINGULARITIES } from "./iiwaMath";
 import { ellipsoidFromCols } from "./manipEllipsoid";
+import { ManipHeatmap } from "./ManipHeatmap";
 
 type Robot = "ur20" | "kuka" | "iiwa" | "scara";
 type ArmKey = "ur20" | "kuka" | "iiwa";
@@ -138,6 +139,7 @@ export default function RobotPlayground() {
   const [scara, setScara] = useState<ScaraState>(SCARA_INIT);
   const [armTheta, setArmTheta] = useState<Record<ArmKey, number[]>>({ ur20: UR20_HOME, kuka: KUKA_HOME, iiwa: IIWA_HOME });
   const [showEllipsoid, setShowEllipsoid] = useState(true);
+  const [showHeatmap, setShowHeatmap] = useState(false);
 
   const isScara = robot === "scara";
   const armKey = (isScara ? "ur20" : robot) as ArmKey;
@@ -253,6 +255,18 @@ export default function RobotPlayground() {
                 Ellipsoid
               </button>
             )}
+            {!isScara && (
+              <button
+                type="button"
+                aria-pressed={showHeatmap}
+                onClick={() => setShowHeatmap((v) => !v)}
+                className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
+                  showHeatmap ? "border-success bg-success/15 text-success" : "border-border bg-surface text-foreground hover:bg-surface-2"
+                }`}
+              >
+                Map
+              </button>
+            )}
           </section>
 
           <section className="space-y-2">
@@ -279,6 +293,13 @@ export default function RobotPlayground() {
               ))
             )}
           </section>
+
+          {!isScara && showHeatmap && armPose && (
+            <section className="space-y-2">
+              <span className="text-xs font-medium uppercase tracking-wide text-faint">Manipulability map</span>
+              <ManipHeatmap fk={arm.fk} theta={theta} jointCount={theta.length} />
+            </section>
+          )}
 
           <p className="mt-auto text-xs text-muted">
             Drag the joints to pose the arm; orbit/zoom the scene with the mouse. The Yoshikawa
