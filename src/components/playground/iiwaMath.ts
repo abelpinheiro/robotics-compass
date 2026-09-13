@@ -76,6 +76,7 @@ export interface IiwaPose {
   w: number;
   wMax: number;
   detJ: number; // reported as w for the redundant arm (det of the 6×6 J·Jᵀ is w²)
+  cols: number[][];
 }
 
 export function iiwaFK(theta: number[]): IiwaPose {
@@ -102,7 +103,7 @@ export function iiwaFK(theta: number[]): IiwaPose {
     for (let r = 0; r < 6; r++)
       for (let c = 0; c < 6; c++) JJt[r][c] += cols[i][r] * cols[i][c];
   const w = Math.sqrt(Math.max(0, detN(JJt)));
-  return { origins, ee, w, wMax: IIWA_WMAX, detJ: w };
+  return { origins, ee, w, wMax: IIWA_WMAX, detJ: w, cols };
 }
 
 // Non-singular "ready" pose (radians).

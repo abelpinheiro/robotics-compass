@@ -78,6 +78,7 @@ export interface KukaPose {
   w: number;
   wMax: number;
   detJ: number;
+  cols: number[][];
 }
 
 export function kukaFK(theta: number[]): KukaPose {
@@ -99,7 +100,7 @@ export function kukaFK(theta: number[]): KukaPose {
   }
   const J: number[][] = Array.from({ length: 6 }, (_, r) => cols.map((c) => c[r]));
   const detJ = detN(J);
-  return { origins, ee, w: Math.abs(detJ), wMax: KUKA_WMAX, detJ };
+  return { origins, ee, w: Math.abs(detJ), wMax: KUKA_WMAX, detJ, cols };
 }
 
 // Non-singular "ready" pose (radians).

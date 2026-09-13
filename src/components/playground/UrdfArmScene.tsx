@@ -7,6 +7,7 @@ import * as THREE from "three";
 import URDFLoader, { type URDFRobot } from "urdf-loader";
 import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader.js";
 import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
+import type { Ellipsoid } from "./manipEllipsoid";
 
 export interface UrdfArmConfig {
   urdfUrl: string;
@@ -80,7 +81,31 @@ function Robot({ config, theta }: { config: UrdfArmConfig; theta: number[] }) {
   );
 }
 
-function Scene({ config, theta }: { config: UrdfArmConfig; theta: number[] }) {
+function EllipsoidMesh({ e }: { e: Ellipsoid }) {
+  const invalidate = useThree((s) => s.invalidate);
+  const { pos, quat, scale } = useMemo(() => {
+    const v0 = new THREE.Vector3(...e.axes[0]).normalize();
+    const v1 = new THREE.Vector3(...e.axes[1]).normalize();
+    const v2 = new THREE.Vector3().crossVectors(v0, v1).normalize();
+    const m = new THREE.Matrix4().makeBasis(v0, v1, v2);
+    return {
+      pos: new THREE.Vector3(...e.center),
+      quat: new THREE.Quaternion().setFromRotationMatrix(m),
+      scale: new THREE.Vector3(e.radii[0], e.radii[1], e.radii[2]),
+    };
+  }, [e]);
+  useEffect(() => invalidate(), [pos, quat, scale, invalidate]);
+  return (
+    <group rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={pos} quaternion={quat} scale={scale}>
+        <sphereGeometry args={[1, 32, 24]} />
+        <meshStandardMaterial color="#34d399" transparent opacity={0.28} depthWrite={false} emissive="#34d399" emissiveIntensity={0.15} />
+      </mesh>
+    </group>
+  );
+}
+
+function Scene({ config, theta, ellipsoid }: { config: UrdfArmConfig; theta: number[]; ellipsoid?: Ellipsoid | null }) {
   const dom = useThree((s) => s.gl.domElement);
   const grid = useMemo(
     () => getComputedStyle(dom).getPropertyValue("--viz-grid").trim() || "#1e2a38",
@@ -94,12 +119,13 @@ function Scene({ config, theta }: { config: UrdfArmConfig; theta: number[] }) {
       <directionalLight position={[-4, 3, -4]} intensity={0.4} />
       <gridHelper args={[size, size * 2, grid, grid]} position={[0, 0, 0]} />
       <Robot config={config} theta={theta} />
+      {ellipsoid && <EllipsoidMesh e={ellipsoid} />}
       <OrbitControls makeDefault enableDamping={false} target={config.target} minDistance={0.8} maxDistance={12} />
     </>
   );
 }
 
-export default function UrdfArmScene({ config, theta }: { config: UrdfArmConfig; theta: number[] }) {
+export default function UrdfArmScene({ config, theta, ellipsoid }: { config: UrdfArmConfig; theta: number[]; ellipsoid?: Ellipsoid | null }) {
   return (
     <Canvas
       frameloop="demand"
@@ -107,7 +133,7 @@ export default function UrdfArmScene({ config, theta }: { config: UrdfArmConfig;
       camera={{ position: config.cameraPosition, fov: 45 }}
       gl={{ alpha: true, antialias: true }}
     >
-      <Scene config={config} theta={theta} />
+      <Scene config={config} theta={theta} ellipsoid={ellipsoid} />
     </Canvas>
   );
 }

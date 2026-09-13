@@ -8,6 +8,7 @@ import UrdfArmScene, { type UrdfArmConfig } from "./UrdfArmScene";
 import { ur20FK, ur20Singularity, UR20_HOME, UR20_JOINT_NAMES, UR20_SINGULARITIES } from "./ur20Math";
 import { kukaFK, kukaSingularity, KUKA_HOME, KUKA_JOINT_NAMES, KUKA_SINGULARITIES } from "./kukaMath";
 import { iiwaFK, iiwaSingularity, IIWA_HOME, IIWA_JOINT_NAMES, IIWA_SINGULARITIES } from "./iiwaMath";
+import { ellipsoidFromCols } from "./manipEllipsoid";
 
 type Robot = "ur20" | "kuka" | "iiwa" | "scara";
 type ArmKey = "ur20" | "kuka" | "iiwa";
@@ -57,7 +58,7 @@ const ARM: Record<ArmKey, {
   footer: string;
   home: number[];
   config: UrdfArmConfig;
-  fk: (t: number[]) => { origins: [number, number, number][]; ee: [number, number, number]; w: number; wMax: number; detJ: number };
+  fk: (t: number[]) => { origins: [number, number, number][]; ee: [number, number, number]; w: number; wMax: number; detJ: number; cols: number[][] };
   singFn: (t: number[]) => string | null;
   singularities: { key: string; label: string; theta: number[] }[];
 }> = {
@@ -136,6 +137,7 @@ export default function RobotPlayground() {
   const [robot, setRobot] = useState<Robot>("ur20");
   const [scara, setScara] = useState<ScaraState>(SCARA_INIT);
   const [armTheta, setArmTheta] = useState<Record<ArmKey, number[]>>({ ur20: UR20_HOME, kuka: KUKA_HOME, iiwa: IIWA_HOME });
+  const [showEllipsoid, setShowEllipsoid] = useState(true);
 
   const isScara = robot === "scara";
   const armKey = (isScara ? "ur20" : robot) as ArmKey;
@@ -144,8 +146,11 @@ export default function RobotPlayground() {
   const setTheta = (t: number[]) => setArmTheta((s) => ({ ...s, [armKey]: t }));
   const setJoint = (i: number, v: number) => setTheta(theta.map((x, k) => (k === i ? v : x)));
 
-  const pose = isScara ? scaraFK(scara) : arm.fk(theta);
-  const ee = isScara ? scaraFK(scara).tool : arm.fk(theta).ee;
+  const scaraPose = isScara ? scaraFK(scara) : null;
+  const armPose = isScara ? null : arm.fk(theta);
+  const pose: { w: number; wMax: number; detJ: number } = scaraPose ?? armPose!;
+  const ee = scaraPose ? scaraPose.tool : armPose!.ee;
+  const ellipsoid = armPose && showEllipsoid ? ellipsoidFromCols(armPose.cols, armPose.ee) : null;
   const singularLabel = isScara ? scaraSingularity(scara) : arm.singFn(theta);
   const isSingular = singularLabel !== null;
   const barFrac = Math.max(0, Math.min(1, Math.sqrt(pose.w / pose.wMax)));
@@ -190,7 +195,7 @@ export default function RobotPlayground() {
           {isScara ? (
             <SingularitiesScene robot="scara" scara={scara} sixdof={UR20_HOME} />
           ) : (
-            <UrdfArmScene key={armKey} config={arm.config} theta={theta} />
+            <UrdfArmScene key={armKey} config={arm.config} theta={theta} ellipsoid={ellipsoid} />
           )}
           {isSingular && (
             <div className="pointer-events-none absolute left-4 top-4 rounded-md px-2.5 py-1 text-xs font-bold text-white" style={{ background: "var(--danger)" }}>
@@ -236,6 +241,18 @@ export default function RobotPlayground() {
             )}
             <button type="button" className={btn} onClick={randomize}>Random pose</button>
             <button type="button" className={btn} onClick={reset}>Reset</button>
+            {!isScara && (
+              <button
+                type="button"
+                aria-pressed={showEllipsoid}
+                onClick={() => setShowEllipsoid((v) => !v)}
+                className={`rounded-md border px-2.5 py-1 text-xs font-medium ${
+                  showEllipsoid ? "border-success bg-success/15 text-success" : "border-border bg-surface text-foreground hover:bg-surface-2"
+                }`}
+              >
+                Ellipsoid
+              </button>
+            )}
           </section>
 
           <section className="space-y-2">

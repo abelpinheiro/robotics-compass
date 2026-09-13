@@ -95,6 +95,7 @@ export interface UR20Pose {
   w: number; // Yoshikawa manipulability = |det J|
   wMax: number;
   detJ: number;
+  cols: number[][]; // geometric Jacobian columns (each length 6; first 3 = linear)
 }
 
 export function ur20FK(theta: number[]): UR20Pose {
@@ -115,7 +116,7 @@ export function ur20FK(theta: number[]): UR20Pose {
   }
   const J: number[][] = Array.from({ length: 6 }, (_, r) => cols.map((c) => c[r]));
   const detJ = detN(J);
-  return { origins, ee, w: Math.abs(detJ), wMax: UR20_WMAX, detJ };
+  return { origins, ee, w: Math.abs(detJ), wMax: UR20_WMAX, detJ, cols };
 }
 
 // A comfortable, non-singular "ready" pose (radians).
