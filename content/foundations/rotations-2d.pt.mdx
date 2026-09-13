@@ -20,7 +20,7 @@ Imagine olhar de cima para um robô móvel andando em um piso plano. Podemos pre
 
 Para traduzir informações do ponto de vista do robô para o ponto de vista da sala, precisamos saber exatamente quanto o robô girou. Fazemos isso olhando para os eixos locais do robô e comparando com os eixos da sala.
 
-Esse ato de projetar "sombras" dos eixos de um referencial sobre os eixos de outro referencial é a base das rotações espaciais, e depende inteiramente de trigonometria básica: senos e cossenos.
+Esse ato de projetar "sombras" dos eixos de um referencial sobre os eixos de outro referencial é a base das rotações espaciais, na qual nós utilizamos conceitos básicos de trigonometria como senos e cossenos.
 
 ## Definição formal
 
@@ -45,7 +45,7 @@ $$
 $$
 
 **3. A matriz de rotação 2D:**
-Uma matriz de rotação é simplesmente um pacote que guarda esses vetores unitários projetados lado a lado. Colocando $^A\hat{X}_B$ como primeira coluna e $^A\hat{Y}_B$ como segunda coluna, formamos a matriz de rotação 2D $^{A}_{B}R$:
+Uma matriz de rotação é simplesmente uma estrutura que guarda esses vetores unitários projetados lado a lado. Colocando $^A\hat{X}_B$ como primeira coluna e $^A\hat{Y}_B$ como segunda coluna, formamos a matriz de rotação 2D $^{A}_{B}R$:
 
 $$
     ^{A}_{B}R = [ ^A\hat{X}_B \quad ^A\hat{Y}_B ] = \begin{bmatrix} \cos\theta & -\sin\theta \\ \sin\theta & \cos\theta \end{bmatrix}
@@ -103,4 +103,4 @@ $$
 
 ## Leituras adicionais
 
-seções 2.2 e 2.3 de Robotics, de Craig
+Seções 2.2 e 2.3 de *Robótica*, por Craig
