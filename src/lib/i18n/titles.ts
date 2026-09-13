@@ -14,6 +14,7 @@ const areaTitlesPt: Record<string, string> = {
   slam: "SLAM",
   manipulation: "Manipulação",
   "mobile-robots": "Robôs móveis",
+  "case-studies": "Estudos de caso",
 };
 
 const lessonTitlesPt: Record<string, string> = {
@@ -104,6 +105,8 @@ const lessonTitlesPt: Record<string, string> = {
   "differential-drive": "Tração diferencial",
   odometry: "Odometria",
   "local-planning": "Planejamento local",
+  // case-studies
+  ur20: "UR20 (Universal Robots)",
 };
 
 export function localizedAreaTitle(

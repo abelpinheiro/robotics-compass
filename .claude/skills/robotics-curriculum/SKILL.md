@@ -131,6 +131,11 @@ _Prereqs: kinematics, state-estimation, path-planning._
 2. `odometry`
 3. `local-planning`
 
+### 12. case-studies
+_Prereqs: kinematics + dynamics. Standalone, comprehensive worked analyses of specific real
+robots (DH, FK, IK, Jacobian, dynamics) — separate from the topic lessons but drawing on them._
+1. `ur20` (UR20, Universal Robots)
+
 ## Notes for scaffolding
 
 - Area slugs are the directory names under `content/` (kebab-case as written above).

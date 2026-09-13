@@ -188,6 +188,14 @@ export const curriculum: Area[] = [
       { slug: "local-planning", title: "Local planning", order: 3, status: "draft", difficulty: "core", prerequisites: ["a-star", "configuration-space"] },
     ],
   },
+  {
+    slug: "case-studies",
+    title: "Case studies",
+    order: 12,
+    lessons: [
+      { slug: "ur20", title: "UR20 (Universal Robots)", order: 1, status: "draft", difficulty: "advanced", prerequisites: ["forward-kinematics", "inverse-kinematics", "jacobians", "newton-euler"] },
+    ],
+  },
 ];
 
 /** Look up an area by slug. */
