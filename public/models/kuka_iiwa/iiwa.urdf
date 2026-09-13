@@ -1,0 +1,55 @@
+<?xml version="1.0"?>
+<!--
+  Flat URDF for the KUKA LBR iiwa 14 R820 (7-DOF), authored from
+  kroshu/kuka_robot_descriptions kuka_lbr_iiwa_support (Apache-2.0):
+    kuka_lbr_iiwa_support/urdf/lbr_iiwa14_r820_macro.xacro
+  Pure-translation joint origins along z, per-joint axes, identity visual
+  origins. Visual meshes are STL (geometry only; material applied in-scene).
+-->
+<robot name="kuka_lbr_iiwa14_r820">
+  <link name="base_link">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_iiwa/visual/base_link.stl"/></geometry></visual>
+  </link>
+
+  <link name="link_1"><visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_iiwa/visual/link_1.stl"/></geometry></visual></link>
+  <joint name="joint_1" type="revolute">
+    <origin xyz="0 0 0.1575" rpy="0 0 0"/><parent link="base_link"/><child link="link_1"/>
+    <axis xyz="0 0 1"/><limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="1.71"/>
+  </joint>
+
+  <link name="link_2"><visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_iiwa/visual/link_2.stl"/></geometry></visual></link>
+  <joint name="joint_2" type="revolute">
+    <origin xyz="0 0 0.2025" rpy="0 0 0"/><parent link="link_1"/><child link="link_2"/>
+    <axis xyz="0 1 0"/><limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="1.71"/>
+  </joint>
+
+  <link name="link_3"><visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_iiwa/visual/link_3.stl"/></geometry></visual></link>
+  <joint name="joint_3" type="revolute">
+    <origin xyz="0 0 0.2045" rpy="0 0 0"/><parent link="link_2"/><child link="link_3"/>
+    <axis xyz="0 0 1"/><limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="1.75"/>
+  </joint>
+
+  <link name="link_4"><visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_iiwa/visual/link_4.stl"/></geometry></visual></link>
+  <joint name="joint_4" type="revolute">
+    <origin xyz="0 0 0.2155" rpy="0 0 0"/><parent link="link_3"/><child link="link_4"/>
+    <axis xyz="0 -1 0"/><limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="2.27"/>
+  </joint>
+
+  <link name="link_5"><visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_iiwa/visual/link_5.stl"/></geometry></visual></link>
+  <joint name="joint_5" type="revolute">
+    <origin xyz="0 0 0.1845" rpy="0 0 0"/><parent link="link_4"/><child link="link_5"/>
+    <axis xyz="0 0 1"/><limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="2.44"/>
+  </joint>
+
+  <link name="link_6"><visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_iiwa/visual/link_6.stl"/></geometry></visual></link>
+  <joint name="joint_6" type="revolute">
+    <origin xyz="0 0 0.2155" rpy="0 0 0"/><parent link="link_5"/><child link="link_6"/>
+    <axis xyz="0 1 0"/><limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="3.14"/>
+  </joint>
+
+  <link name="link_7"><visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_iiwa/visual/link_7.stl"/></geometry></visual></link>
+  <joint name="joint_7" type="revolute">
+    <origin xyz="0 0 0.081" rpy="0 0 0"/><parent link="link_6"/><child link="link_7"/>
+    <axis xyz="0 0 1"/><limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="3.14"/>
+  </joint>
+</robot>

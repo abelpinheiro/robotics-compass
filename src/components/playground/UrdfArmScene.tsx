@@ -6,6 +6,7 @@ import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import URDFLoader, { type URDFRobot } from "urdf-loader";
 import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader.js";
+import { STLLoader } from "three/examples/jsm/loaders/STLLoader.js";
 
 export interface UrdfArmConfig {
   urdfUrl: string;
@@ -14,6 +15,8 @@ export interface UrdfArmConfig {
   cameraPosition: [number, number, number];
   target: [number, number, number];
   groundSize?: number;
+  /** material colour for STL meshes (which carry no colour of their own) */
+  stlColor?: number;
 }
 
 function Robot({ config, theta }: { config: UrdfArmConfig; theta: number[] }) {
@@ -28,13 +31,31 @@ function Robot({ config, theta }: { config: UrdfArmConfig; theta: number[] }) {
     };
     const loader = new URDFLoader(manager);
     loader.packages = config.packages;
+    const stlColor = config.stlColor ?? 0xc9ccd2;
     loader.loadMeshCb = (path, mgr, _material, onLoad) => {
-      new ColladaLoader(mgr).load(
-        path,
-        (collada) => onLoad(collada ? collada.scene : new THREE.Object3D()),
-        undefined,
-        (err) => onLoad(new THREE.Object3D(), err instanceof Error ? err : new Error(String(err))),
-      );
+      const fail = (err: unknown) => onLoad(new THREE.Object3D(), err instanceof Error ? err : new Error(String(err)));
+      if (path.split("?")[0].toLowerCase().endsWith(".stl")) {
+        new STLLoader(mgr).load(
+          path,
+          (geometry) => {
+            geometry.computeVertexNormals();
+            const mesh = new THREE.Mesh(
+              geometry,
+              new THREE.MeshStandardMaterial({ color: stlColor, metalness: 0.35, roughness: 0.55 }),
+            );
+            onLoad(mesh);
+          },
+          undefined,
+          fail,
+        );
+      } else {
+        new ColladaLoader(mgr).load(
+          path,
+          (collada) => onLoad(collada ? collada.scene : new THREE.Object3D()),
+          undefined,
+          fail,
+        );
+      }
     };
     loader.load(config.urdfUrl, (result) => {
       if (!disposed) setRobot(result);

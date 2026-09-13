@@ -7,9 +7,10 @@ import { SCARA, scaraFK, type ScaraState } from "@/components/viz/singularities/
 import UrdfArmScene, { type UrdfArmConfig } from "./UrdfArmScene";
 import { ur20FK, ur20Singularity, UR20_HOME, UR20_JOINT_NAMES, UR20_SINGULARITIES } from "./ur20Math";
 import { kukaFK, kukaSingularity, KUKA_HOME, KUKA_JOINT_NAMES, KUKA_SINGULARITIES } from "./kukaMath";
+import { iiwaFK, iiwaSingularity, IIWA_HOME, IIWA_JOINT_NAMES, IIWA_SINGULARITIES } from "./iiwaMath";
 
-type Robot = "ur20" | "kuka" | "scara";
-type ArmKey = "ur20" | "kuka";
+type Robot = "ur20" | "kuka" | "iiwa" | "scara";
+type ArmKey = "ur20" | "kuka" | "iiwa";
 
 const deg = (r: number) => Math.round((r * 180) / Math.PI);
 const fmt = (n: number) => (Math.abs(n) < 5e-4 ? 0 : n).toFixed(2);
@@ -41,6 +42,15 @@ const KUKA_CONFIG: UrdfArmConfig = {
   target: [0, 0.5, 0],
   groundSize: 3,
 };
+const IIWA_CONFIG: UrdfArmConfig = {
+  urdfUrl: "/models/kuka_iiwa/iiwa.urdf",
+  packages: { kuka_iiwa: "/models/kuka_iiwa" },
+  jointNames: IIWA_JOINT_NAMES,
+  cameraPosition: [1.5, 1.3, 1.7],
+  target: [0, 0.6, 0],
+  groundSize: 3,
+  stlColor: 0xc9ccd2,
+};
 
 const ARM: Record<ArmKey, {
   label: string;
@@ -53,6 +63,7 @@ const ARM: Record<ArmKey, {
 }> = {
   ur20: { label: "UR20", footer: "Universal Robots UR20 · official mesh", home: UR20_HOME, config: UR20_CONFIG, fk: ur20FK, singFn: ur20Singularity, singularities: UR20_SINGULARITIES },
   kuka: { label: "KUKA KR6", footer: "KUKA KR6 R900 sixx · official mesh", home: KUKA_HOME, config: KUKA_CONFIG, fk: kukaFK, singFn: kukaSingularity, singularities: KUKA_SINGULARITIES },
+  iiwa: { label: "LBR iiwa", footer: "KUKA LBR iiwa 14 R820 · official mesh (7-DOF)", home: IIWA_HOME, config: IIWA_CONFIG, fk: iiwaFK, singFn: iiwaSingularity, singularities: IIWA_SINGULARITIES },
 };
 
 function Slider({
@@ -124,7 +135,7 @@ const btn =
 export default function RobotPlayground() {
   const [robot, setRobot] = useState<Robot>("ur20");
   const [scara, setScara] = useState<ScaraState>(SCARA_INIT);
-  const [armTheta, setArmTheta] = useState<Record<ArmKey, number[]>>({ ur20: UR20_HOME, kuka: KUKA_HOME });
+  const [armTheta, setArmTheta] = useState<Record<ArmKey, number[]>>({ ur20: UR20_HOME, kuka: KUKA_HOME, iiwa: IIWA_HOME });
 
   const isScara = robot === "scara";
   const armKey = (isScara ? "ur20" : robot) as ArmKey;
@@ -144,7 +155,7 @@ export default function RobotPlayground() {
     if (isScara) {
       setScara({ theta1: rand(-Math.PI, Math.PI), theta2: rand(-Math.PI, Math.PI), d3: rand(0, SCARA.d3Max), theta4: rand(-Math.PI, Math.PI) });
     } else {
-      setTheta([rand(-Math.PI, Math.PI), rand(-Math.PI, 0.2), rand(-0.2, Math.PI), rand(-Math.PI, Math.PI), rand(-Math.PI, Math.PI), rand(-Math.PI, Math.PI)]);
+      setTheta(theta.map(() => rand(-Math.PI, Math.PI)));
     }
   };
   const reset = () => (isScara ? setScara(SCARA_INIT) : setTheta(arm.home));
@@ -166,6 +177,7 @@ export default function RobotPlayground() {
             options={[
               { key: "ur20", label: "UR20" },
               { key: "kuka", label: "KUKA KR6" },
+              { key: "iiwa", label: "LBR iiwa" },
               { key: "scara", label: "SCARA" },
             ]}
           />
@@ -239,7 +251,7 @@ export default function RobotPlayground() {
               theta.map((v, i) => (
                 <Slider
                   key={i}
-                  label={`θ${["₁", "₂", "₃", "₄", "₅", "₆"][i]}`}
+                  label={`θ${["₁", "₂", "₃", "₄", "₅", "₆", "₇"][i]}`}
                   value={v}
                   min={-Math.PI}
                   max={Math.PI}
