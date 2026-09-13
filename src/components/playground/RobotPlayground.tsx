@@ -4,10 +4,12 @@ import { useState } from "react";
 import Link from "next/link";
 import SingularitiesScene, { SINGULAR_FRACTION } from "@/components/viz/singularities/SingularitiesScene";
 import { SCARA, scaraFK, type ScaraState } from "@/components/viz/singularities/singularitiesMath";
-import UR20Scene from "./UR20Scene";
-import { ur20FK, ur20Singularity, UR20_HOME, UR20_SINGULARITIES } from "./ur20Math";
+import UrdfArmScene, { type UrdfArmConfig } from "./UrdfArmScene";
+import { ur20FK, ur20Singularity, UR20_HOME, UR20_JOINT_NAMES, UR20_SINGULARITIES } from "./ur20Math";
+import { kukaFK, kukaSingularity, KUKA_HOME, KUKA_JOINT_NAMES, KUKA_SINGULARITIES } from "./kukaMath";
 
-type Robot = "ur20" | "scara";
+type Robot = "ur20" | "kuka" | "scara";
+type ArmKey = "ur20" | "kuka";
 
 const deg = (r: number) => Math.round((r * 180) / Math.PI);
 const fmt = (n: number) => (Math.abs(n) < 5e-4 ? 0 : n).toFixed(2);
@@ -21,6 +23,37 @@ function scaraSingularity(st: ScaraState): string | null {
   const near0 = Math.abs(Math.atan2(Math.sin(st.theta2), Math.cos(st.theta2))) < Math.PI / 2;
   return near0 ? "outer boundary (θ₂ = 0)" : "inner boundary (θ₂ = π)";
 }
+
+// Stable per-robot config (module-level so the scene doesn't reload every render).
+const UR20_CONFIG: UrdfArmConfig = {
+  urdfUrl: "/models/ur20/ur20.urdf",
+  packages: { ur20: "/models/ur20" },
+  jointNames: UR20_JOINT_NAMES,
+  cameraPosition: [2.4, 1.8, 2.6],
+  target: [0, 0.55, 0],
+  groundSize: 6,
+};
+const KUKA_CONFIG: UrdfArmConfig = {
+  urdfUrl: "/models/kuka_kr6/kr6.urdf",
+  packages: { kuka_kr6: "/models/kuka_kr6" },
+  jointNames: KUKA_JOINT_NAMES,
+  cameraPosition: [1.5, 1.2, 1.6],
+  target: [0, 0.5, 0],
+  groundSize: 3,
+};
+
+const ARM: Record<ArmKey, {
+  label: string;
+  footer: string;
+  home: number[];
+  config: UrdfArmConfig;
+  fk: (t: number[]) => { origins: [number, number, number][]; ee: [number, number, number]; w: number; wMax: number; detJ: number };
+  singFn: (t: number[]) => string | null;
+  singularities: { key: string; label: string; theta: number[] }[];
+}> = {
+  ur20: { label: "UR20", footer: "Universal Robots UR20 · official mesh", home: UR20_HOME, config: UR20_CONFIG, fk: ur20FK, singFn: ur20Singularity, singularities: UR20_SINGULARITIES },
+  kuka: { label: "KUKA KR6", footer: "KUKA KR6 R900 sixx · official mesh", home: KUKA_HOME, config: KUKA_CONFIG, fk: kukaFK, singFn: kukaSingularity, singularities: KUKA_SINGULARITIES },
+};
 
 function Slider({
   label,
@@ -91,14 +124,18 @@ const btn =
 export default function RobotPlayground() {
   const [robot, setRobot] = useState<Robot>("ur20");
   const [scara, setScara] = useState<ScaraState>(SCARA_INIT);
-  const [ur20, setUr20] = useState<number[]>(UR20_HOME);
-
-  const setUr20Joint = (i: number, v: number) => setUr20((t) => t.map((x, k) => (k === i ? v : x)));
+  const [armTheta, setArmTheta] = useState<Record<ArmKey, number[]>>({ ur20: UR20_HOME, kuka: KUKA_HOME });
 
   const isScara = robot === "scara";
-  const pose = isScara ? scaraFK(scara) : ur20FK(ur20);
-  const ee = isScara ? scaraFK(scara).tool : ur20FK(ur20).ee;
-  const singularLabel = isScara ? scaraSingularity(scara) : ur20Singularity(ur20);
+  const armKey = (isScara ? "ur20" : robot) as ArmKey;
+  const arm = ARM[armKey];
+  const theta = armTheta[armKey];
+  const setTheta = (t: number[]) => setArmTheta((s) => ({ ...s, [armKey]: t }));
+  const setJoint = (i: number, v: number) => setTheta(theta.map((x, k) => (k === i ? v : x)));
+
+  const pose = isScara ? scaraFK(scara) : arm.fk(theta);
+  const ee = isScara ? scaraFK(scara).tool : arm.fk(theta).ee;
+  const singularLabel = isScara ? scaraSingularity(scara) : arm.singFn(theta);
   const isSingular = singularLabel !== null;
   const barFrac = Math.max(0, Math.min(1, Math.sqrt(pose.w / pose.wMax)));
   const eeUnit = isScara ? "" : " m";
@@ -107,10 +144,10 @@ export default function RobotPlayground() {
     if (isScara) {
       setScara({ theta1: rand(-Math.PI, Math.PI), theta2: rand(-Math.PI, Math.PI), d3: rand(0, SCARA.d3Max), theta4: rand(-Math.PI, Math.PI) });
     } else {
-      setUr20([rand(-Math.PI, Math.PI), rand(-Math.PI, 0.2), rand(-2.6, 2.6), rand(-Math.PI, Math.PI), rand(-Math.PI, Math.PI), rand(-Math.PI, Math.PI)]);
+      setTheta([rand(-Math.PI, Math.PI), rand(-Math.PI, 0.2), rand(-0.2, Math.PI), rand(-Math.PI, Math.PI), rand(-Math.PI, Math.PI), rand(-Math.PI, Math.PI)]);
     }
   };
-  const reset = () => (isScara ? setScara(SCARA_INIT) : setUr20(UR20_HOME));
+  const reset = () => (isScara ? setScara(SCARA_INIT) : setTheta(arm.home));
 
   return (
     <div
@@ -128,6 +165,7 @@ export default function RobotPlayground() {
             onChange={setRobot}
             options={[
               { key: "ur20", label: "UR20" },
+              { key: "kuka", label: "KUKA KR6" },
               { key: "scara", label: "SCARA" },
             ]}
           />
@@ -140,7 +178,7 @@ export default function RobotPlayground() {
           {isScara ? (
             <SingularitiesScene robot="scara" scara={scara} sixdof={UR20_HOME} />
           ) : (
-            <UR20Scene theta={ur20} />
+            <UrdfArmScene key={armKey} config={arm.config} theta={theta} />
           )}
           {isSingular && (
             <div className="pointer-events-none absolute left-4 top-4 rounded-md px-2.5 py-1 text-xs font-bold text-white" style={{ background: "var(--danger)" }}>
@@ -148,7 +186,7 @@ export default function RobotPlayground() {
             </div>
           )}
           <div className="pointer-events-none absolute bottom-3 left-4 text-xs text-faint">
-            {isScara ? "SCARA (2R + prismatic)" : "Universal Robots UR20 · official mesh"}
+            {isScara ? "SCARA (2R + prismatic)" : arm.footer}
           </div>
         </div>
 
@@ -180,8 +218,8 @@ export default function RobotPlayground() {
                 <button type="button" className={btn} onClick={() => setScara((s) => ({ ...s, theta2: Math.PI }))}>θ₂ = π</button>
               </>
             ) : (
-              UR20_SINGULARITIES.map((s) => (
-                <button key={s.key} type="button" className={btn} onClick={() => setUr20(s.theta)}>{s.label}</button>
+              arm.singularities.map((s) => (
+                <button key={s.key} type="button" className={btn} onClick={() => setTheta(s.theta)}>{s.label}</button>
               ))
             )}
             <button type="button" className={btn} onClick={randomize}>Random pose</button>
@@ -198,7 +236,7 @@ export default function RobotPlayground() {
                 <Slider label="θ₄" value={scara.theta4} min={-Math.PI} max={Math.PI} step={0.02} display={`${deg(scara.theta4)}°`} onChange={(v) => setScara((s) => ({ ...s, theta4: v }))} />
               </>
             ) : (
-              ur20.map((v, i) => (
+              theta.map((v, i) => (
                 <Slider
                   key={i}
                   label={`θ${["₁", "₂", "₃", "₄", "₅", "₆"][i]}`}
@@ -207,7 +245,7 @@ export default function RobotPlayground() {
                   max={Math.PI}
                   step={0.02}
                   display={`${deg(v)}°`}
-                  onChange={(nv) => setUr20Joint(i, nv)}
+                  onChange={(nv) => setJoint(i, nv)}
                 />
               ))
             )}

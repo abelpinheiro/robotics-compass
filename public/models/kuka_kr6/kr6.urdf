@@ -1,0 +1,82 @@
+<?xml version="1.0"?>
+<!--
+  Flat URDF for the KUKA KR6 R900 sixx (Agilus), authored from
+  kroshu/kuka_robot_descriptions kuka_agilus_support (Apache-2.0):
+    kuka_agilus_support/urdf/kr6_r900_sixx_macro.xacro
+  Pure-translation joint origins, per-joint axes, identity visual origins.
+  Visual meshes (.dae, embedded KUKA materials) are the official assets.
+-->
+<robot name="kuka_kr6_r900_sixx">
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry><mesh filename="package://kuka_kr6/visual/base_link.dae"/></geometry>
+    </visual>
+  </link>
+
+  <link name="link_1">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_kr6/visual/link_1.dae"/></geometry></visual>
+  </link>
+  <joint name="joint_1" type="revolute">
+    <origin xyz="0 0 0.400" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="link_1"/>
+    <axis xyz="0 0 -1"/>
+    <limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="6.2831853"/>
+  </joint>
+
+  <link name="link_2">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_kr6/visual/link_2.dae"/></geometry></visual>
+  </link>
+  <joint name="joint_2" type="revolute">
+    <origin xyz="0.025 0 0" rpy="0 0 0"/>
+    <parent link="link_1"/>
+    <child link="link_2"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="6.2831853"/>
+  </joint>
+
+  <link name="link_3">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_kr6/visual/link_3.dae"/></geometry></visual>
+  </link>
+  <joint name="joint_3" type="revolute">
+    <origin xyz="0.455 0 0" rpy="0 0 0"/>
+    <parent link="link_2"/>
+    <child link="link_3"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="6.2831853"/>
+  </joint>
+
+  <link name="link_4">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_kr6/visual/link_4.dae"/></geometry></visual>
+  </link>
+  <joint name="joint_4" type="revolute">
+    <origin xyz="0 0 0.035" rpy="0 0 0"/>
+    <parent link="link_3"/>
+    <child link="link_4"/>
+    <axis xyz="-1 0 0"/>
+    <limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="6.2831853"/>
+  </joint>
+
+  <link name="link_5">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_kr6/visual/link_5.dae"/></geometry></visual>
+  </link>
+  <joint name="joint_5" type="revolute">
+    <origin xyz="0.420 0 0" rpy="0 0 0"/>
+    <parent link="link_4"/>
+    <child link="link_5"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="6.2831853"/>
+  </joint>
+
+  <link name="link_6">
+    <visual><origin xyz="0 0 0" rpy="0 0 0"/><geometry><mesh filename="package://kuka_kr6/visual/link_6.dae"/></geometry></visual>
+  </link>
+  <joint name="joint_6" type="revolute">
+    <origin xyz="0.080 0 0" rpy="0 0 0"/>
+    <parent link="link_5"/>
+    <child link="link_6"/>
+    <axis xyz="-1 0 0"/>
+    <limit lower="-6.2831853" upper="6.2831853" effort="0" velocity="6.2831853"/>
+  </joint>
+</robot>

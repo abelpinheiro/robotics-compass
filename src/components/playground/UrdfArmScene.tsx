@@ -6,14 +6,20 @@ import { OrbitControls } from "@react-three/drei";
 import * as THREE from "three";
 import URDFLoader, { type URDFRobot } from "urdf-loader";
 import { ColladaLoader } from "three/examples/jsm/loaders/ColladaLoader.js";
-import { UR20_JOINT_NAMES } from "./ur20Math";
 
-function Robot({ theta }: { theta: number[] }) {
+export interface UrdfArmConfig {
+  urdfUrl: string;
+  packages: Record<string, string>;
+  jointNames: string[];
+  cameraPosition: [number, number, number];
+  target: [number, number, number];
+  groundSize?: number;
+}
+
+function Robot({ config, theta }: { config: UrdfArmConfig; theta: number[] }) {
   const invalidate = useThree((s) => s.invalidate);
   const [robot, setRobot] = useState<URDFRobot | null>(null);
 
-  // Load the URDF once (meshes via ColladaLoader, sharing the LoadingManager so
-  // we know when textures finish and can request a redraw under frameloop=demand).
   useEffect(() => {
     let disposed = false;
     const manager = new THREE.LoadingManager();
@@ -21,7 +27,7 @@ function Robot({ theta }: { theta: number[] }) {
       if (!disposed) invalidate();
     };
     const loader = new URDFLoader(manager);
-    loader.packages = { ur20: "/models/ur20" };
+    loader.packages = config.packages;
     loader.loadMeshCb = (path, mgr, _material, onLoad) => {
       new ColladaLoader(mgr).load(
         path,
@@ -30,20 +36,19 @@ function Robot({ theta }: { theta: number[] }) {
         (err) => onLoad(new THREE.Object3D(), err instanceof Error ? err : new Error(String(err))),
       );
     };
-    loader.load("/models/ur20/ur20.urdf", (result) => {
+    loader.load(config.urdfUrl, (result) => {
       if (!disposed) setRobot(result);
     });
     return () => {
       disposed = true;
     };
-  }, [invalidate]);
+  }, [config, invalidate]);
 
-  // Drive the joints from the sliders.
   useEffect(() => {
     if (!robot) return;
-    UR20_JOINT_NAMES.forEach((name, i) => robot.setJointValue(name, theta[i]));
+    config.jointNames.forEach((name, i) => robot.setJointValue(name, theta[i]));
     invalidate();
-  }, [robot, theta, invalidate]);
+  }, [robot, theta, config.jointNames, invalidate]);
 
   if (!robot) return null;
   // URDF frames are z-up; rotate the whole robot to three's y-up.
@@ -54,33 +59,34 @@ function Robot({ theta }: { theta: number[] }) {
   );
 }
 
-function Scene({ theta }: { theta: number[] }) {
+function Scene({ config, theta }: { config: UrdfArmConfig; theta: number[] }) {
   const dom = useThree((s) => s.gl.domElement);
   const grid = useMemo(
     () => getComputedStyle(dom).getPropertyValue("--viz-grid").trim() || "#1e2a38",
     [dom],
   );
+  const size = config.groundSize ?? 6;
   return (
     <>
       <ambientLight intensity={0.85} />
       <directionalLight position={[5, 8, 5]} intensity={1.3} />
       <directionalLight position={[-4, 3, -4]} intensity={0.4} />
-      <gridHelper args={[6, 12, grid, grid]} position={[0, 0, 0]} />
-      <Robot theta={theta} />
-      <OrbitControls makeDefault enableDamping={false} target={[0, 0.55, 0]} minDistance={1.4} maxDistance={12} />
+      <gridHelper args={[size, size * 2, grid, grid]} position={[0, 0, 0]} />
+      <Robot config={config} theta={theta} />
+      <OrbitControls makeDefault enableDamping={false} target={config.target} minDistance={0.8} maxDistance={12} />
     </>
   );
 }
 
-export default function UR20Scene({ theta }: { theta: number[] }) {
+export default function UrdfArmScene({ config, theta }: { config: UrdfArmConfig; theta: number[] }) {
   return (
     <Canvas
       frameloop="demand"
       dpr={[1, 2]}
-      camera={{ position: [2.4, 1.8, 2.6], fov: 45 }}
+      camera={{ position: config.cameraPosition, fov: 45 }}
       gl={{ alpha: true, antialias: true }}
     >
-      <Scene theta={theta} />
+      <Scene config={config} theta={theta} />
     </Canvas>
   );
 }
