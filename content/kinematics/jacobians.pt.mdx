@@ -227,3 +227,9 @@ O determinante é zero quando $\sin(\theta_2) = 0$, ou seja, $\theta_2 = 0^\circ
 
 1. **Pseudoinversa em robôs redundantes:** se um robô tem 7 GDL e está tentando alcançar uma pose de 6 GDL, a Jacobiana é $6 \times 7$. Não é possível calcular a inversa padrão de uma matriz não quadrada. Para isso, você deve usar a pseudoinversa de Moore-Penrose ($J^+$).
 2. **Picos por proximidade de singularidade:** você não precisa estar exatamente em $\det(J) = 0$ para um robô físico falhar. Se você estiver muito perto de uma singularidade, $\det(J)$ é um decimal minúsculo. Ao dividir pelo determinante, esses valores pequenos fazem as velocidades de junta solicitadas dispararem para valores enormes, excedendo os limites de segurança do motor. Uma forma de resolver isso é usar técnicas como Mínimos Quadrados Amortecidos (Damped Least Squares) para evitar esses picos de velocidade.
+3. *(Semelhante ao método analítico, se você precisar de uma parametrização de orientação diferente para evitar as singularidades dos ângulos de Euler, a metade inferior desta matriz ($\omega_x, \omega_y, \omega_z$) pode ser mapeada matematicamente para taxas de quatérnios ou taxas de matriz de rotação usando matrizes de transformação específicas.)*
+
+## Leituras adicionais
+1. [Robotics Jacobian Matrix Analytical & Geometric (Theory & Physical Interpretation)](https://www.youtube.com/watch?v=wwd7jYw2HUs)
+2. [Jacobian Matrix and Singularities | Robotics | Introduction | Part 1](https://www.youtube.com/watch?v=h2YM0CDzDl4)
+3. 
