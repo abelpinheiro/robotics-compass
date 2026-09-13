@@ -6,7 +6,7 @@ order: 1
 summary: ""
 difficulty: ""
 prerequisites: []
-status: draft
+status: in-progress
 ---
 
 ## Overview & specifications
@@ -15,7 +15,20 @@ status: draft
 
 ## DH parameters
 
-{/* TODO(author): present the UR20 Denavit–Hartenberg table (a, alpha, d, theta) and the frame assignment. */}
+![Side-view diagram of a Universal Robots arm showing its Denavit–Hartenberg frame assignment: Link 0 through Link 5, each drawn with a local coordinate frame at its joint; the link lengths a[1] and a[2] run along the vertical column, and the offsets d[0], d[3], d[4] and d[5] are marked between the joints. Source: Universal Robots.](/images/case-studies/universal-robot-overview.png)
+
+*Source: [Universal Robots — DH parameters for calculations of kinematics and dynamics](https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/).*
+
+| Joint | a [m] | d [m] | α [rad] | θ |
+| :-: | :-: | :-: | :-: | :-: |
+| 1 | 0 | 0.2363 | π/2 | θ₁ |
+| 2 | −0.8620 | 0 | 0 | θ₂ |
+| 3 | −0.7287 | 0 | 0 | θ₃ |
+| 4 | 0 | 0.2010 | π/2 | θ₄ |
+| 5 | 0 | 0.1593 | −π/2 | θ₅ |
+| 6 | 0 | 0.1543 | 0 | θ₆ |
+
+{/* TODO(author): describe the frame assignment and the UR DH convention. */}
 
 ## Forward kinematics
 
