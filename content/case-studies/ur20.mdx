@@ -9,9 +9,22 @@ prerequisites: []
 status: in-progress
 ---
 
+import UR20FKVizEmbed from "@/components/viz/ur20/UR20FKVizEmbed";
+import UR20IKVizEmbed from "@/components/viz/ur20/UR20IKVizEmbed";
+
 ## Overview & specifications
 
-{/* TODO(author): introduce the UR20 (reach, payload, DOF, joint ranges/limits, mass) and what this case study will work through. */}
+{/* TODO(author): introduce the UR20 (what it is, and what this case study works through). */}
+
+| Specification | Value |
+| :-- | :-- |
+| Degrees of freedom | 6 (all revolute) |
+| Reach | 1750 mm |
+| Payload | 20 kg |
+
+*Source: Universal Robots UR20 datasheet.*
+
+{/* TODO(author): complete the spec table (repeatability, weight, joint ranges/speeds, IP rating) from the datasheet. */}
 
 ## DH parameters
 
@@ -32,11 +45,40 @@ status: in-progress
 
 ## Forward kinematics
 
-{/* TODO(author): build the forward kinematics from the DH table (per-joint transforms and the base-to-tool ^0_6 T). */}
+{/* TODO(author): explain how FK chains the per-joint transforms and what ⁰₆T represents. */}
+
+Per-joint transform (standard DH), using the parameters from the table above:
+
+$$
+{}^{i-1}_{i}T(\theta_i) = \begin{bmatrix}
+\cos\theta_i & -\sin\theta_i\cos\alpha_i & \sin\theta_i\sin\alpha_i & a_i\cos\theta_i \\
+\sin\theta_i & \cos\theta_i\cos\alpha_i & -\cos\theta_i\sin\alpha_i & a_i\sin\theta_i \\
+0 & \sin\alpha_i & \cos\alpha_i & d_i \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+The base-to-tool transform is their product:
+
+$$
+{}^{0}_{6}T = {}^{0}_{1}T\,{}^{1}_{2}T\,{}^{2}_{3}T\,{}^{3}_{4}T\,{}^{4}_{5}T\,{}^{5}_{6}T = \begin{bmatrix} {}^{0}_{6}R & {}^{0}P_{6} \\ \mathbf{0} & 1 \end{bmatrix}
+$$
+
+<UR20FKVizEmbed />
 
 ## Inverse kinematics
 
-{/* TODO(author): derive the inverse kinematics for the UR20 (closed-form / kinematic decoupling, multiple solutions). */}
+{/* TODO(author): explain the UR20 IK — the analytic closed-form solution and/or the numerical approach, and the multiple solution branches. */}
+
+Numerical IK by damped least squares (position), iterated toward a Cartesian target $x_{\text{target}}$:
+
+$$
+q_{k+1} = q_k + J_v^{\top}\left(J_v J_v^{\top} + \lambda^2 I\right)^{-1}\left(x_{\text{target}} - x_{\text{current}}\right)
+$$
+
+where $J_v$ is the linear (position) block of the geometric Jacobian and $\lambda$ damps the update near singularities.
+
+<UR20IKVizEmbed />
 
 ## Velocity kinematics & the Jacobian
 
