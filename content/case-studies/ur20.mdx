@@ -13,10 +13,17 @@ import UR20FKVizEmbed from "@/components/viz/ur20/UR20FKVizEmbed";
 import UR20IKVizEmbed from "@/components/viz/ur20/UR20IKVizEmbed";
 import UR20JacobianVizEmbed from "@/components/viz/ur20/UR20JacobianVizEmbed";
 import UR20SingularityVizEmbed from "@/components/viz/ur20/UR20SingularityVizEmbed";
+import { Callout } from "@/components/lesson/Callout";
+
+<Callout variant="warning" title="Work in progress">
+  This case study is incomplete: several sections still contain only equations and visualizations, and the explanatory text is still being written.
+</Callout>
 
 ## Overview & specifications
 
-{/* TODO(author): introduce the UR20 (what it is, and what this case study works through). */}
+The UR20 is Universal Robots' heavy-duty collaborative robot, fundamentally redesigned from their classic e-Series line to handle high-torque tasks. Operating as a 6-DOF manipulator, it features a 20 kg payload capacity and a massive 1750 mm reach, while maintaining a relatively low physical mass of 64 kg. 
+
+This case study will walk through its complete kinematic and dynamic profile, from constructing its Denavit-Hartenberg matrices to computing the Yoshikawa manipulability index to ensure safe trajectory planning near its singularity boundaries.
 
 | Specification | Value |
 | :-- | :-- |
@@ -42,6 +49,10 @@ import UR20SingularityVizEmbed from "@/components/viz/ur20/UR20SingularityVizEmb
 | 4 | 0 | 0.2010 | π/2 | θ₄ |
 | 5 | 0 | 0.1593 | −π/2 | θ₅ |
 | 6 | 0 | 0.1543 | 0 | θ₆ |
+
+Looking closely at the UR20's table reveals its physical design:
+*   **The Upper Arm and Forearm ($a_2$ and $a_3$):** The only non-zero values in the $a$ column are the physical lengths of the main arm links. They are negative ($-0.8620$ m and $-0.7287$ m) because the $X$-axes of frames 2 and 3 are assigned to point in the opposite direction of the links when the robot is in its zero configuration.
+*   **The Shoulder and Wrist Offsets ($d$ column):** The $d$ values represent lateral displacements along the joint axes. $d_1$ ($0.2363$ m) is the height of the shoulder. The wrist offsets ($d_4, d_5, d_6$) create the characteristic "kinked" geometry of a UR wrist, ensuring the final three joint axes intersect in a way that allows for a closed-form analytical Inverse Kinematics solution.
 
 {/* TODO(author): describe the frame assignment and the UR DH convention. */}
 
