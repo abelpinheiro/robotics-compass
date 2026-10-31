@@ -39,7 +39,7 @@ This case study will walk through its complete kinematic and dynamic profile, fr
 
 ![Side-view diagram of a Universal Robots arm showing its Denavit–Hartenberg frame assignment: Link 0 through Link 5, each drawn with a local coordinate frame at its joint; the link lengths a[1] and a[2] run along the vertical column, and the offsets d[0], d[3], d[4] and d[5] are marked between the joints. Source: Universal Robots.](/images/case-studies/universal-robot-overview.png)
 
-*Source: [Universal Robots — DH parameters for calculations of kinematics and dynamics](https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/).*
+*Classic (standard) DH convention, as published by Universal Robots; the rest of the site uses the modified (Craig) convention. Source: [Universal Robots — DH parameters for calculations of kinematics and dynamics](https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/).*
 
 | Joint | a [m] | d [m] | α [rad] | θ |
 | :-: | :-: | :-: | :-: | :-: |
@@ -60,7 +60,7 @@ Looking closely at the UR20's table reveals its physical design:
 
 {/* TODO(author): explain how FK chains the per-joint transforms and what ⁰₆T represents. */}
 
-Per-joint transform (standard DH), using the parameters from the table above:
+Per-joint transform (classic DH), using the parameters from the table above:
 
 $$
 {}^{i-1}_{i}T(\theta_i) = \begin{bmatrix}
@@ -104,7 +104,7 @@ $$
 J(q) = \begin{bmatrix} J_v \\ J_\omega \end{bmatrix} \in \mathbb{R}^{6\times 6}.
 $$
 
-Every UR20 joint is revolute, so for joint $i$ with axis $z_{i-1}$ and frame origin $o_{i-1}$ (both in the base frame, read from the forward-kinematics chain), and tool position $o_6$, the $i$-th column is
+In the classic indexing joint $i$ acts about $z_{i-1}$. Every UR20 joint is revolute, so for joint $i$ with axis $z_{i-1}$ and frame origin $o_{i-1}$ (both in the base frame, read from the forward-kinematics chain), and tool position $o_6$, the $i$-th column is
 
 $$
 J_{:,i} = \begin{bmatrix} z_{i-1} \times (o_6 - o_{i-1}) \\ z_{i-1} \end{bmatrix}.
@@ -124,7 +124,7 @@ $$
 \operatorname{rank} J(q) < 6 \iff \det J(q) = 0 \iff w(q) = 0.
 $$
 
-There the smallest singular value of $J$ goes to zero and the tool loses the ability to move (or reorient) in at least one direction. Like every wrist-partitioned 6R arm, the UR20 has three singularity families:
+There the smallest singular value of $J$ goes to zero and the tool loses the ability to move (or reorient) in at least one direction. The UR20 has three singularity families:
 
 - **Wrist** — $\theta_5 = 0$, so joint axes 4 and 6 become collinear (a lost *orientation* freedom).
 - **Elbow** — the arm is fully extended, $\theta_3 = 0$.
