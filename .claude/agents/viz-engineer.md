@@ -38,6 +38,9 @@ Non-negotiables (Golden rules):
   (d3, three, @react-three/fiber, @react-three/drei).
 - **Never write lesson prose** (rule 1) — captions/text-alternatives describe the
   visualization itself, not the concept's explanation.
+- **Modified (Craig) DH** (rule 8) — use `src/lib/kinematics/`; label anything classic.
+- **EN + PT strings** (rule 9) — every UI string in both languages.
+- **Tested math** (rule 10) — the viz's math module ships with Vitest tests; run `pnpm test`.
 
 After building, verify it renders and `pnpm build` passes; report the files you changed and how
 the viz is controlled.

@@ -9,21 +9,127 @@ prerequisites: []
 status: draft
 ---
 
+import NewtonEulerVizEmbed from "@/components/viz/newtoneuler/NewtonEulerVizEmbed";
+import { Callout } from "@/components/lesson/Callout";
+
+<Callout variant="warning" title="Work in progress">
+  This chapter is incomplete: several sections still contain only equations and visualizations, and the explanatory text is still being written.
+</Callout>
+
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+{/* TODO(author): write the intuition — the two-sweep idea (outward kinematics, inward forces). */}
 
 ## Formal definition
+To model a robot's dynamics, we need three physical parameters for each of its links:
+1. **Mass ($m_i$)**: The weight of the link.
+2. **Center of Mass ($P_{ci}$)**: The 3D vector pointing to the balance point of the link.
+3. **Inertia Tensor ($I_i$)**: A $3 \times 3$ matrix describing how the link's mass is distributed around its center of mass, dictating how hard it is to rotate.
 
-{/* TODO(author): write the formal definition. */}
+### The Recursive Newton-Euler Algorithm
+Just as we used Velocity Propagation to find the Jacobian recursively, we use the **Newton-Euler formulation** to recursively compute joint torques. It is split into two passes:
+
+**1. The Outward Pass (Kinematics)**
+We start at the base and move to the end-effector. We propagate the angular and linear velocities ($\omega_i, v_i$), but now we also compute their derivatives: angular acceleration ($\dot{\omega}_i$) and linear acceleration ($\dot{v}_i$). Finally, we calculate the linear acceleration of each link's center of mass ($\dot{v}_{ci}$).
+
+**2. The Inward Pass (Forces and Torques)**
+We start at the end-effector and move backward to the base. First, we apply Newton's and Euler's equations to find the inertial force ($F_i$) and moment ($N_i$) acting on each link's center of mass:
+$$
+F_i = m_i \dot{v}_{ci}
+$$
+$$
+N_i = I_i \dot{\omega}_i + \omega_i \times (I_i \omega_i)
+$$
+Then, we balance the forces acting on the joints. The force and torque exerted by link $i$ on link $i+1$ are computed backward down the chain. The Z-component of the resulting joint torque vector gives us the physical motor torque ($\tau_i$) required at that joint.
+
+### Single rigid body
+
+{/* TODO(author): explain Newton's and Euler's equations for one link. */}
+
+$$
+F = m\,a_c, \qquad N = {}^{c}I\,\dot\omega + \omega \times ({}^{c}I\,\omega)
+$$
+
+where $a_c$ is the centre-of-mass acceleration and ${}^{c}I$ is the inertia tensor about the COM.
+
+### Outward recursion (base → tip)
+
+{/* TODO(author): explain how velocities and accelerations propagate outward. */}
+
+For revolute joint $i{+}1$ with axis $\hat z_{i+1}$:
+
+$$
+\omega_{i+1} = \omega_i + \dot\theta_{i+1}\,\hat z_{i+1}
+$$
+
+$$
+\dot\omega_{i+1} = \dot\omega_i + \omega_i \times \dot\theta_{i+1}\,\hat z_{i+1} + \ddot\theta_{i+1}\,\hat z_{i+1}
+$$
+
+$$
+\dot v_{c,\,i+1} = \dot v_{i+1} + \dot\omega_{i+1}\times r_{c,\,i+1} + \omega_{i+1}\times(\omega_{i+1}\times r_{c,\,i+1})
+$$
+
+$$
+F_{i+1} = m_{i+1}\,\dot v_{c,\,i+1}, \qquad N_{i+1} = {}^{c}I_{i+1}\,\dot\omega_{i+1} + \omega_{i+1}\times {}^{c}I_{i+1}\,\omega_{i+1}
+$$
+
+### Inward recursion (tip → base)
+
+{/* TODO(author): explain how forces and moments propagate inward to give joint torques. */}
+
+$$
+f_i = F_i + f_{i+1}
+$$
+
+$$
+n_i = N_i + n_{i+1} + r_{c,\,i}\times F_i + r_{i+1}\times f_{i+1}
+$$
+
+$$
+\tau_i = n_i^{\top}\,\hat z_i
+$$
+
+### Boundary conditions
+
+{/* TODO(author): explain the base/tip conditions and the gravity trick. */}
+
+$$
+\omega_0 = \dot\omega_0 = 0, \qquad \dot v_0 = -\,\mathbf{g}, \qquad f_{n+1} = n_{n+1} = 0
+$$
+
+Setting the base acceleration to $-\mathbf{g}$ folds gravity into the recursion (the "gravity trick"). Collecting the joint torques over all configurations yields the standard form developed in [Equations of motion](/lessons/dynamics/equations-of-motion):
+
+$$
+M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q) = \tau
+$$
 
 ## Visualization
 
-{/* TODO(viz): wire the visualization component here via /new-viz. */}
+{/* TODO(author): explain what the two sweeps compute and how to read the acceleration, force, and torque arrows. */}
+
+<NewtonEulerVizEmbed />
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+{/* TODO(author): work through the recursion for the planar 2R arm step by step. */}
+
+For a planar 2R arm (link lengths $l_1, l_2$; COM distances $l_{c1}, l_{c2}$; masses $m_1, m_2$; COM inertias $I_1, I_2$; gravity $g$), the recursion collapses to a closed form:
+
+$$
+M(q) = \begin{bmatrix}
+m_1 l_{c1}^2 + I_1 + m_2\!\left(l_1^2 + l_{c2}^2 + 2 l_1 l_{c2}\cos\theta_2\right) + I_2 & m_2\!\left(l_{c2}^2 + l_1 l_{c2}\cos\theta_2\right) + I_2 \\
+m_2\!\left(l_{c2}^2 + l_1 l_{c2}\cos\theta_2\right) + I_2 & m_2 l_{c2}^2 + I_2
+\end{bmatrix}
+$$
+
+With $h = m_2 l_1 l_{c2}\sin\theta_2$:
+
+$$
+C(q,\dot q)\,\dot q = \begin{bmatrix} -h\,\dot\theta_2^2 - 2 h\,\dot\theta_1\dot\theta_2 \\ h\,\dot\theta_1^2 \end{bmatrix},
+\qquad
+g(q) = \begin{bmatrix} (m_1 l_{c1} + m_2 l_1)\,g\cos\theta_1 + m_2 l_{c2}\,g\cos(\theta_1+\theta_2) \\ m_2 l_{c2}\,g\cos(\theta_1+\theta_2) \end{bmatrix}
+$$
 
 ## Common pitfalls
 

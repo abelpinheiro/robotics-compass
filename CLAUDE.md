@@ -5,22 +5,29 @@ If a request conflicts with the **Golden rules** below, stop and raise it.
 
 ## Project goal
 
-Robotics Compass is an interactive, **visualization-first** website for learning robotics.
-It is structured like a robotics textbook, but every topic carries a live, manipulable
-visualization. Coverage is broad (all major robotics areas) and deepest on **path planning**.
-Tonal inspiration: `robotics101-viscircuit.web.app` — calm, academic, precise.
+Robotics Compass (https://robotics-compass.vercel.app) is an interactive, **visualization-first**
+website for learning robotics, written by the author alongside their master's studies. It is
+structured like a robotics textbook (Craig is the main reference), every topic carries a live,
+manipulable visualization, and it is **bilingual (EN/PT)**. It also has a dark **playground**
+(`/playground`) with real robots (UR20, KUKA KR6, LBR iiwa) and a SCARA, and **case studies**
+of specific robots. Tonal inspiration: `robotics101-viscircuit.web.app` — calm, academic, precise.
 
-The site ships as a skeleton of **empty draft lessons** that a human author fills with prose
-over time. Our job is the platform, the scaffolding, and the visualizations — never the
-educational writing.
+The current direction is to turn it from "notes with visualizations" into a **study platform**
+(course map, exercises, progress, a richer playground) without losing what exists. The phased
+plan for that work is tracked outside this file; each phase is one branch.
+
+The author writes the theory. Our job is the platform, the scaffolding, the math (equations),
+figures, visualizations, and tested kernels — never the educational writing (Golden rule 1).
 
 ## Tech stack (use exactly this)
 
 - **Next.js (App Router) + TypeScript** in strict mode
 - **Tailwind CSS v4** (CSS-first, driven by the CSS-variable design tokens below)
-- **MDX** for lessons via `@next/mdx` (+ `remark-frontmatter`, `remark-mdx-frontmatter`)
-- **3D:** `@react-three/fiber` + `@react-three/drei` (`three`)
+- **MDX** for lessons via `@next/mdx` (+ `remark-frontmatter`, `remark-mdx-frontmatter`,
+  `remark-gfm`); math with `remark-math` + `rehype-katex` (KaTeX); code with `@shikijs/rehype`
+- **3D:** `@react-three/fiber` + `@react-three/drei` (`three`); real robots via `urdf-loader`
 - **2D:** `d3` + HTML Canvas
+- **Tests:** Vitest (`src/**/*.test.ts`); Playwright only for screenshots
 - **Package manager:** `pnpm` (activated via corepack)
 - **Fonts** via `next/font/google`: Inter (body), Source Serif 4 (headings), JetBrains Mono (code)
 - **Host:** Vercel — but keep everything portable, no vendor-specific code
@@ -29,9 +36,14 @@ Do not add, remove, or swap any of these without asking first (see Golden rule 4
 
 ## Golden rules (do not break these)
 
-1. **Never write lesson prose.** Lessons are scaffolded empty — front-matter plus empty
-   section placeholders. The human writes every explanation, definition, and example. Do not
-   fill educational content even if you know it. (See `.claude/skills/lesson-template`.)
+1. **Never write lesson prose.** The author writes every explanation, definition,
+   demonstration, and example; do not fill educational content even if you know it. In a
+   lesson you may contribute equations (KaTeX), figures, and visualizations, leaving the
+   surrounding text as `TODO(author)` placeholders. To change existing lesson content,
+   **propose the diff and wait for approval**. Exercises are the one exception: you may draft
+   them, always with `status: "draft"`, kept out of the production build until the author
+   approves them, and every answer needs a reference solution in code verified by an
+   automated test. (See `.claude/skills/lesson-template`.)
 2. **Theme discipline.** The academic **light theme is the global default** for all
    reading/lesson pages. **Dark theme is used only** for (a) dedicated simulator/playground
    pages and (b) embedded 3D canvases inside otherwise-light lessons. It is applied via a
@@ -39,15 +51,31 @@ Do not add, remove, or swap any of these without asking first (see Golden rule 4
 3. **Always use design tokens.** Never hardcode a color, font, or spacing value in a
    component. Pull from the CSS variables / Tailwind theme defined in `globals.css`.
 4. **Ask before assuming.** Before adding any dependency, changing the curriculum taxonomy,
-   changing design tokens, or making any ambiguous decision — stop and ask. Never guess.
+   changing design tokens, creating a new agent or skill, or making any ambiguous decision —
+   stop and ask. Never guess. When a decision has to be made without asking, flag it
+   explicitly in the summary.
 5. **Accessibility is required.** WCAG AA contrast, full keyboard navigation, visible focus
    states, honor `prefers-reduced-motion`, and every visualization must have a text
    alternative.
 6. **Performance.** Lazy-load visualizations. For 3D use `frameloop="demand"` when the scene
    is idle and dispose geometries/materials. Dynamically import anything that touches `three`
    with `ssr: false` (it needs `window`).
-7. **Work in small phases.** After each phase, summarize exactly what changed and stop for
+7. **Work in small phases.** One phase per branch (local branches for now; one PR per phase
+   once PRs are opened). After each phase, summarize exactly what changed and stop for
    confirmation. Use conventional commits, one concern per commit.
+8. **Modified (Craig) DH everywhere.** Link transforms are
+   ^{i-1}_iT = Rot_X(α_{i-1})·Trans_X(a_{i-1})·Rot_Z(θ_i)·Trans_Z(d_i), and joint i acts about
+   Z_i. Use the shared kernel in `src/lib/kinematics/`. The classic (standard) convention
+   appears only where a source publishes it (e.g. the UR20 table) and must be labelled
+   "classic" wherever it is shown.
+9. **Bilingual UI (EN/PT).** Every new UI string exists in both languages — in
+   `src/lib/i18n/dictionaries.ts` or in a colocated `Record<Locale, …>` strings module, so a
+   missing translation is a type error. Portuguese text keeps the English technical term in
+   parentheses, e.g. "cinemática direta (forward kinematics)".
+10. **Test the math.** Every math kernel (FK, IK, Jacobians, dynamics, trajectories) has Vitest
+    tests against independently computed references (closed forms, elementary-matrix
+    compositions, finite differences, hand-computed values). The author is the only reviewer,
+    so automated verification is mandatory.
 
 ## File-structure conventions
 
@@ -58,33 +86,45 @@ robotics-compass/
 ├─ postcss.config.mjs             # Tailwind v4 plugin
 ├─ eslint.config.mjs              # flat config (eslint-config-next)
 ├─ tsconfig.json                  # strict
+├─ vitest.config.mts              # unit tests (src/**/*.test.ts)
 ├─ content/                       # lesson MDX — ONE file per topic
-│  └─ <area>/<slug>.mdx           # e.g. content/path-planning/a-star.mdx
+│  ├─ <area>/<slug>.mdx           # English (default), e.g. content/path-planning/a-star.mdx
+│  └─ <area>/<slug>.pt.mdx        # optional Portuguese translation (falls back to English)
+├─ docs/ROADMAP.md                # backlog
 ├─ src/
 │  ├─ app/
-│  │  ├─ layout.tsx               # root layout, light theme default
+│  │  ├─ layout.tsx               # root layout, light theme default, locale
 │  │  ├─ globals.css              # design tokens (:root + .theme-dark) + Tailwind
 │  │  ├─ page.tsx                 # home
-│  │  └─ lessons/[area]/[slug]/   # dynamic lesson route renders content/*.mdx
+│  │  ├─ lessons/[area]/[slug]/   # dynamic lesson route renders content/*.mdx
+│  │  └─ playground/              # dark simulator page
 │  ├─ mdx-components.tsx          # global MDX component map
 │  ├─ components/
-│  │  ├─ shell/                   # AppShell, Header (compass logo), Sidebar
+│  │  ├─ shell/                   # AppShell, Header (compass logo), Sidebar, LanguageToggle
 │  │  ├─ lesson/                  # LessonLayout, Callout, section primitives
-│  │  └─ viz/                     # VizFrame, Viz2D, Viz3D wrappers + viz impls
+│  │  ├─ viz/                     # VizFrame, Viz2D, Viz3D wrappers + viz impls
+│  │  └─ playground/              # RobotPlayground + per-robot math (URDF chains)
 │  └─ lib/
 │     ├─ curriculum.ts            # taxonomy / nav config — single source of truth
-│     └─ content.ts               # MDX loading + front-matter helpers
-└─ public/                        # static assets
+│     ├─ content.ts               # MDX loading (locale file first, then English)
+│     ├─ i18n/                    # locale config, dictionaries, PT titles
+│     └─ kinematics/              # shared math kernel (4×4 transforms, modified DH)
+└─ public/                        # static assets (images/<area>/, models/ for URDF meshes)
 ```
 
 Conventions:
 - **Lessons live in `content/<area>/<slug>.mdx`** and are rendered by the dynamic route
   `src/app/lessons/[area]/[slug]/`. Adding a lesson = add an MDX file + register it in the
   curriculum config; never hand-author 70 route folders.
-- **`src/lib/curriculum.ts` is the canonical nav/ordering source.** The sidebar and
-  prerequisite links read from it. It must mirror `.claude/skills/robotics-curriculum`.
+- **`src/lib/curriculum.ts` is the canonical nav/ordering source** and holds each lesson's
+  `status`, `difficulty`, and `prerequisites`. Front-matter carries only author content
+  (`title`, `summary`) plus structural `area`/`slug`/`order`. Drafts are hidden from
+  navigation. `curriculum.ts` must mirror `.claude/skills/robotics-curriculum`.
+- **Translations:** a lesson's Portuguese version is the sibling `<slug>.pt.mdx`, written by
+  the author like any other lesson prose. PT titles for navigation live in
+  `src/lib/i18n/titles.ts`.
 - Visualizations are React components under `src/components/viz/`, lazy-loaded and wired into
-  a lesson's `Visualization` section slot.
+  a lesson's `Visualization` section slot. Their math lives in a separate, tested module.
 - Path aliases: import app code via `@/…` (maps to `src/…`).
 
 ## Design tokens (single source of truth)
@@ -127,3 +167,4 @@ Full details and component patterns live in `.claude/skills/design-system`.
 - `pnpm start` — serve production build
 - `pnpm typecheck` — `tsc --noEmit`
 - `pnpm lint` — ESLint (flat config)
+- `pnpm test` — Vitest, single run (`pnpm test:watch` to watch)

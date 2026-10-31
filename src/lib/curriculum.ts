@@ -66,9 +66,9 @@ export const curriculum: Area[] = [
     order: 3,
     lessons: [
       { slug: "newton-euler", title: "Newton–Euler dynamics", order: 1, status: "in-progress", difficulty: "core", prerequisites: ["velocity-kinematics"] },
-      { slug: "lagrangian-dynamics", title: "Lagrangian dynamics", order: 2, status: "in-progress", difficulty: "core", prerequisites: ["newton-euler"] },
-      { slug: "equations-of-motion", title: "Equations of motion", order: 3, status: "in-progress", difficulty: "core", prerequisites: ["lagrangian-dynamics"] },
-      { slug: "contact-and-friction", title: "Contact and friction", order: 4, status: "in-progress", difficulty: "advanced", prerequisites: ["equations-of-motion"] },
+      { slug: "lagrangian-dynamics", title: "Lagrangian dynamics", order: 2, status: "draft", difficulty: "core", prerequisites: ["newton-euler"] },
+      { slug: "equations-of-motion", title: "Equations of motion", order: 3, status: "draft", difficulty: "core", prerequisites: ["lagrangian-dynamics"] },
+      { slug: "contact-and-friction", title: "Contact and friction", order: 4, status: "draft", difficulty: "advanced", prerequisites: ["equations-of-motion"] },
     ],
   },
   {

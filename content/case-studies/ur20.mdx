@@ -9,15 +9,37 @@ prerequisites: []
 status: in-progress
 ---
 
+import UR20FKVizEmbed from "@/components/viz/ur20/UR20FKVizEmbed";
+import UR20IKVizEmbed from "@/components/viz/ur20/UR20IKVizEmbed";
+import UR20JacobianVizEmbed from "@/components/viz/ur20/UR20JacobianVizEmbed";
+import UR20SingularityVizEmbed from "@/components/viz/ur20/UR20SingularityVizEmbed";
+import { Callout } from "@/components/lesson/Callout";
+
+<Callout variant="warning" title="Work in progress">
+  This case study is incomplete: several sections still contain only equations and visualizations, and the explanatory text is still being written.
+</Callout>
+
 ## Overview & specifications
 
-{/* TODO(author): introduce the UR20 (reach, payload, DOF, joint ranges/limits, mass) and what this case study will work through. */}
+The UR20 is Universal Robots' heavy-duty collaborative robot, fundamentally redesigned from their classic e-Series line to handle high-torque tasks. Operating as a 6-DOF manipulator, it features a 20 kg payload capacity and a massive 1750 mm reach, while maintaining a relatively low physical mass of 64 kg. 
+
+This case study will walk through its complete kinematic and dynamic profile, from constructing its Denavit-Hartenberg matrices to computing the Yoshikawa manipulability index to ensure safe trajectory planning near its singularity boundaries.
+
+| Specification | Value |
+| :-- | :-- |
+| Degrees of freedom | 6 (all revolute) |
+| Reach | 1750 mm |
+| Payload | 20 kg |
+
+*Source: Universal Robots UR20 datasheet.*
+
+{/* TODO(author): complete the spec table (repeatability, weight, joint ranges/speeds, IP rating) from the datasheet. */}
 
 ## DH parameters
 
 ![Side-view diagram of a Universal Robots arm showing its Denavit–Hartenberg frame assignment: Link 0 through Link 5, each drawn with a local coordinate frame at its joint; the link lengths a[1] and a[2] run along the vertical column, and the offsets d[0], d[3], d[4] and d[5] are marked between the joints. Source: Universal Robots.](/images/case-studies/universal-robot-overview.png)
 
-*Source: [Universal Robots — DH parameters for calculations of kinematics and dynamics](https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/).*
+*Classic (standard) DH convention, as published by Universal Robots; the rest of the site uses the modified (Craig) convention. Source: [Universal Robots — DH parameters for calculations of kinematics and dynamics](https://www.universal-robots.com/articles/ur/application-installation/dh-parameters-for-calculations-of-kinematics-and-dynamics/).*
 
 | Joint | a [m] | d [m] | α [rad] | θ |
 | :-: | :-: | :-: | :-: | :-: |
@@ -28,23 +50,89 @@ status: in-progress
 | 5 | 0 | 0.1593 | −π/2 | θ₅ |
 | 6 | 0 | 0.1543 | 0 | θ₆ |
 
+Looking closely at the UR20's table reveals its physical design:
+*   **The Upper Arm and Forearm ($a_2$ and $a_3$):** The only non-zero values in the $a$ column are the physical lengths of the main arm links. They are negative ($-0.8620$ m and $-0.7287$ m) because the $X$-axes of frames 2 and 3 are assigned to point in the opposite direction of the links when the robot is in its zero configuration.
+*   **The Shoulder and Wrist Offsets ($d$ column):** The $d$ values represent lateral displacements along the joint axes. $d_1$ ($0.2363$ m) is the height of the shoulder. The wrist offsets ($d_4, d_5, d_6$) create the characteristic "kinked" geometry of a UR wrist, ensuring the final three joint axes intersect in a way that allows for a closed-form analytical Inverse Kinematics solution.
+
 {/* TODO(author): describe the frame assignment and the UR DH convention. */}
 
 ## Forward kinematics
 
-{/* TODO(author): build the forward kinematics from the DH table (per-joint transforms and the base-to-tool ^0_6 T). */}
+{/* TODO(author): explain how FK chains the per-joint transforms and what ⁰₆T represents. */}
+
+Per-joint transform (classic DH), using the parameters from the table above:
+
+$$
+{}^{i-1}_{i}T(\theta_i) = \begin{bmatrix}
+\cos\theta_i & -\sin\theta_i\cos\alpha_i & \sin\theta_i\sin\alpha_i & a_i\cos\theta_i \\
+\sin\theta_i & \cos\theta_i\cos\alpha_i & -\cos\theta_i\sin\alpha_i & a_i\sin\theta_i \\
+0 & \sin\alpha_i & \cos\alpha_i & d_i \\
+0 & 0 & 0 & 1
+\end{bmatrix}
+$$
+
+The base-to-tool transform is their product:
+
+$$
+{}^{0}_{6}T = {}^{0}_{1}T\,{}^{1}_{2}T\,{}^{2}_{3}T\,{}^{3}_{4}T\,{}^{4}_{5}T\,{}^{5}_{6}T = \begin{bmatrix} {}^{0}_{6}R & {}^{0}P_{6} \\ \mathbf{0} & 1 \end{bmatrix}
+$$
+
+<UR20FKVizEmbed />
 
 ## Inverse kinematics
 
-{/* TODO(author): derive the inverse kinematics for the UR20 (closed-form / kinematic decoupling, multiple solutions). */}
+{/* TODO(author): explain the UR20 IK — the analytic closed-form solution and/or the numerical approach, and the multiple solution branches. */}
+
+Numerical IK by damped least squares (position), iterated toward a Cartesian target $x_{\text{target}}$:
+
+$$
+q_{k+1} = q_k + J_v^{\top}\left(J_v J_v^{\top} + \lambda^2 I\right)^{-1}\left(x_{\text{target}} - x_{\text{current}}\right)
+$$
+
+where $J_v$ is the linear (position) block of the geometric Jacobian and $\lambda$ damps the update near singularities.
+
+<UR20IKVizEmbed />
 
 ## Velocity kinematics & the Jacobian
 
 {/* TODO(author): construct the UR20 Jacobian and the joint-velocity ↔ tool-velocity mapping. */}
 
+The geometric Jacobian $J(q)$ maps joint rates $\dot q$ to the tool twist (linear velocity $v$ and angular velocity $\omega$):
+
+$$
+\begin{bmatrix} v \\ \omega \end{bmatrix} = J(q)\,\dot q, \qquad
+J(q) = \begin{bmatrix} J_v \\ J_\omega \end{bmatrix} \in \mathbb{R}^{6\times 6}.
+$$
+
+In the classic indexing joint $i$ acts about $z_{i-1}$. Every UR20 joint is revolute, so for joint $i$ with axis $z_{i-1}$ and frame origin $o_{i-1}$ (both in the base frame, read from the forward-kinematics chain), and tool position $o_6$, the $i$-th column is
+
+$$
+J_{:,i} = \begin{bmatrix} z_{i-1} \times (o_6 - o_{i-1}) \\ z_{i-1} \end{bmatrix}.
+$$
+
+The image of the linear block $J_v$ over unit-norm joint rates is the **velocity manipulability ellipsoid**; its semi-axes are the singular values $\sigma_1 \ge \sigma_2 \ge \sigma_3$ of $J_v$, and the Yoshikawa index $w = \lvert\det J\rvert$ measures the volume of dexterity.
+
+<UR20JacobianVizEmbed />
+
 ## Singularities & workspace
 
 {/* TODO(author): analyze the UR20's singular configurations and reachable workspace. */}
+
+A configuration $q$ is **singular** when the Jacobian loses rank — equivalently, when the manipulability drops to zero:
+
+$$
+\operatorname{rank} J(q) < 6 \iff \det J(q) = 0 \iff w(q) = 0.
+$$
+
+There the smallest singular value of $J$ goes to zero and the tool loses the ability to move (or reorient) in at least one direction. The UR20 has three singularity families:
+
+- **Wrist** — $\theta_5 = 0$, so joint axes 4 and 6 become collinear (a lost *orientation* freedom).
+- **Elbow** — the arm is fully extended, $\theta_3 = 0$.
+- **Shoulder** — the wrist centre lies on the axis of joint 1.
+
+The reachable workspace is bounded by the 1750 mm reach. The heatmap below plots $w$ over a 2-joint slice of configuration space; the singular manifolds are the dark curves where $w \to 0$.
+
+<UR20SingularityVizEmbed />
 
 ## Dynamics
 

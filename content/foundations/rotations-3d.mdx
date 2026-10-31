@@ -109,7 +109,7 @@ When rotation matrices operate on column vectors, the matrices are applied from 
 
 ## Worked example
 
-A robot arm has a camera mounted on its wrist. Let's call the ground the global frame $\{A\}$ and the camera the local $\{B\}$. The camera is pointing straight down, which means it has been rotated $90^\circ$ around the global Y-axis (Pitch).
+A robot arm has a camera mounted on its wrist. Let's call the ground the global frame $\{A\}$ and the camera the local $\{B\}$. The camera starts aligned with the ground frame, looking straight up along $Z_A$, and has been rotated $90^\circ$ around the global Y-axis (Pitch), so it now looks horizontally, along the global X-axis.
 
 The camera detects a QR code perfectly centered in its view, exactly 5 meters away along its local Z-axis. So, in the camera's frame, the position of the QR code is:
 

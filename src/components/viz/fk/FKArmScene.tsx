@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
-import { Line, OrbitControls } from "@react-three/drei";
+import { Html, Line, OrbitControls } from "@react-three/drei";
 import { L1, L2, L3 } from "./fkMath";
 
 // A strong, fixed highlight color for the Tool Center Point — used identically
@@ -42,13 +42,26 @@ function Link({ length, color }: { length: number; color: string }) {
   );
 }
 
+const labelClass =
+  "pointer-events-none select-none rounded border border-border bg-surface/80 px-1 py-0.5 font-mono text-xs text-foreground";
+
+function FrameLabel({ position, children }: { position: P3; children: string }) {
+  return (
+    <Html position={position} center>
+      <span className={labelClass}>{children}</span>
+    </Html>
+  );
+}
+
 /**
  * A 3-DOF arm (base yaw, shoulder pitch, elbow pitch) built as nested groups
- * matching A1·A2·A3 = Rotz(t1)·Transz(L1) · Roty(t2)·Transx(L2) · Roty(t3)·
- * Transx(L3). RGB coordinate frames sit at the base and every joint (x red,
- * y green, z blue via axesHelper), and the TCP trail is drawn in the robot's
- * base frame. Everything is wrapped in a -90deg x-rotation so the robot's z
- * points up on screen.
+ * that follow its modified (Craig) DH table in fkMath, one group per factor of
+ * ^{i-1}_iT = Rot_X(α_{i-1})·Trans_X(a_{i-1})·Rot_Z(θ_i)·Trans_Z(d_i). Each RGB
+ * triad (x red, y green, z blue via axesHelper) is therefore exactly DH frame
+ * {i}: Z_1 on the vertical base axis, Z_2 / Z_3 on the shoulder / elbow axes,
+ * and {T} at the TCP. The TCP trail is drawn in the robot's base frame.
+ * Everything is wrapped in a -90deg x-rotation so the robot's z points up on
+ * screen.
  */
 function Arm({
   t1,
@@ -76,6 +89,7 @@ function Arm({
     <group rotation={[-Math.PI / 2, 0, 0]}>
       {/* frame {0} — base */}
       <axesHelper args={[0.7]} />
+      <FrameLabel position={[-0.3, -0.2, 0]}>{"{0}"}</FrameLabel>
 
       {/* TCP trail (robot base frame) */}
       {trail.length > 1 && (
@@ -96,6 +110,7 @@ function Arm({
         </mesh>
       )}
 
+      {/* ⁰₁T = Rot_Z(θ1)·Trans_Z(d1 = L1) */}
       <group rotation={[0, 0, t1]}>
         {/* base column up to the shoulder */}
         <mesh position={[0, 0, L1 / 2]} rotation={[Math.PI / 2, 0, 0]}>
@@ -104,26 +119,40 @@ function Arm({
         </mesh>
 
         <group position={[0, 0, L1]}>
-          {/* frame {1} — shoulder */}
+          {/* frame {1} — Z_1 is the base (yaw) axis */}
           <axesHelper args={[0.55]} />
-          <group rotation={[0, t2, 0]}>
-            <Link length={L2} color={colors.link} />
-            <group position={[L2, 0, 0]}>
-              {/* frame {2} — elbow */}
+          <FrameLabel position={[-0.3, 0, 0]}>{"{1}"}</FrameLabel>
+
+          {/* ¹₂T = Rot_X(α1 = −90°)·Rot_Z(θ2) */}
+          <group rotation={[-Math.PI / 2, 0, 0]}>
+            <group rotation={[0, 0, t2]}>
+              {/* frame {2} — Z_2 is the shoulder axis */}
               <axesHelper args={[0.5]} />
-              <group rotation={[0, t3, 0]}>
-                <Link length={L3} color={colors.link} />
-                <group position={[L3, 0, 0]}>
-                  {/* frame {3} / TCP */}
-                  <axesHelper args={[0.55]} />
-                  <mesh>
-                    <sphereGeometry args={[0.09, 20, 20]} />
-                    <meshStandardMaterial
-                      color={TCP_COLOR}
-                      emissive={TCP_COLOR}
-                      emissiveIntensity={0.5}
-                    />
-                  </mesh>
+              <FrameLabel position={[0, -0.3, 0]}>{"{2}"}</FrameLabel>
+              <Link length={L2} color={colors.link} />
+
+              {/* ²₃T = Trans_X(a2 = L2)·Rot_Z(θ3) */}
+              <group position={[L2, 0, 0]}>
+                <group rotation={[0, 0, t3]}>
+                  {/* frame {3} — Z_3 is the elbow axis */}
+                  <axesHelper args={[0.5]} />
+                  <FrameLabel position={[0, -0.3, 0]}>{"{3}"}</FrameLabel>
+                  <Link length={L3} color={colors.link} />
+
+                  {/* ³_TT = Trans_X(a3 = L3) */}
+                  <group position={[L3, 0, 0]}>
+                    {/* frame {T} — tool / TCP */}
+                    <axesHelper args={[0.55]} />
+                    <FrameLabel position={[0.3, -0.15, 0]}>{"{T}"}</FrameLabel>
+                    <mesh>
+                      <sphereGeometry args={[0.09, 20, 20]} />
+                      <meshStandardMaterial
+                        color={TCP_COLOR}
+                        emissive={TCP_COLOR}
+                        emissiveIntensity={0.5}
+                      />
+                    </mesh>
+                  </group>
                 </group>
               </group>
             </group>

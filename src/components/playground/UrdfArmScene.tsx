@@ -105,7 +105,20 @@ function EllipsoidMesh({ e }: { e: Ellipsoid }) {
   );
 }
 
-function Scene({ config, theta, ellipsoid }: { config: UrdfArmConfig; theta: number[]; ellipsoid?: Ellipsoid | null }) {
+function Marker({ pos }: { pos: [number, number, number] }) {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => invalidate(), [pos, invalidate]);
+  return (
+    <group rotation={[-Math.PI / 2, 0, 0]}>
+      <mesh position={pos}>
+        <sphereGeometry args={[0.05, 20, 16]} />
+        <meshStandardMaterial color="#f472b6" emissive="#f472b6" emissiveIntensity={0.5} />
+      </mesh>
+    </group>
+  );
+}
+
+function Scene({ config, theta, ellipsoid, marker }: { config: UrdfArmConfig; theta: number[]; ellipsoid?: Ellipsoid | null; marker?: [number, number, number] | null }) {
   const dom = useThree((s) => s.gl.domElement);
   const grid = useMemo(
     () => getComputedStyle(dom).getPropertyValue("--viz-grid").trim() || "#1e2a38",
@@ -120,12 +133,13 @@ function Scene({ config, theta, ellipsoid }: { config: UrdfArmConfig; theta: num
       <gridHelper args={[size, size * 2, grid, grid]} position={[0, 0, 0]} />
       <Robot config={config} theta={theta} />
       {ellipsoid && <EllipsoidMesh e={ellipsoid} />}
+      {marker && <Marker pos={marker} />}
       <OrbitControls makeDefault enableDamping={false} target={config.target} minDistance={0.8} maxDistance={12} />
     </>
   );
 }
 
-export default function UrdfArmScene({ config, theta, ellipsoid }: { config: UrdfArmConfig; theta: number[]; ellipsoid?: Ellipsoid | null }) {
+export default function UrdfArmScene({ config, theta, ellipsoid, marker }: { config: UrdfArmConfig; theta: number[]; ellipsoid?: Ellipsoid | null; marker?: [number, number, number] | null }) {
   return (
     <Canvas
       frameloop="demand"
@@ -133,7 +147,7 @@ export default function UrdfArmScene({ config, theta, ellipsoid }: { config: Urd
       camera={{ position: config.cameraPosition, fov: 45 }}
       gl={{ alpha: true, antialias: true }}
     >
-      <Scene config={config} theta={theta} ellipsoid={ellipsoid} />
+      <Scene config={config} theta={theta} ellipsoid={ellipsoid} marker={marker} />
     </Canvas>
   );
 }

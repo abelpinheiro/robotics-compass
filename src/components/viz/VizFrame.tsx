@@ -20,8 +20,8 @@ export function VizFrame({
   children,
 }: {
   title?: string;
-  /** short caption shown under the viz */
-  caption?: string;
+  /** short caption shown under the viz (may include inline notation) */
+  caption?: ReactNode;
   /** required: prose description of what the viz depicts and its current state */
   textAlternative: string;
   /** optional controls region (buttons, sliders, selects) */
