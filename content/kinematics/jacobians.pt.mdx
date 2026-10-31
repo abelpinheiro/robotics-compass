@@ -29,19 +29,21 @@ Existem três métodos principais para encontrar essa matriz, dependendo da apli
 ### 1. O método geométrico (coluna por coluna)
 Podemos construir a Jacobiana geometricamente, considerando que cada coluna $i$ da matriz representa quanto a junta $i$ contribui para a velocidade total do efetuador.
 
-Usando os vetores que já extraímos das matrizes de cinemática direta (o vetor do eixo $Z$, $Z_i$, e a posição da origem $P_i$ de cada referencial), a $i$-ésima coluna da Jacobiana no referencial da base $^0J$ é definida como:
+Usando os vetores que já extraímos das matrizes de cinemática direta (o vetor do eixo $Z$, $Z_i$, e a posição da origem $P_i$ de cada referencial $\{i\}$, mais a origem $P_T$ do referencial da ferramenta (tool frame) $\{T\}$), a $i$-ésima coluna da Jacobiana no referencial da base $^0J$ é definida como:
 
 **Para uma junta rotacional:**
 $$
-J_i = \begin{bmatrix} Z_{i-1} \times (P_n - P_{i-1}) \\ Z_{i-1} \end{bmatrix}
+J_i = \begin{bmatrix} Z_i \times (P_T - P_i) \\ Z_i \end{bmatrix}
 $$
 *(A parte linear é o produto vetorial entre o eixo de rotação da junta e a distância até a ponta da ferramenta. A parte angular é simplesmente o próprio eixo de rotação.)*
 
 **Para uma junta prismática:**
 $$
-J_i = \begin{bmatrix} Z_{i-1} \\ 0 \end{bmatrix}
+J_i = \begin{bmatrix} Z_i \\ 0 \end{bmatrix}
 $$
 *(Uma junta deslizante adiciona velocidade linear diretamente ao longo do seu eixo e adiciona velocidade angular nula.)*
+
+Na convenção modificada (Craig), usada neste site, a junta $i$ atua em torno de $Z_i$. Livros que usam a convenção clássica (standard) escrevem as mesmas colunas com $Z_{i-1}$ e $P_{i-1}$.
 
 ### 2. O método da diferenciação parcial
 Para encontrar a Jacobiana analítica, podemos seguir o processo abaixo.
@@ -179,29 +181,29 @@ $F$ é um vetor $6 \times 1$ de forças e momentos aplicados na ponta da ferrame
 
 Vamos construir a Jacobiana para o robô planar padrão de 2 GDL (comprimentos de elo $L_1, L_2$) diretamente pelo método coluna por coluna.
 
-Precisamos dos eixos $Z$ e das origens do referencial $\{0\}$, do referencial $\{1\}$ e do referencial da ferramenta $\{2\}$. Como é um robô planar operando no plano XY, todos os eixos $Z$ apontam para fora da tela: $Z_0 = Z_1 = [0, 0, 1]^T$.
+Precisamos dos eixos $Z$ e das origens do referencial $\{1\}$, do referencial $\{2\}$ e do referencial da ferramenta $\{T\}$ (a tabela DH de Modelagem de Manipuladores). Como é um robô planar operando no plano XY, todos os eixos $Z$ apontam para fora da tela: $Z_1 = Z_2 = [0, 0, 1]^T$.
 
 Pela cinemática direta, as origens são:
-* $P_0 = [0, 0, 0]^T$
-* $P_1 = [L_1 \cos\theta_1, \ L_1 \sin\theta_1, \ 0]^T$
-* $P_2 = [L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2), \ L_1 \sin\theta_1 + L_2 \sin(\theta_1+\theta_2), \ 0]^T$
+* $P_1 = [0, 0, 0]^T$
+* $P_2 = [L_1 \cos\theta_1, \ L_1 \sin\theta_1, \ 0]^T$
+* $P_T = [L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2), \ L_1 \sin\theta_1 + L_2 \sin(\theta_1+\theta_2), \ 0]^T$
 
 **Coluna 1 (contribuição da junta 1):**
-A parte linear é $Z_0 \times (P_2 - P_0)$. Como $P_0$ é a origem, isso é simplesmente $Z_0 \times P_2$:
+A parte linear é $Z_1 \times (P_T - P_1)$. Como $P_1$ é a origem, isso é simplesmente $Z_1 \times P_T$:
 $$
-\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times \begin{bmatrix} P_{2x} \\ P_{2y} \\ 0 \end{bmatrix} = \begin{bmatrix} -P_{2y} \\ P_{2x} \\ 0 \end{bmatrix}
+\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times \begin{bmatrix} P_{Tx} \\ P_{Ty} \\ 0 \end{bmatrix} = \begin{bmatrix} -P_{Ty} \\ P_{Tx} \\ 0 \end{bmatrix}
 $$
 $$
 J_1 = \begin{bmatrix} -L_1 \sin\theta_1 - L_2 \sin(\theta_1+\theta_2) \\ L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2) \\ 0 \\ 0 \\ 0 \\ 1 \end{bmatrix}
 $$
 
 **Coluna 2 (contribuição da junta 2):**
-A parte linear é $Z_1 \times (P_2 - P_1)$:
+A parte linear é $Z_2 \times (P_T - P_2)$:
 $$
-P_2 - P_1 = \begin{bmatrix} L_2 \cos(\theta_1+\theta_2) \\ L_2 \sin(\theta_1+\theta_2) \\ 0 \end{bmatrix}
+P_T - P_2 = \begin{bmatrix} L_2 \cos(\theta_1+\theta_2) \\ L_2 \sin(\theta_1+\theta_2) \\ 0 \end{bmatrix}
 $$
 $$
-\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times (P_2 - P_1) = \begin{bmatrix} -L_2 \sin(\theta_1+\theta_2) \\ L_2 \cos(\theta_1+\theta_2) \\ 0 \end{bmatrix}
+\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times (P_T - P_2) = \begin{bmatrix} -L_2 \sin(\theta_1+\theta_2) \\ L_2 \cos(\theta_1+\theta_2) \\ 0 \end{bmatrix}
 $$
 $$
 J_2 = \begin{bmatrix} -L_2 \sin(\theta_1+\theta_2) \\ L_2 \cos(\theta_1+\theta_2) \\ 0 \\ 0 \\ 0 \\ 1 \end{bmatrix}

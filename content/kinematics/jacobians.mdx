@@ -29,19 +29,21 @@ There are three primary methods to find this matrix, depending on the applicatio
 ### 1. The Geometric Method (Column by Column)
 We can build the Jacobian geometrically by considering that each column $i$ of the matrix represents how much joint $i$ contributes to the total velocity of the end-effector.
 
-Using the vectors we already extracted from our Forward Kinematics matrices (the $Z$-axis vector $Z_i$ and the origin position $P_i$ of each frame), the $i$-th column of the base-frame Jacobian $^0J$ is defined as:
+Using the vectors we already extracted from our Forward Kinematics matrices (the $Z$-axis vector $Z_i$ and the origin position $P_i$ of each frame $\{i\}$, plus the origin $P_T$ of the tool frame $\{T\}$), the $i$-th column of the base-frame Jacobian $^0J$ is defined as:
 
 **For a Revolute Joint:**
 $$
-J_i = \begin{bmatrix} Z_{i-1} \times (P_n - P_{i-1}) \\ Z_{i-1} \end{bmatrix}
+J_i = \begin{bmatrix} Z_i \times (P_T - P_i) \\ Z_i \end{bmatrix}
 $$
 *(The linear part is the cross product of the joint's axis of rotation and the distance to the tool tip. The angular part is simply the axis of rotation itself).*
 
 **For a Prismatic Joint:**
 $$
-J_i = \begin{bmatrix} Z_{i-1} \\ 0 \end{bmatrix}
+J_i = \begin{bmatrix} Z_i \\ 0 \end{bmatrix}
 $$
 *(A sliding joint adds linear velocity directly along its axis, and adds zero angular velocity).*
+
+In the modified (Craig) convention used on this site, joint $i$ acts about $Z_i$. Books that use the classic (standard) convention write the same columns with $Z_{i-1}$ and $P_{i-1}$.
 
 ### 2. The Partial Differentiation Method
 To find the Analytical Jacobian, we can follow the process below.
@@ -179,29 +181,29 @@ $F$ is a $6 \times 1$ vector of forces and moments applied at the tool tip, and 
 
 Let's construct the Jacobian for the standard 2-DOF planar robot (link lengths $L_1, L_2$) directly from the column-by-column method. 
 
-We need the $Z$-axes and Origin points of Frame $\{0\}$, Frame $\{1\}$, and the Tool Frame $\{2\}$. Because it is a planar robot operating in the XY plane, all $Z$-axes point straight out of the screen: $Z_0 = Z_1 = [0, 0, 1]^T$.
+We need the $Z$-axes and Origin points of Frame $\{1\}$, Frame $\{2\}$, and the Tool Frame $\{T\}$ (the DH table from Modeling Manipulators). Because it is a planar robot operating in the XY plane, all $Z$-axes point straight out of the screen: $Z_1 = Z_2 = [0, 0, 1]^T$.
 
 From Forward Kinematics, the origins are:
-* $P_0 = [0, 0, 0]^T$
-* $P_1 = [L_1 \cos\theta_1, \ L_1 \sin\theta_1, \ 0]^T$
-* $P_2 = [L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2), \ L_1 \sin\theta_1 + L_2 \sin(\theta_1+\theta_2), \ 0]^T$
+* $P_1 = [0, 0, 0]^T$
+* $P_2 = [L_1 \cos\theta_1, \ L_1 \sin\theta_1, \ 0]^T$
+* $P_T = [L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2), \ L_1 \sin\theta_1 + L_2 \sin(\theta_1+\theta_2), \ 0]^T$
 
 **Column 1 (Joint 1's contribution):**
-The linear portion is $Z_0 \times (P_2 - P_0)$. Since $P_0$ is the origin, this is just $Z_0 \times P_2$:
+The linear portion is $Z_1 \times (P_T - P_1)$. Since $P_1$ is the origin, this is just $Z_1 \times P_T$:
 $$
-\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times \begin{bmatrix} P_{2x} \\ P_{2y} \\ 0 \end{bmatrix} = \begin{bmatrix} -P_{2y} \\ P_{2x} \\ 0 \end{bmatrix}
+\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times \begin{bmatrix} P_{Tx} \\ P_{Ty} \\ 0 \end{bmatrix} = \begin{bmatrix} -P_{Ty} \\ P_{Tx} \\ 0 \end{bmatrix}
 $$
 $$
 J_1 = \begin{bmatrix} -L_1 \sin\theta_1 - L_2 \sin(\theta_1+\theta_2) \\ L_1 \cos\theta_1 + L_2 \cos(\theta_1+\theta_2) \\ 0 \\ 0 \\ 0 \\ 1 \end{bmatrix}
 $$
 
 **Column 2 (Joint 2's contribution):**
-The linear portion is $Z_1 \times (P_2 - P_1)$:
+The linear portion is $Z_2 \times (P_T - P_2)$:
 $$
-P_2 - P_1 = \begin{bmatrix} L_2 \cos(\theta_1+\theta_2) \\ L_2 \sin(\theta_1+\theta_2) \\ 0 \end{bmatrix}
+P_T - P_2 = \begin{bmatrix} L_2 \cos(\theta_1+\theta_2) \\ L_2 \sin(\theta_1+\theta_2) \\ 0 \end{bmatrix}
 $$
 $$
-\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times (P_2 - P_1) = \begin{bmatrix} -L_2 \sin(\theta_1+\theta_2) \\ L_2 \cos(\theta_1+\theta_2) \\ 0 \end{bmatrix}
+\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix} \times (P_T - P_2) = \begin{bmatrix} -L_2 \sin(\theta_1+\theta_2) \\ L_2 \cos(\theta_1+\theta_2) \\ 0 \end{bmatrix}
 $$
 $$
 J_2 = \begin{bmatrix} -L_2 \sin(\theta_1+\theta_2) \\ L_2 \cos(\theta_1+\theta_2) \\ 0 \\ 0 \\ 0 \\ 1 \end{bmatrix}
