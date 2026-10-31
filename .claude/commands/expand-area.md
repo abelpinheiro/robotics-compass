@@ -16,7 +16,8 @@ Steps:
 2. Delegate to the **lesson-builder** agent to create **one empty lesson file per topic**, in
    course order, each from the **lesson-template** skill:
    - `content/$1/<slug>.mdx` per topic, with `title` (humanized), `area: $1`, `slug`, the
-     correct 1-based `order`, and `summary: ""` empty; the seven fixed empty sections. No
+     correct 1-based `order`, and `summary: ""` empty; the template v2 body (seven fixed empty
+     sections with their component hints). No
      `status`, `difficulty`, or `prerequisites` in front-matter.
    - Skip any topic whose file already exists (report it as skipped) — do not overwrite.
 3. Confirm every lesson is registered in its chapter in `src/lib/curriculum.ts` with

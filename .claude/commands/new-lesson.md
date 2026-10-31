@@ -15,7 +15,8 @@ Delegate to the **lesson-builder** agent. It must:
    must already have a slot in a chapter. If it does not, stop and ask — do not invent topics.
 2. Create `content/$1/$2.mdx` from the **lesson-template** skill exactly: front-matter with
    `title` (humanized, sentence case), `area: $1`, `slug: $2`, correct `order`, and
-   `summary: ""` left empty; the seven fixed empty sections. No `status`, `difficulty`, or
+   `summary: ""` left empty; the template v2 body (optional motivating-question comment, the
+   seven fixed empty sections with their component hints). No `status`, `difficulty`, or
    `prerequisites` in front-matter.
 3. Make sure the lesson is registered in its chapter in `src/lib/curriculum.ts` with
    `status: "planned"`, its proposed `difficulty` and `prerequisites` (flag them for the author
