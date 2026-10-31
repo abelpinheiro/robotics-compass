@@ -99,6 +99,10 @@ All live under `src/components/`.
   difficulty, prerequisites, status) as a lesson header.
 - **Callout** (`lesson/`) — boxed note (info / warning / success variants) using
   `accent-weak` / `warning` / `success` token backgrounds with AA-contrast text.
+- **Lesson components** (`lesson/`, template v2) — MotivatingQuestion (accent-weak box, accent
+  left border), Proof / ProofStep / Why (bordered card, CSS-counter step numbers, native
+  `<details>` for "why?"), ExerciseCard (level tag, progressive hints, solution with a success
+  left border), Connections (bordered card with a `<dl>`). Details in the lesson-template skill.
 - **VizFrame** (`viz/`) — the framed container every visualization sits in: caption, a
   **required text-alternative** (`<figcaption>` / visually-hidden description), and controls
   region. Provides consistent border/radius/padding.

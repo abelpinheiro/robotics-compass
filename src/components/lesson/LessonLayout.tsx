@@ -4,6 +4,7 @@ import type { Difficulty, LessonRef, LessonStatus } from "@/lib/curriculum";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { localePath } from "@/lib/i18n/routing";
+import { Connections } from "./Connections";
 import { localizedLessonTitle } from "@/lib/i18n/titles";
 
 // Front-matter is for content the author writes (title, summary). Structural
@@ -15,6 +16,8 @@ export interface LessonFrontmatter {
   slug: string;
   order: number;
   summary?: string;
+  /** optional internal paths (written without a locale) or URLs for "See also" */
+  seeAlso?: string[];
 }
 
 const DIFFICULTY_DOT: Record<Difficulty, string> = {
@@ -31,6 +34,7 @@ const DIFFICULTY_DOT: Record<Difficulty, string> = {
  */
 export function LessonLayout({
   locale,
+  slug,
   frontmatter,
   chapterLabel,
   status,
@@ -40,6 +44,8 @@ export function LessonLayout({
   children,
 }: {
   locale: Locale;
+  /** the lesson's slug in curriculum.ts (drives Connections) */
+  slug: string;
   frontmatter: LessonFrontmatter;
   /** localized "Chapter 4 · …" label shown above the title */
   chapterLabel?: string;
@@ -96,6 +102,8 @@ export function LessonLayout({
       </header>
 
       {children}
+
+      <Connections slug={slug} locale={locale} seeAlso={frontmatter.seeAlso} />
 
       {(prev || next) && (
         <nav

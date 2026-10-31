@@ -143,6 +143,12 @@ Conventions:
   `useLocale().href(path)`. Links inside lesson MDX are written without a locale
   (`/lessons/…`); `MdxLink` adds it. The `locale` cookie only remembers the toggle's choice
   for unprefixed URLs (handled in `src/proxy.ts`).
+- **Lesson components (template v2)**, global in `src/mdx-components.tsx`: `<MotivatingQuestion>`,
+  `<Proof>` / `<ProofStep>` / `<Why prereq>`, and (Phase 4) `<Exercise id>` filling the
+  `ExerciseCard`. They are frames — the author writes everything inside them. Connections
+  ("builds on" / "leads to" from the prerequisite graph, plus optional `seeAlso` front-matter)
+  render automatically at the end of every lesson. Section headings get ids from their text.
+  Dev-only gallery: `/<locale>/dev/components`. See `.claude/skills/lesson-template`.
 - Visualizations are React components under `src/components/viz/`, lazy-loaded and wired into
   a lesson's `Visualization` section slot. Their math lives in a separate, tested module.
 - Path aliases: import app code via `@/…` (maps to `src/…`).

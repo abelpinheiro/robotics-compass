@@ -21,7 +21,8 @@ Process for each lesson:
    - Front-matter: set `title` (humanized, sentence case), `area`, `slug`, `order` (1-based
      index within the area). No `status` in front-matter — it lives in `curriculum.ts`.
    - Leave `summary: ""` **empty** for the human.
-   - Body: the seven fixed sections (Intuition · Formal definition · Visualization · Worked
+   - Body (template v2): the optional motivating-question comment, then the seven fixed
+     sections (Intuition · Formal definition · Visualization · Worked
      example · Common pitfalls · Exercises · Further reading), each with only its empty
      author/viz placeholder comment.
 3. Ensure the lesson is reachable: the route `src/app/[lang]/lessons/[area]/[slug]/` renders

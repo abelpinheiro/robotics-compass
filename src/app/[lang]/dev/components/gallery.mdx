@@ -1,0 +1,50 @@
+import { ExerciseCard } from "@/components/lesson/ExerciseCard";
+
+{/* Dev-only gallery of the lesson template v2 components. Bracketed text is a
+    placeholder for the author's writing; the math is taken from the Jacobians
+    lesson only to show how equations sit inside a proof. */}
+
+<MotivatingQuestion answer="#formal-definition">
+[author's motivating question · pergunta motivadora do autor]
+</MotivatingQuestion>
+
+## Formal definition
+
+<Proof>
+<ProofStep>
+$$
+v_T = \sum_i \omega_i \times (P_T - P_i)
+$$
+<Why>
+[author's justification · justificativa do autor]
+</Why>
+</ProofStep>
+<ProofStep>
+$$
+\omega_i = Z_i\,\dot\theta_i
+$$
+<Why prereq="velocity-kinematics">
+[justification with a prerequisite that has a page · com pré-requisito publicado]
+</Why>
+</ProofStep>
+<ProofStep>
+$$
+J_i = \begin{bmatrix} Z_i \times (P_T - P_i) \\ Z_i \end{bmatrix}
+$$
+<Why prereq="lagrangian-dynamics">
+[justification with a planned prerequisite · com pré-requisito planejado]
+</Why>
+</ProofStep>
+</Proof>
+
+## Exercises
+
+<ExerciseCard
+  number={1}
+  level={2}
+  statement="[statement · enunciado]"
+  hints={["[first hint · primeira dica]", "[second hint · segunda dica]", "[third hint · terceira dica]"]}
+  solution="[reference solution · solução de referência]"
+/>
+
+<ExerciseCard number={2} level={4} statement="[statement with no hints · enunciado sem dicas]" />
