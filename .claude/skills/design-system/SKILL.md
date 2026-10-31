@@ -104,7 +104,11 @@ All live under `src/components/`.
   `<details>` for "why?"), ExerciseCard (level tag, progressive hints, solution with a success
   left border), Connections (bordered card with a `<dl>`). Exercise feedback keeps text at
   `foreground` and signals right/wrong with a `success`/`danger` left border plus ✓/✗ (those
-  tokens are below AA as text on white). Details in the lesson-template skill.
+  tokens are below AA as text on white). The interactive exercises' planar arm is a 2D SVG in
+  the light theme (it is not a 3D canvas): `surface` panel, `foreground` links, `accent` tip,
+  `viz-goal` target, one slider per joint, and its state as text in the `<figcaption>`. The
+  Python editor is a plain monospace `<textarea>` (Esc releases Tab, so there is no keyboard
+  trap). Details in the lesson-template skill.
 - **VizFrame** (`viz/`) — the framed container every visualization sits in: caption, a
   **required text-alternative** (`<figcaption>` / visually-hidden description), and controls
   region. Provides consistent border/radius/padding.

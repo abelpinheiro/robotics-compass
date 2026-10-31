@@ -172,15 +172,31 @@ Each lesson's exercises live in `content/<area>/<slug>.exercises.ts`, registered
   `symbolic` (the reader types an expression in the given variables; checked numerically at
   seeded sample points, mathjs loaded only then), `order` (put derivation steps in order),
   `wrong-step` (find the one wrong step; feedback per step), `gaps` (a sentence with numeric
-  or choice blanks). Levels L1 concept · L2 application · L3 analysis · L4 challenge.
+  or choice blanks), `interactive` and `python` (below). Levels L1 concept · L2 application ·
+  L3 analysis · L4 challenge.
+- **Interactive:** `widget: "planar-arm"` (`src/lib/exercises/planarArm.ts`, modified DH
+  through the shared kernel). `setup(p)` gives the links, starting angles (degrees), an
+  optional target and whether to show the tip; `conditions(p)` are ranges (`min`/`max`) on the
+  arm's quantities (`x`, `y`, `phi`, `detJ`, `w`, `elbowHeight`, `targetDistance`), each with
+  optional `feedback` shown when it fails; `solve(p)` is a reference configuration (quoted in
+  texts as `{{ref1}}`, `{{ref2}}`, …) that the solution can put on the arm. The tests require the
+  reference to pass (also snapped to the sliders' step), the starting state and a perturbed
+  reference to fail.
+- **Python:** the reader writes `entry` (a function name) starting from `starter`; it runs in
+  the browser in Pyodide (numpy only), loaded from the pinned CDN build on the first run, in a
+  module worker with a 10 s limit. `cases(p, rng)` lists the argument lists; `solve(args)` gives
+  the expected value in TypeScript (e.g. through the kinematics kernel) and `verifyCase` checks
+  it another way. `reference` is the Python solution, shown with the worked solution: the tests
+  run it in Pyodide (it must pass every case) and the starter (it must not).
 - **Text** is `{ en, pt }` in a small format: `$…$`/`$$…$$` math, `**bold**`, blank lines for
   paragraphs, and `{{param}}` / `{{param:2}}` for seeded parameters (`{{answer}}` in numeric
   solutions; a numeric gap's id in gaps solutions). Portuguese gets a decimal comma.
 - **Seeded variants:** `params(rng)` draws each variant's parameters (6 variants by default);
   the server renders every variant, and the reader can switch to "another version".
 - **Reference solution + independent check (Golden rule 1):** `solve` gives the reference
-  answer; `verify` (required for numeric and gaps) or `evaluate` (symbolic) must reach the
-  same result another way, e.g. through the kinematics kernel in `src/lib/kinematics/`.
+  answer; `verify` (required for numeric, gaps and interactive), `evaluate` (symbolic) or
+  `verifyCase` (python) must reach the same result another way, e.g. through the kinematics
+  kernel in `src/lib/kinematics/`.
   `src/lib/exercises/exercises.test.ts` runs, for every exercise and variant: schema, both
   locales rendering (KaTeX errors fail), the reference passing the browser's checker and a
   perturbed answer failing, and `verify`.
