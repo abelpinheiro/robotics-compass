@@ -95,17 +95,19 @@ robotics-compass/
 │  ├─ app/
 │  │  ├─ layout.tsx               # root layout, light theme default, locale
 │  │  ├─ globals.css              # design tokens (:root + .theme-dark) + Tailwind
-│  │  ├─ page.tsx                 # home
+│  │  ├─ page.tsx                 # home (course outline by part)
+│  │  ├─ course-map/              # course map: table of contents + prerequisite graph
 │  │  ├─ lessons/[area]/[slug]/   # dynamic lesson route renders content/*.mdx
 │  │  └─ playground/              # dark simulator page
 │  ├─ mdx-components.tsx          # global MDX component map
 │  ├─ components/
 │  │  ├─ shell/                   # AppShell, Header (compass logo), Sidebar, LanguageToggle
 │  │  ├─ lesson/                  # LessonLayout, Callout, section primitives
+│  │  ├─ course-map/              # labels, status badge, prerequisite graph + its tested layout
 │  │  ├─ viz/                     # VizFrame, Viz2D, Viz3D wrappers + viz impls
 │  │  └─ playground/              # RobotPlayground + per-robot math (URDF chains)
 │  └─ lib/
-│     ├─ curriculum.ts            # taxonomy / nav config — single source of truth
+│     ├─ curriculum.ts            # course map (parts → chapters → lessons) — single source of truth
 │     ├─ content.ts               # MDX loading (locale file first, then English)
 │     ├─ i18n/                    # locale config, dictionaries, PT titles
 │     └─ kinematics/              # shared math kernel (4×4 transforms, modified DH)
@@ -116,10 +118,17 @@ Conventions:
 - **Lessons live in `content/<area>/<slug>.mdx`** and are rendered by the dynamic route
   `src/app/lessons/[area]/[slug]/`. Adding a lesson = add an MDX file + register it in the
   curriculum config; never hand-author 70 route folders.
-- **`src/lib/curriculum.ts` is the canonical nav/ordering source** and holds each lesson's
-  `status`, `difficulty`, and `prerequisites`. Front-matter carries only author content
-  (`title`, `summary`) plus structural `area`/`slug`/`order`. Drafts are hidden from
-  navigation. `curriculum.ts` must mirror `.claude/skills/robotics-curriculum`.
+- **`src/lib/curriculum.ts` is the canonical course map**: Parts (I–VI plus case studies) →
+  numbered chapters (1–11 follow Craig 2–13) → lessons. It holds each lesson's `status`,
+  `difficulty`, and `prerequisites`, plus its `area`, which is only the content folder and URL
+  segment (never shown in navigation). Front-matter carries only author content (`title`,
+  `summary`) plus structural `area`/`slug`/`order`. `curriculum.ts` must mirror
+  `.claude/skills/robotics-curriculum`; `src/lib/curriculum.test.ts` checks it against
+  `content/`.
+- **Lesson statuses:** `published` and `in-progress` have a page and appear in navigation;
+  `planned` and `parked` (the parked Part VI) appear only in the course map, with **no page in
+  production** (the dev server renders them, so the author can preview while writing).
+  Publishing = switching `status` to `in-progress` or `published`.
 - **Translations:** a lesson's Portuguese version is the sibling `<slug>.pt.mdx`, written by
   the author like any other lesson prose. PT titles for navigation live in
   `src/lib/i18n/titles.ts`.

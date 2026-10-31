@@ -31,12 +31,13 @@ Rules:
 - `title`, `area`, `slug`, `order` are filled from the curriculum (structural, not prose).
 - `summary` is **left empty** for the human — it describes the concept and is the author's call.
 - **`status`, `difficulty`, and `prerequisites` live ONLY in `src/lib/curriculum.ts`** (on the
-  `LessonRef`), not in front-matter. `status` controls visibility (drafts are hidden from the
-  sidebar/roadmap); `difficulty`/`prerequisites` form the graph that powers prereq links,
-  prev/next navigation, and the home-page roadmap. **To publish a lesson, set
-  `status: "published"` on its `LessonRef` in `curriculum.ts`** (not the MDX). New lessons start
-  `status: "draft"` there. Existing lessons may still carry an ignored `status`/`difficulty`/
-  `prerequisites` front-matter key; the app does not read them.
+  `LessonRef`, inside its chapter), not in front-matter. `status` controls visibility: `planned`
+  lessons appear only in the course map and have no page in production (the dev server renders
+  them for preview); `difficulty`/`prerequisites` form the graph that powers prereq links,
+  prev/next navigation, and the course-map graph. **To publish a lesson, set `status:
+  "in-progress"` or `"published"` on its `LessonRef` in `curriculum.ts`** (not the MDX). New
+  lessons start `status: "planned"` there. Existing lessons may still carry an ignored
+  `status`/`difficulty`/`prerequisites` front-matter key; the app does not read them.
 
 ## Section placeholders (fixed order, empty)
 
