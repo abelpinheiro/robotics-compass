@@ -1,11 +1,13 @@
 import { validateSet } from "./schema";
 import type { ExerciseDef, ExerciseSet } from "./types";
+import forwardKinematics from "../../../content/kinematics/forward-kinematics.exercises";
+import inverseKinematics from "../../../content/kinematics/inverse-kinematics.exercises";
 import jacobians from "../../../content/kinematics/jacobians.exercises";
 
 // Every exercise data file, validated when this module loads (a malformed
 // exercise fails the build). Register a new content/<area>/<slug>.exercises.ts
 // here; src/lib/exercises/exercises.test.ts fails if one is missing.
-export const exerciseSets: ExerciseSet[] = [jacobians].map(validateSet);
+export const exerciseSets: ExerciseSet[] = [forwardKinematics, inverseKinematics, jacobians].map(validateSet);
 
 const byId = new Map<string, { def: ExerciseDef; lesson: string }>();
 for (const set of exerciseSets) {
