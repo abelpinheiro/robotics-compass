@@ -4,12 +4,16 @@ export interface Dictionary {
   nav: {
     skipToContent: string;
     curriculum: string;
-    lessonsComingSoon: string;
     toggleNav: string;
     relatedCourses: string;
+    courseMap: string;
+    /** "Part I" */
+    part: (numeral: string) => string;
+    /** "Chapter 4" */
+    chapter: (n: number) => string;
   };
   langToggle: { label: string; en: string; pt: string };
-  badge: { draft: string; "in-progress": string; published: string };
+  badge: { published: string; "in-progress": string; planned: string; parked: string };
   difficulty: { intro: string; core: string; advanced: string };
   lesson: {
     prerequisites: string;
@@ -22,9 +26,11 @@ export interface Dictionary {
     tagline: string;
     calloutTitle: string;
     calloutBody: string;
-    roadmapTitle: string;
-    roadmapSubtitle: string;
-    roadmapAria: string;
+    outlineTitle: string;
+    outlineSubtitle: string;
+    openMap: string;
+    /** "3 of 18 lessons available" */
+    lessonsAvailable: (visible: number, total: number) => string;
   };
   viz: {
     textDescription: string;
@@ -57,12 +63,14 @@ const en: Dictionary = {
   nav: {
     skipToContent: "Skip to content",
     curriculum: "Curriculum",
-    lessonsComingSoon: "Lessons coming soon",
     toggleNav: "Toggle navigation",
     relatedCourses: "Related courses",
+    courseMap: "Course map",
+    part: (numeral) => `Part ${numeral}`,
+    chapter: (n) => `Chapter ${n}`,
   },
   langToggle: { label: "Change language", en: "EN", pt: "PT" },
-  badge: { draft: "draft", "in-progress": "in progress", published: "published" },
+  badge: { published: "published", "in-progress": "in progress", planned: "planned", parked: "parked" },
   difficulty: { intro: "intro", core: "core", advanced: "advanced" },
   lesson: {
     prerequisites: "Prerequisites",
@@ -76,12 +84,15 @@ const en: Dictionary = {
       "An interactive guide to robotics! I  try to cover all topics regarding the field of robotics and focus on the path planning, my master's line of research. This website is essentially a collection of notes I took while studying each topic, along with visualizations that helped me better understand the concepts.",
     calloutTitle: "Early skeleton",
     calloutBody:
-      "The curriculum is still being drafted. Browse the areas in the sidebar, or follow the suggested learning path below.",
-    roadmapTitle: "Suggested learning path",
-    roadmapSubtitle:
-      "How the areas build on each other. Feel free to pick any to start.",
-    roadmapAria:
-      "Curriculum dependency map: areas connected by prerequisite arrows.",
+      "The curriculum is still being drafted. Browse the parts in the sidebar, or open the course map below.",
+    outlineTitle: "Course outline",
+    outlineSubtitle:
+      "Six parts, from spatial descriptions to planning and learning. The course map lists every chapter and the prerequisite graph.",
+    openMap: "Open the course map",
+    lessonsAvailable: (visible, total) =>
+      total === 0
+        ? "No lessons yet"
+        : `${visible} of ${total} ${total === 1 ? "lesson" : "lessons"} available`,
   },
   viz: {
     textDescription: "Text description",
@@ -114,12 +125,14 @@ const pt: Dictionary = {
   nav: {
     skipToContent: "Pular para o conteúdo",
     curriculum: "Currículo",
-    lessonsComingSoon: "Lições em breve",
     toggleNav: "Alternar navegação",
     relatedCourses: "Cursos relacionados",
+    courseMap: "Mapa do curso",
+    part: (numeral) => `Parte ${numeral}`,
+    chapter: (n) => `Capítulo ${n}`,
   },
   langToggle: { label: "Mudar idioma", en: "EN", pt: "PT" },
-  badge: { draft: "rascunho", "in-progress": "em progresso", published: "publicado" },
+  badge: { published: "publicado", "in-progress": "em progresso", planned: "planejado", parked: "estacionado" },
   difficulty: { intro: "introdução", core: "intermediário", advanced: "avançado" },
   lesson: {
     prerequisites: "Pré-requisitos",
@@ -133,12 +146,15 @@ const pt: Dictionary = {
       "Um guia interativo de robótica! Procuro cobrir todos os tópicos da área de robótica, com foco em planejamento de trajetórias, minha linha de pesquisa no mestrado. Este site é essencialmente uma coletânea das anotações que fiz ao estudar cada tópico, junto com as visualizações que me ajudaram a entender melhor os conceitos.",
     calloutTitle: "Esqueleto inicial",
     calloutBody:
-      "O currículo ainda está sendo redigido. Navegue pelas áreas na barra lateral ou siga o caminho de estudo sugerido abaixo.",
-    roadmapTitle: "Caminho de estudo sugerido",
-    roadmapSubtitle:
-      "Como as áreas se constroem umas sobre as outras. Fique à vontade para começar por qualquer uma.",
-    roadmapAria:
-      "Mapa de dependências do currículo: áreas conectadas por setas de pré-requisito.",
+      "O currículo ainda está sendo redigido. Navegue pelas partes na barra lateral ou abra o mapa do curso abaixo.",
+    outlineTitle: "Estrutura do curso",
+    outlineSubtitle:
+      "Seis partes, das descrições espaciais ao planejamento e aprendizado. O mapa do curso mostra todos os capítulos e o grafo de pré-requisitos.",
+    openMap: "Abrir o mapa do curso",
+    lessonsAvailable: (visible, total) =>
+      total === 0
+        ? "Ainda sem lições"
+        : `${visible} de ${total} ${total === 1 ? "lição disponível" : "lições disponíveis"}`,
   },
   viz: {
     textDescription: "Descrição em texto",

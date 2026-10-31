@@ -3,12 +3,19 @@
 import { useMemo, useSyncExternalStore } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { curriculum, isLessonVisible } from "@/lib/curriculum";
+import {
+  curriculum,
+  getChapterState,
+  getLessonPlacement,
+  isLessonVisible,
+} from "@/lib/curriculum";
 import { useSidebar } from "./sidebar-context";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
-import { localizedAreaTitle, localizedLessonTitle } from "@/lib/i18n/titles";
+import { localizedLessonTitle } from "@/lib/i18n/titles";
+import { chapterLabel, hasChapterHeadings } from "@/components/course-map/labels";
+import { StatusBadge } from "@/components/course-map/StatusBadge";
 
-const STORAGE_KEY = "rc-collapsed-areas";
+const STORAGE_KEY = "rc-collapsed-parts";
 
 // Optional external courses for readers who want to go further (institution
 // names are language-neutral, so not part of the translation dictionary).
@@ -27,7 +34,7 @@ const COURSES = [
   },
 ];
 
-// Tiny external store for the persisted set of collapsed areas. Using
+// Tiny external store for the persisted set of collapsed parts. Using
 // useSyncExternalStore keeps it hydration-safe (server snapshot = none
 // collapsed) without setting state inside an effect.
 const listeners = new Set<() => void>();
@@ -54,12 +61,13 @@ function subscribe(cb: () => void) {
 }
 
 /**
- * Curriculum navigation, grouped by area in taxonomy order, read from
- * `src/lib/curriculum.ts`. Each area is a collapsible section (collapsed set
- * persisted to localStorage; the current lesson's area is always shown). The
- * current lesson is marked with `aria-current="page"`. On small screens the
- * whole nav collapses behind the header toggle as an overlay drawer; on md+ it
- * is a sticky left column.
+ * Course navigation read from `src/lib/curriculum.ts`: a link to the course
+ * map, then Parts → chapters → visible lessons. Each part is a collapsible
+ * section (collapsed set persisted to localStorage; the current lesson's part
+ * is always shown). Chapters with nothing visible yet show as "planned" without
+ * a link; the parked part is a single line. The current lesson is marked with
+ * `aria-current="page"`. On small screens the whole nav collapses behind the
+ * header toggle as an overlay drawer; on md+ it is a sticky left column.
  */
 export function Sidebar() {
   const { open, close } = useSidebar();
@@ -72,15 +80,15 @@ export function Sidebar() {
     [raw],
   );
 
-  const toggleArea = (slug: string) => {
+  const togglePart = (slug: string) => {
     const next = new Set(collapsed);
     if (next.has(slug)) next.delete(slug);
     else next.add(slug);
     writeStore(JSON.stringify([...next]));
   };
 
-  const currentArea = pathname.startsWith("/lessons/")
-    ? pathname.split("/")[2]
+  const currentPart = pathname.startsWith("/lessons/")
+    ? getLessonPlacement(pathname.split("/")[3] ?? "")?.part.slug
     : undefined;
 
   const asideClass = open
@@ -99,61 +107,107 @@ export function Sidebar() {
       )}
 
       <aside id="curriculum-nav" className={asideClass}>
-        <nav aria-label="Curriculum" className="text-sm">
+        <Link
+          href="/course-map"
+          onClick={close}
+          aria-current={pathname === "/course-map" ? "page" : undefined}
+          className="mb-4 flex items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold text-accent hover:bg-accent-weak"
+        >
+          <span>{t.nav.courseMap}</span>
+          <span aria-hidden="true">→</span>
+        </Link>
+
+        <nav aria-label={t.nav.curriculum} className="text-sm">
           <ul className="space-y-3">
-            {curriculum.map((area) => {
-              const lessons = area.lessons.filter(isLessonVisible);
-              if (lessons.length === 0) return null; // hide areas with no ready lessons
-              const isOpen =
-                !collapsed.has(area.slug) || area.slug === currentArea;
-              const listId = `area-${area.slug}-list`;
+            {curriculum.map((part) => {
+              const heading = (
+                <span>
+                  {part.numeral && (
+                    <span className="block text-[0.6875rem] font-medium tracking-wide text-accent uppercase">
+                      {t.nav.part(part.numeral)}
+                    </span>
+                  )}
+                  <span className="block font-serif text-[0.9375rem] leading-snug font-semibold">
+                    {part.title[locale]}
+                  </span>
+                </span>
+              );
+              if (part.parked) {
+                return (
+                  <li key={part.slug} className="flex items-start justify-between gap-2 py-1 text-muted">
+                    {heading}
+                    <StatusBadge status="parked" label={t.badge.parked} />
+                  </li>
+                );
+              }
+              const isOpen = !collapsed.has(part.slug) || part.slug === currentPart;
+              const listId = `part-${part.slug}-list`;
               return (
-                <li key={area.slug}>
+                <li key={part.slug}>
                   <button
                     type="button"
-                    id={`area-${area.slug}`}
-                    onClick={() => toggleArea(area.slug)}
+                    id={`part-${part.slug}`}
+                    onClick={() => togglePart(part.slug)}
                     aria-expanded={isOpen}
                     aria-controls={listId}
-                    className="flex w-full items-center justify-between gap-2 rounded-md py-1 text-left font-serif text-[0.8125rem] font-semibold tracking-wide text-muted uppercase hover:text-foreground"
+                    className="flex w-full items-start justify-between gap-2 rounded-md py-1 text-left text-foreground hover:text-accent"
                   >
-                    <span>{localizedAreaTitle(area.slug, area.title, locale)}</span>
+                    {heading}
                     <Chevron open={isOpen} />
                   </button>
                   {isOpen && (
                     <ul
                       id={listId}
-                      aria-labelledby={`area-${area.slug}`}
-                      className="mt-1 space-y-0.5"
+                      aria-labelledby={`part-${part.slug}`}
+                      className="mt-1 space-y-0.5 border-l-2 border-border pl-2"
                     >
-                      {lessons.map((lesson) => {
-                        const href = `/lessons/${area.slug}/${lesson.slug}`;
-                        const current = pathname === href;
-                        return (
-                          <li key={lesson.slug}>
-                            <Link
-                              href={href}
-                              aria-current={current ? "page" : undefined}
-                              onClick={close}
-                              className={`flex items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors ${
-                                current
-                                  ? "bg-accent-weak font-medium text-accent"
-                                  : "text-muted hover:bg-surface-2 hover:text-foreground"
-                              }`}
+                      {part.chapters.map((chapter) => {
+                        const state = getChapterState(chapter, part);
+                        const title = chapterLabel(chapter, locale);
+                        if (state !== "active") {
+                          return (
+                            <li
+                              key={chapter.slug}
+                              className="flex items-center justify-between gap-2 px-1 py-1 text-[0.8125rem] text-muted"
                             >
-                              <span>
-                                {localizedLessonTitle(
-                                  lesson.slug,
-                                  lesson.title,
-                                  locale,
-                                )}
-                              </span>
-                              {lesson.status === "in-progress" && (
-                                <span className="rounded-sm bg-surface-2 px-1.5 py-0.5 text-[0.625rem] font-medium tracking-wide text-muted uppercase">
-                                  {t.badge["in-progress"]}
-                                </span>
-                              )}
-                            </Link>
+                              <span>{title}</span>
+                              <StatusBadge status="planned" label={t.badge.planned} />
+                            </li>
+                          );
+                        }
+                        const lessons = chapter.lessons.filter(isLessonVisible);
+                        return (
+                          <li key={chapter.slug}>
+                            {hasChapterHeadings(part) && (
+                              <p className="mt-2 px-1 pb-0.5 text-[0.8125rem] font-semibold text-foreground">
+                                {title}
+                              </p>
+                            )}
+                            <ul className="space-y-0.5">
+                              {lessons.map((lesson) => {
+                                const href = `/lessons/${lesson.area}/${lesson.slug}`;
+                                const current = pathname === href;
+                                return (
+                                  <li key={lesson.slug}>
+                                    <Link
+                                      href={href}
+                                      aria-current={current ? "page" : undefined}
+                                      onClick={close}
+                                      className={`flex items-center justify-between gap-2 rounded-md px-2 py-1.5 transition-colors ${
+                                        current
+                                          ? "bg-accent-weak font-medium text-accent"
+                                          : "text-muted hover:bg-surface-2 hover:text-foreground"
+                                      }`}
+                                    >
+                                      <span>{localizedLessonTitle(lesson.slug, lesson.title, locale)}</span>
+                                      {lesson.status === "in-progress" && (
+                                        <StatusBadge status="in-progress" label={t.badge["in-progress"]} />
+                                      )}
+                                    </Link>
+                                  </li>
+                                );
+                              })}
+                            </ul>
                           </li>
                         );
                       })}

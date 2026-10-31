@@ -1,13 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import type {
-  Difficulty,
-  LessonStatus,
-  LessonWithArea,
-} from "@/lib/curriculum";
+import type { Difficulty, LessonRef, LessonStatus } from "@/lib/curriculum";
 import { getLocale } from "@/lib/i18n/server";
 import { getDictionary } from "@/lib/i18n/dictionaries";
-import { localizedAreaTitle, localizedLessonTitle } from "@/lib/i18n/titles";
+import { localizedLessonTitle } from "@/lib/i18n/titles";
 
 // Front-matter is for content the author writes (title, summary). Structural
 // metadata — status, difficulty, prerequisites — lives in src/lib/curriculum.ts
@@ -29,12 +25,12 @@ const DIFFICULTY_DOT: Record<Difficulty, string> = {
 /**
  * Wraps an MDX lesson body: a header rendered from front-matter (title +
  * optional summary) plus structural metadata sourced from the curriculum
- * (status, difficulty, linked prerequisites), then the lesson prose, then
- * prev/next navigation. Empty author fields stay empty (Golden rule 1).
+ * (chapter, status, difficulty, linked prerequisites), then the lesson prose,
+ * then prev/next navigation. Empty author fields stay empty (Golden rule 1).
  */
 export async function LessonLayout({
   frontmatter,
-  areaTitle,
+  chapterLabel,
   status,
   difficulty,
   prerequisites = [],
@@ -42,14 +38,15 @@ export async function LessonLayout({
   children,
 }: {
   frontmatter: LessonFrontmatter;
-  areaTitle?: string;
+  /** localized "Chapter 4 · …" label shown above the title */
+  chapterLabel?: string;
   status: LessonStatus;
   difficulty?: Difficulty;
-  prerequisites?: LessonWithArea[];
-  adjacent?: { prev?: LessonWithArea; next?: LessonWithArea };
+  prerequisites?: LessonRef[];
+  adjacent?: { prev?: LessonRef; next?: LessonRef };
   children: ReactNode;
 }) {
-  const { title, summary, area } = frontmatter;
+  const { title, summary } = frontmatter;
   const { prev, next } = adjacent;
   const locale = await getLocale();
   const t = getDictionary(locale);
@@ -57,9 +54,9 @@ export async function LessonLayout({
   return (
     <article className="lesson-prose">
       <header className="mb-8 border-b border-border pb-6">
-        {areaTitle && (
+        {chapterLabel && (
           <p className="mb-2 text-sm font-medium tracking-wide text-accent uppercase">
-            {localizedAreaTitle(area, areaTitle, locale)}
+            {chapterLabel}
           </p>
         )}
         <h1 className="text-[2rem] leading-tight font-semibold">{title}</h1>

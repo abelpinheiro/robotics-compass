@@ -1,258 +1,438 @@
+import type { Locale } from "@/lib/i18n/config";
+
 /**
- * Canonical navigation / ordering source for Robotics Compass.
+ * Canonical course map for Robotics Compass: Parts → chapters → lessons.
  *
- * This MUST mirror the `robotics-curriculum` skill (areas, slugs, order).
- * Changing the taxonomy requires asking the human first (Golden rule 4).
+ * This MUST mirror the `robotics-curriculum` skill (parts, chapters, slugs,
+ * order). Changing the taxonomy requires asking the human first (Golden rule 4).
  *
- * This file is also the single source of truth for each lesson's `difficulty`
- * and `prerequisites` (slugs) — the prerequisite graph powers the lesson
- * prerequisite links, prev/next navigation, and the home-page study roadmap.
+ * Parts I–III follow Craig's chapters 2–13; Parts IV–V go beyond Craig; Part VI
+ * is parked (in the map, no pages). This file is also the single source of
+ * truth for each lesson's `status`, `difficulty` and `prerequisites` (slugs) —
+ * the prerequisite graph powers the lesson prerequisite links, prev/next
+ * navigation and the course-map views.
+ *
+ * A lesson's `area` is only its content folder and URL segment
+ * (content/<area>/<slug>.mdx, /lessons/<area>/<slug>); navigation never shows it.
  */
 
-export type LessonStatus = "draft" | "in-progress" | "published";
+/**
+ * - `published` / `in-progress`: has a page, listed in navigation.
+ * - `planned`: in the map only; no page in production.
+ * - `parked`: in the map only, inside the parked part; no page in production.
+ */
+export type LessonStatus = "published" | "in-progress" | "planned" | "parked";
 export type Difficulty = "intro" | "core" | "advanced";
 
 export interface LessonRef {
-  /** kebab-case topic slug, matches content/<area>/<slug>.mdx */
+  /** kebab-case topic slug, globally unique, matches content/<area>/<slug>.mdx */
   slug: string;
-  /** humanized, sentence-case display title */
+  /** content folder and URL segment */
+  area: string;
+  /** humanized, sentence-case English title (Portuguese in i18n/titles.ts) */
   title: string;
-  /** 1-based order within the area */
-  order: number;
   status: LessonStatus;
   difficulty: Difficulty;
-  /** slugs of prerequisite lessons (a DAG across the whole curriculum) */
+  /** slugs of prerequisite lessons (a DAG across the whole course map) */
   prerequisites: string[];
 }
 
-export interface Area {
+export interface Chapter {
   slug: string;
-  title: string;
-  order: number;
+  /** reading-order number; parked chapters and case studies have none */
+  number?: number;
+  /** Craig chapter(s) this chapter follows, e.g. "5" or "12–13" */
+  craig?: string;
+  title: Record<Locale, string>;
   lessons: LessonRef[];
 }
 
-export type LessonWithArea = LessonRef & { area: string };
+export interface Part {
+  slug: string;
+  /** Roman numeral; the case-studies section has none */
+  numeral?: string;
+  title: Record<Locale, string>;
+  /** parked parts appear in the map only, and every lesson in them is `parked` */
+  parked?: boolean;
+  chapters: Chapter[];
+}
 
-export const curriculum: Area[] = [
+export const curriculum: Part[] = [
   {
-    slug: "foundations",
-    title: "Foundations",
-    order: 1,
-    lessons: [
-      { slug: "vectors-and-frames", title: "Vectors and frames", order: 1, status: "published", difficulty: "intro", prerequisites: [] },
-      { slug: "rotations-2d", title: "Rotations in 2D", order: 2, status: "published", difficulty: "intro", prerequisites: ["vectors-and-frames"] },
-      { slug: "rotations-3d", title: "Rotations in 3D", order: 3, status: "published", difficulty: "core", prerequisites: ["rotations-2d"] },
-      { slug: "homogeneous-transforms", title: "Homogeneous transforms", order: 4, status: "published", difficulty: "core", prerequisites: ["rotations-3d"] },
-      { slug: "quaternions", title: "Quaternions", order: 5, status: "published", difficulty: "core", prerequisites: ["rotations-3d"] },
-      { slug: "twists-and-screws", title: "Twists and screws", order: 6, status: "draft", difficulty: "advanced", prerequisites: ["homogeneous-transforms"] },
+    slug: "position-orientation",
+    numeral: "I",
+    title: { en: "Position and orientation", pt: "Posição e orientação" },
+    chapters: [
+      {
+        slug: "spatial-descriptions",
+        number: 1,
+        craig: "2",
+        title: { en: "Spatial descriptions and transformations", pt: "Descrições espaciais e transformações" },
+        lessons: [
+          { slug: "vectors-and-frames", area: "foundations", title: "Vectors and frames", status: "published", difficulty: "intro", prerequisites: [] },
+          { slug: "rotations-2d", area: "foundations", title: "Rotations in 2D", status: "published", difficulty: "intro", prerequisites: ["vectors-and-frames"] },
+          { slug: "rotations-3d", area: "foundations", title: "Rotations in 3D", status: "published", difficulty: "core", prerequisites: ["rotations-2d"] },
+          { slug: "homogeneous-transforms", area: "foundations", title: "Homogeneous transforms", status: "published", difficulty: "core", prerequisites: ["rotations-3d"] },
+          { slug: "quaternions", area: "foundations", title: "Quaternions", status: "published", difficulty: "core", prerequisites: ["rotations-3d"] },
+        ],
+      },
     ],
   },
   {
-    slug: "kinematics",
-    title: "Kinematics",
-    order: 2,
-    lessons: [
-      { slug: "modeling-manipulators", title: "Modeling Manipulators", order: 1, status: "published", difficulty: "core", prerequisites: ["homogeneous-transforms"] },
-      { slug: "forward-kinematics", title: "Forward kinematics", order: 2, status: "published", difficulty: "core", prerequisites: ["modeling-manipulators"] },
-      { slug: "inverse-kinematics", title: "Inverse kinematics", order: 3, status: "published", difficulty: "core", prerequisites: ["forward-kinematics"] },
-      { slug: "velocity-kinematics", title: "Velocity kinematics", order: 4, status: "published", difficulty: "core", prerequisites: ["forward-kinematics"] },
-      { slug: "jacobians", title: "Jacobians", order: 5, status: "published", difficulty: "core", prerequisites: ["velocity-kinematics"] },
+    slug: "kinematics-dynamics",
+    numeral: "II",
+    title: { en: "Manipulator kinematics and dynamics", pt: "Cinemática e dinâmica de manipuladores" },
+    chapters: [
+      {
+        slug: "manipulator-kinematics",
+        number: 2,
+        craig: "3",
+        title: { en: "Manipulator kinematics", pt: "Cinemática de manipuladores" },
+        lessons: [
+          { slug: "modeling-manipulators", area: "kinematics", title: "Modeling Manipulators", status: "published", difficulty: "core", prerequisites: ["homogeneous-transforms"] },
+          { slug: "forward-kinematics", area: "kinematics", title: "Forward kinematics", status: "published", difficulty: "core", prerequisites: ["modeling-manipulators"] },
+        ],
+      },
+      {
+        slug: "inverse-kinematics",
+        number: 3,
+        craig: "4",
+        title: { en: "Inverse kinematics", pt: "Cinemática inversa" },
+        lessons: [
+          { slug: "inverse-kinematics", area: "kinematics", title: "Inverse kinematics", status: "published", difficulty: "core", prerequisites: ["forward-kinematics"] },
+        ],
+      },
+      {
+        slug: "jacobians",
+        number: 4,
+        craig: "5",
+        title: { en: "Jacobians: velocities and static forces", pt: "Jacobianas: velocidades e forças estáticas" },
+        lessons: [
+          { slug: "velocity-kinematics", area: "kinematics", title: "Velocity kinematics", status: "published", difficulty: "core", prerequisites: ["forward-kinematics"] },
+          { slug: "jacobians", area: "kinematics", title: "Jacobians", status: "published", difficulty: "core", prerequisites: ["velocity-kinematics"] },
+        ],
+      },
+      {
+        slug: "manipulator-dynamics",
+        number: 5,
+        craig: "6",
+        title: { en: "Manipulator dynamics", pt: "Dinâmica de manipuladores" },
+        lessons: [
+          { slug: "newton-euler", area: "dynamics", title: "Newton–Euler dynamics", status: "in-progress", difficulty: "core", prerequisites: ["velocity-kinematics"] },
+          { slug: "lagrangian-dynamics", area: "dynamics", title: "Lagrangian dynamics", status: "planned", difficulty: "core", prerequisites: ["newton-euler"] },
+          { slug: "equations-of-motion", area: "dynamics", title: "Equations of motion", status: "planned", difficulty: "core", prerequisites: ["lagrangian-dynamics"] },
+        ],
+      },
+      {
+        slug: "trajectory-generation",
+        number: 6,
+        craig: "7",
+        title: { en: "Trajectory generation", pt: "Geração de trajetórias" },
+        lessons: [
+          { slug: "polynomial-trajectories", area: "trajectories", title: "Polynomial trajectories", status: "planned", difficulty: "core", prerequisites: ["inverse-kinematics"] },
+          { slug: "lspb-trajectories", area: "trajectories", title: "Linear segments with parabolic blends (LSPB)", status: "planned", difficulty: "core", prerequisites: ["polynomial-trajectories"] },
+          { slug: "cartesian-trajectories", area: "trajectories", title: "Cartesian-space trajectories", status: "planned", difficulty: "core", prerequisites: ["lspb-trajectories", "inverse-kinematics"] },
+        ],
+      },
     ],
   },
   {
-    slug: "dynamics",
-    title: "Dynamics",
-    order: 3,
-    lessons: [
-      { slug: "newton-euler", title: "Newton–Euler dynamics", order: 1, status: "in-progress", difficulty: "core", prerequisites: ["velocity-kinematics"] },
-      { slug: "lagrangian-dynamics", title: "Lagrangian dynamics", order: 2, status: "draft", difficulty: "core", prerequisites: ["newton-euler"] },
-      { slug: "equations-of-motion", title: "Equations of motion", order: 3, status: "draft", difficulty: "core", prerequisites: ["lagrangian-dynamics"] },
-      { slug: "contact-and-friction", title: "Contact and friction", order: 4, status: "draft", difficulty: "advanced", prerequisites: ["equations-of-motion"] },
+    slug: "design-control-programming",
+    numeral: "III",
+    title: { en: "Design, control and programming", pt: "Projeto, controle e programação" },
+    chapters: [
+      {
+        slug: "mechanism-design",
+        number: 7,
+        craig: "8",
+        title: { en: "Mechanism design", pt: "Projeto de mecanismos" },
+        lessons: [],
+      },
+      {
+        slug: "linear-control",
+        number: 8,
+        craig: "9",
+        title: { en: "Linear control", pt: "Controle linear" },
+        lessons: [
+          { slug: "pid-control", area: "control", title: "PID control", status: "planned", difficulty: "intro", prerequisites: ["equations-of-motion"] },
+          { slug: "state-space", area: "control", title: "State-space control", status: "planned", difficulty: "core", prerequisites: ["pid-control"] },
+          { slug: "trajectory-tracking", area: "control", title: "Trajectory tracking", status: "planned", difficulty: "core", prerequisites: ["state-space"] },
+        ],
+      },
+      {
+        slug: "nonlinear-control",
+        number: 9,
+        craig: "10",
+        title: { en: "Nonlinear control", pt: "Controle não linear" },
+        lessons: [
+          { slug: "computed-torque", area: "control", title: "Computed-torque control", status: "planned", difficulty: "advanced", prerequisites: ["equations-of-motion", "pid-control"] },
+        ],
+      },
+      {
+        slug: "force-control",
+        number: 10,
+        craig: "11",
+        title: { en: "Force control", pt: "Controle de força" },
+        lessons: [
+          { slug: "impedance-control", area: "control", title: "Impedance control", status: "planned", difficulty: "advanced", prerequisites: ["computed-torque"] },
+          { slug: "hybrid-force-position-control", area: "control", title: "Hybrid position/force control", status: "planned", difficulty: "advanced", prerequisites: ["computed-torque", "jacobians"] },
+        ],
+      },
+      {
+        slug: "robot-programming",
+        number: 11,
+        craig: "12–13",
+        title: { en: "Robot programming", pt: "Programação de robôs" },
+        lessons: [],
+      },
     ],
   },
   {
-    slug: "control",
-    title: "Control",
-    order: 4,
-    lessons: [
-      { slug: "pid-control", title: "PID control", order: 1, status: "draft", difficulty: "intro", prerequisites: ["equations-of-motion"] },
-      { slug: "state-space", title: "State-space control", order: 2, status: "draft", difficulty: "core", prerequisites: ["pid-control"] },
-      { slug: "lqr", title: "LQR", order: 3, status: "draft", difficulty: "advanced", prerequisites: ["state-space"] },
-      { slug: "trajectory-tracking", title: "Trajectory tracking", order: 4, status: "draft", difficulty: "core", prerequisites: ["state-space"] },
-      { slug: "computed-torque", title: "Computed-torque control", order: 5, status: "draft", difficulty: "advanced", prerequisites: ["equations-of-motion", "pid-control"] },
-      { slug: "impedance-control", title: "Impedance control", order: 6, status: "draft", difficulty: "advanced", prerequisites: ["computed-torque"] },
+    slug: "advanced-manipulation",
+    numeral: "IV",
+    title: { en: "Advanced manipulation", pt: "Manipulação avançada" },
+    chapters: [
+      {
+        slug: "screws-and-poe",
+        number: 12,
+        title: { en: "Screws and the product of exponentials", pt: "Screws e produto de exponenciais" },
+        lessons: [
+          { slug: "twists-and-screws", area: "foundations", title: "Twists and screws", status: "planned", difficulty: "advanced", prerequisites: ["homogeneous-transforms"] },
+          { slug: "product-of-exponentials", area: "kinematics", title: "Product of exponentials", status: "planned", difficulty: "advanced", prerequisites: ["twists-and-screws", "forward-kinematics"] },
+        ],
+      },
+      {
+        slug: "redundancy",
+        number: 13,
+        title: { en: "Redundancy", pt: "Redundância" },
+        lessons: [
+          { slug: "redundancy-and-null-space", area: "kinematics", title: "Redundancy and null space", status: "planned", difficulty: "advanced", prerequisites: ["jacobians"] },
+        ],
+      },
+      {
+        slug: "advanced-dynamics-control",
+        number: 14,
+        title: { en: "Advanced dynamics and control", pt: "Dinâmica e controle avançados" },
+        lessons: [
+          { slug: "lqr", area: "control", title: "LQR", status: "planned", difficulty: "advanced", prerequisites: ["state-space"] },
+        ],
+      },
+      {
+        slug: "manipulation-and-contact",
+        number: 15,
+        title: { en: "Manipulation and contact", pt: "Manipulação e contato" },
+        lessons: [
+          { slug: "contact-and-friction", area: "dynamics", title: "Contact and friction", status: "planned", difficulty: "advanced", prerequisites: ["equations-of-motion"] },
+          { slug: "grasping-basics", area: "manipulation", title: "Grasping basics", status: "planned", difficulty: "core", prerequisites: ["forward-kinematics", "configuration-space"] },
+          { slug: "motion-primitives", area: "manipulation", title: "Motion primitives", status: "planned", difficulty: "advanced", prerequisites: ["grasping-basics", "a-star"] },
+        ],
+      },
     ],
   },
   {
-    slug: "reinforcement-learning",
-    title: "Reinforcement learning",
-    order: 5,
-    lessons: [
-      { slug: "mdps", title: "Markov decision processes", order: 1, status: "published", difficulty: "intro", prerequisites: [] },
-      { slug: "value-iteration", title: "Value iteration", order: 2, status: "draft", difficulty: "core", prerequisites: ["mdps"] },
-      { slug: "policy-iteration", title: "Policy iteration", order: 3, status: "draft", difficulty: "core", prerequisites: ["mdps"] },
-      { slug: "monte-carlo", title: "Monte Carlo methods", order: 4, status: "draft", difficulty: "core", prerequisites: ["mdps"] },
-      { slug: "temporal-difference", title: "Temporal-difference learning", order: 5, status: "draft", difficulty: "core", prerequisites: ["monte-carlo"] },
-      { slug: "q-learning", title: "Q-learning", order: 6, status: "draft", difficulty: "core", prerequisites: ["temporal-difference", "value-iteration"] },
-      { slug: "function-approximation", title: "Function approximation", order: 7, status: "draft", difficulty: "core", prerequisites: ["q-learning"] },
-      { slug: "dqn", title: "Deep Q-networks (DQN)", order: 8, status: "draft", difficulty: "advanced", prerequisites: ["function-approximation"] },
-      { slug: "policy-gradients", title: "Policy gradients", order: 9, status: "draft", difficulty: "advanced", prerequisites: ["mdps"] },
-      { slug: "actor-critic", title: "Actor-critic methods", order: 10, status: "draft", difficulty: "advanced", prerequisites: ["policy-gradients", "value-iteration"] },
-      { slug: "ppo", title: "Proximal policy optimization (PPO)", order: 11, status: "draft", difficulty: "advanced", prerequisites: ["actor-critic"] },
-      { slug: "sac", title: "Soft actor-critic (SAC)", order: 12, status: "draft", difficulty: "advanced", prerequisites: ["actor-critic"] },
-      { slug: "exploration-vs-exploitation", title: "Exploration vs exploitation", order: 13, status: "draft", difficulty: "core", prerequisites: ["mdps"] },
-      { slug: "reward-shaping", title: "Reward shaping", order: 14, status: "draft", difficulty: "core", prerequisites: ["mdps"] },
+    slug: "planning-learning",
+    numeral: "V",
+    title: { en: "Planning and learning", pt: "Planejamento e aprendizado" },
+    chapters: [
+      {
+        slug: "motion-planning",
+        number: 16,
+        title: { en: "Motion planning", pt: "Planejamento de movimento" },
+        lessons: [
+          { slug: "configuration-space", area: "path-planning", title: "Configuration space", status: "planned", difficulty: "intro", prerequisites: ["vectors-and-frames"] },
+          { slug: "obstacles-and-collision", area: "path-planning", title: "Obstacles and collision checking", status: "planned", difficulty: "core", prerequisites: ["configuration-space"] },
+          { slug: "graph-search-bfs-dfs", area: "path-planning", title: "Graph search: BFS and DFS", status: "planned", difficulty: "intro", prerequisites: ["configuration-space"] },
+          { slug: "dijkstra", area: "path-planning", title: "Dijkstra's algorithm", status: "planned", difficulty: "core", prerequisites: ["graph-search-bfs-dfs"] },
+          { slug: "a-star", area: "path-planning", title: "A* search", status: "planned", difficulty: "core", prerequisites: ["dijkstra"] },
+          { slug: "weighted-and-anytime-astar", area: "path-planning", title: "Weighted and anytime A*", status: "planned", difficulty: "advanced", prerequisites: ["a-star"] },
+          { slug: "d-star-replanning", area: "path-planning", title: "D* replanning", status: "planned", difficulty: "advanced", prerequisites: ["a-star"] },
+          { slug: "prm", area: "path-planning", title: "Probabilistic roadmaps (PRM)", status: "planned", difficulty: "core", prerequisites: ["obstacles-and-collision"] },
+          { slug: "rrt", area: "path-planning", title: "Rapidly-exploring random trees (RRT)", status: "planned", difficulty: "core", prerequisites: ["obstacles-and-collision"] },
+          { slug: "rrt-connect", area: "path-planning", title: "RRT-Connect", status: "planned", difficulty: "core", prerequisites: ["rrt"] },
+          { slug: "rrt-star", area: "path-planning", title: "RRT*", status: "planned", difficulty: "advanced", prerequisites: ["rrt"] },
+          { slug: "informed-rrt-star", area: "path-planning", title: "Informed RRT*", status: "planned", difficulty: "advanced", prerequisites: ["rrt-star", "a-star"] },
+          { slug: "potential-fields", area: "path-planning", title: "Potential fields", status: "planned", difficulty: "core", prerequisites: ["configuration-space"] },
+          { slug: "visibility-graphs", area: "path-planning", title: "Visibility graphs", status: "planned", difficulty: "core", prerequisites: ["configuration-space"] },
+          { slug: "cell-decomposition", area: "path-planning", title: "Cell decomposition", status: "planned", difficulty: "core", prerequisites: ["configuration-space"] },
+          { slug: "trajectory-optimization", area: "path-planning", title: "Trajectory optimization", status: "planned", difficulty: "advanced", prerequisites: ["configuration-space"] },
+          { slug: "kinodynamic-planning", area: "path-planning", title: "Kinodynamic planning", status: "planned", difficulty: "advanced", prerequisites: ["rrt"] },
+          { slug: "time-elastic-bands", area: "path-planning", title: "Time-elastic bands", status: "planned", difficulty: "advanced", prerequisites: ["trajectory-optimization"] },
+        ],
+      },
+      {
+        slug: "reinforcement-learning",
+        number: 17,
+        title: { en: "Reinforcement learning", pt: "Aprendizado por reforço" },
+        lessons: [
+          { slug: "mdps", area: "reinforcement-learning", title: "Markov decision processes", status: "published", difficulty: "intro", prerequisites: [] },
+          { slug: "value-iteration", area: "reinforcement-learning", title: "Value iteration", status: "planned", difficulty: "core", prerequisites: ["mdps"] },
+          { slug: "policy-iteration", area: "reinforcement-learning", title: "Policy iteration", status: "planned", difficulty: "core", prerequisites: ["mdps"] },
+          { slug: "monte-carlo", area: "reinforcement-learning", title: "Monte Carlo methods", status: "planned", difficulty: "core", prerequisites: ["mdps"] },
+          { slug: "temporal-difference", area: "reinforcement-learning", title: "Temporal-difference learning", status: "planned", difficulty: "core", prerequisites: ["monte-carlo"] },
+          { slug: "q-learning", area: "reinforcement-learning", title: "Q-learning", status: "planned", difficulty: "core", prerequisites: ["temporal-difference", "value-iteration"] },
+          { slug: "function-approximation", area: "reinforcement-learning", title: "Function approximation", status: "planned", difficulty: "core", prerequisites: ["q-learning"] },
+          { slug: "dqn", area: "reinforcement-learning", title: "Deep Q-networks (DQN)", status: "planned", difficulty: "advanced", prerequisites: ["function-approximation"] },
+          { slug: "policy-gradients", area: "reinforcement-learning", title: "Policy gradients", status: "planned", difficulty: "advanced", prerequisites: ["mdps"] },
+          { slug: "actor-critic", area: "reinforcement-learning", title: "Actor-critic methods", status: "planned", difficulty: "advanced", prerequisites: ["policy-gradients", "value-iteration"] },
+          { slug: "ppo", area: "reinforcement-learning", title: "Proximal policy optimization (PPO)", status: "planned", difficulty: "advanced", prerequisites: ["actor-critic"] },
+          { slug: "sac", area: "reinforcement-learning", title: "Soft actor-critic (SAC)", status: "planned", difficulty: "advanced", prerequisites: ["actor-critic"] },
+          { slug: "exploration-vs-exploitation", area: "reinforcement-learning", title: "Exploration vs exploitation", status: "planned", difficulty: "core", prerequisites: ["mdps"] },
+          { slug: "reward-shaping", area: "reinforcement-learning", title: "Reward shaping", status: "planned", difficulty: "core", prerequisites: ["mdps"] },
+        ],
+      },
+      {
+        slug: "planning-with-learning",
+        number: 18,
+        title: { en: "Planning with learning", pt: "Planejamento com aprendizado" },
+        lessons: [
+          { slug: "rl-for-path-planning", area: "path-planning", title: "RL for path planning", status: "planned", difficulty: "advanced", prerequisites: ["a-star", "q-learning"] },
+          { slug: "learned-heuristics", area: "path-planning", title: "Learned heuristics", status: "planned", difficulty: "advanced", prerequisites: ["a-star", "function-approximation"] },
+          { slug: "drl-motion-planning", area: "path-planning", title: "DRL motion planning", status: "planned", difficulty: "advanced", prerequisites: ["rrt", "dqn", "policy-gradients"] },
+          { slug: "neural-motion-planners", area: "path-planning", title: "Neural motion planners", status: "planned", difficulty: "advanced", prerequisites: ["drl-motion-planning"] },
+          { slug: "sim-to-real-for-planning", area: "path-planning", title: "Sim-to-real for planning", status: "planned", difficulty: "advanced", prerequisites: ["drl-motion-planning"] },
+        ],
+      },
     ],
   },
   {
-    slug: "path-planning",
-    title: "Path planning",
-    order: 6,
-    lessons: [
-      { slug: "configuration-space", title: "Configuration space", order: 1, status: "draft", difficulty: "intro", prerequisites: ["vectors-and-frames"] },
-      { slug: "obstacles-and-collision", title: "Obstacles and collision checking", order: 2, status: "draft", difficulty: "core", prerequisites: ["configuration-space"] },
-      { slug: "graph-search-bfs-dfs", title: "Graph search: BFS and DFS", order: 3, status: "draft", difficulty: "intro", prerequisites: ["configuration-space"] },
-      { slug: "dijkstra", title: "Dijkstra's algorithm", order: 4, status: "draft", difficulty: "core", prerequisites: ["graph-search-bfs-dfs"] },
-      { slug: "a-star", title: "A* search", order: 5, status: "draft", difficulty: "core", prerequisites: ["dijkstra"] },
-      { slug: "weighted-and-anytime-astar", title: "Weighted and anytime A*", order: 6, status: "draft", difficulty: "advanced", prerequisites: ["a-star"] },
-      { slug: "d-star-replanning", title: "D* replanning", order: 7, status: "draft", difficulty: "advanced", prerequisites: ["a-star"] },
-      { slug: "prm", title: "Probabilistic roadmaps (PRM)", order: 8, status: "draft", difficulty: "core", prerequisites: ["obstacles-and-collision"] },
-      { slug: "rrt", title: "Rapidly-exploring random trees (RRT)", order: 9, status: "draft", difficulty: "core", prerequisites: ["obstacles-and-collision"] },
-      { slug: "rrt-connect", title: "RRT-Connect", order: 10, status: "draft", difficulty: "core", prerequisites: ["rrt"] },
-      { slug: "rrt-star", title: "RRT*", order: 11, status: "draft", difficulty: "advanced", prerequisites: ["rrt"] },
-      { slug: "informed-rrt-star", title: "Informed RRT*", order: 12, status: "draft", difficulty: "advanced", prerequisites: ["rrt-star", "a-star"] },
-      { slug: "potential-fields", title: "Potential fields", order: 13, status: "draft", difficulty: "core", prerequisites: ["configuration-space"] },
-      { slug: "visibility-graphs", title: "Visibility graphs", order: 14, status: "draft", difficulty: "core", prerequisites: ["configuration-space"] },
-      { slug: "cell-decomposition", title: "Cell decomposition", order: 15, status: "draft", difficulty: "core", prerequisites: ["configuration-space"] },
-      { slug: "trajectory-optimization", title: "Trajectory optimization", order: 16, status: "draft", difficulty: "advanced", prerequisites: ["configuration-space"] },
-      { slug: "kinodynamic-planning", title: "Kinodynamic planning", order: 17, status: "draft", difficulty: "advanced", prerequisites: ["rrt"] },
-      { slug: "time-elastic-bands", title: "Time-elastic bands", order: 18, status: "draft", difficulty: "advanced", prerequisites: ["trajectory-optimization"] },
-      { slug: "rl-for-path-planning", title: "RL for path planning", order: 19, status: "draft", difficulty: "advanced", prerequisites: ["a-star", "q-learning"] },
-      { slug: "learned-heuristics", title: "Learned heuristics", order: 20, status: "draft", difficulty: "advanced", prerequisites: ["a-star", "function-approximation"] },
-      { slug: "drl-motion-planning", title: "DRL motion planning", order: 21, status: "draft", difficulty: "advanced", prerequisites: ["rrt", "dqn", "policy-gradients"] },
-      { slug: "neural-motion-planners", title: "Neural motion planners", order: 22, status: "draft", difficulty: "advanced", prerequisites: ["drl-motion-planning"] },
-      { slug: "sim-to-real-for-planning", title: "Sim-to-real for planning", order: 23, status: "draft", difficulty: "advanced", prerequisites: ["drl-motion-planning"] },
-    ],
-  },
-  {
-    slug: "perception",
-    title: "Perception",
-    order: 7,
-    lessons: [
-      { slug: "sensors-overview", title: "Sensors overview", order: 1, status: "draft", difficulty: "intro", prerequisites: [] },
-      { slug: "camera-models", title: "Camera models", order: 2, status: "draft", difficulty: "core", prerequisites: ["sensors-overview"] },
-      { slug: "point-clouds", title: "Point clouds", order: 3, status: "draft", difficulty: "core", prerequisites: ["sensors-overview"] },
-      { slug: "feature-detection", title: "Feature detection", order: 4, status: "draft", difficulty: "core", prerequisites: ["camera-models"] },
-      { slug: "filtering-basics", title: "Filtering basics", order: 5, status: "draft", difficulty: "core", prerequisites: ["sensors-overview"] },
-    ],
-  },
-  {
-    slug: "state-estimation",
-    title: "State estimation",
-    order: 8,
-    lessons: [
-      { slug: "bayes-filter", title: "Bayes filter", order: 1, status: "draft", difficulty: "core", prerequisites: ["filtering-basics"] },
-      { slug: "kalman-filter", title: "Kalman filter", order: 2, status: "draft", difficulty: "core", prerequisites: ["bayes-filter"] },
-      { slug: "extended-kalman-filter", title: "Extended Kalman filter", order: 3, status: "draft", difficulty: "advanced", prerequisites: ["kalman-filter"] },
-      { slug: "particle-filter", title: "Particle filter", order: 4, status: "draft", difficulty: "advanced", prerequisites: ["bayes-filter"] },
-    ],
-  },
-  {
-    slug: "slam",
-    title: "SLAM",
-    order: 9,
-    lessons: [
-      { slug: "localization", title: "Localization", order: 1, status: "draft", difficulty: "core", prerequisites: ["bayes-filter"] },
-      { slug: "mapping", title: "Mapping", order: 2, status: "draft", difficulty: "core", prerequisites: ["sensors-overview"] },
-      { slug: "graph-slam", title: "Graph SLAM", order: 3, status: "draft", difficulty: "advanced", prerequisites: ["localization", "mapping"] },
-      { slug: "loop-closure", title: "Loop closure", order: 4, status: "draft", difficulty: "advanced", prerequisites: ["graph-slam"] },
-    ],
-  },
-  {
-    slug: "manipulation",
-    title: "Manipulation",
-    order: 10,
-    lessons: [
-      { slug: "grasping-basics", title: "Grasping basics", order: 1, status: "draft", difficulty: "core", prerequisites: ["forward-kinematics", "configuration-space"] },
-      { slug: "motion-primitives", title: "Motion primitives", order: 2, status: "draft", difficulty: "advanced", prerequisites: ["grasping-basics", "a-star"] },
-    ],
-  },
-  {
-    slug: "mobile-robots",
-    title: "Mobile robots",
-    order: 11,
-    lessons: [
-      { slug: "differential-drive", title: "Differential drive", order: 1, status: "draft", difficulty: "intro", prerequisites: ["forward-kinematics"] },
-      { slug: "odometry", title: "Odometry", order: 2, status: "draft", difficulty: "core", prerequisites: ["differential-drive", "kalman-filter"] },
-      { slug: "local-planning", title: "Local planning", order: 3, status: "draft", difficulty: "core", prerequisites: ["a-star", "configuration-space"] },
+    slug: "mobile-perception",
+    numeral: "VI",
+    title: { en: "Mobile robots and perception", pt: "Robôs móveis e percepção" },
+    parked: true,
+    chapters: [
+      {
+        slug: "mobile-robots",
+        title: { en: "Mobile robots", pt: "Robôs móveis" },
+        lessons: [
+          { slug: "differential-drive", area: "mobile-robots", title: "Differential drive", status: "parked", difficulty: "intro", prerequisites: ["forward-kinematics"] },
+          { slug: "odometry", area: "mobile-robots", title: "Odometry", status: "parked", difficulty: "core", prerequisites: ["differential-drive", "kalman-filter"] },
+          { slug: "local-planning", area: "mobile-robots", title: "Local planning", status: "parked", difficulty: "core", prerequisites: ["a-star", "configuration-space"] },
+        ],
+      },
+      {
+        slug: "aerial-robots",
+        title: { en: "Aerial robots", pt: "Robôs aéreos" },
+        lessons: [],
+      },
+      {
+        slug: "perception",
+        title: { en: "Perception", pt: "Percepção" },
+        lessons: [
+          { slug: "sensors-overview", area: "perception", title: "Sensors overview", status: "parked", difficulty: "intro", prerequisites: [] },
+          { slug: "camera-models", area: "perception", title: "Camera models", status: "parked", difficulty: "core", prerequisites: ["sensors-overview"] },
+          { slug: "point-clouds", area: "perception", title: "Point clouds", status: "parked", difficulty: "core", prerequisites: ["sensors-overview"] },
+          { slug: "feature-detection", area: "perception", title: "Feature detection", status: "parked", difficulty: "core", prerequisites: ["camera-models"] },
+          { slug: "filtering-basics", area: "perception", title: "Filtering basics", status: "parked", difficulty: "core", prerequisites: ["sensors-overview"] },
+        ],
+      },
+      {
+        slug: "state-estimation",
+        title: { en: "State estimation", pt: "Estimação de estado" },
+        lessons: [
+          { slug: "bayes-filter", area: "state-estimation", title: "Bayes filter", status: "parked", difficulty: "core", prerequisites: ["filtering-basics"] },
+          { slug: "kalman-filter", area: "state-estimation", title: "Kalman filter", status: "parked", difficulty: "core", prerequisites: ["bayes-filter"] },
+          { slug: "extended-kalman-filter", area: "state-estimation", title: "Extended Kalman filter", status: "parked", difficulty: "advanced", prerequisites: ["kalman-filter"] },
+          { slug: "particle-filter", area: "state-estimation", title: "Particle filter", status: "parked", difficulty: "advanced", prerequisites: ["bayes-filter"] },
+        ],
+      },
+      {
+        slug: "slam",
+        title: { en: "SLAM", pt: "SLAM" },
+        lessons: [
+          { slug: "localization", area: "slam", title: "Localization", status: "parked", difficulty: "core", prerequisites: ["bayes-filter"] },
+          { slug: "mapping", area: "slam", title: "Mapping", status: "parked", difficulty: "core", prerequisites: ["sensors-overview"] },
+          { slug: "graph-slam", area: "slam", title: "Graph SLAM", status: "parked", difficulty: "advanced", prerequisites: ["localization", "mapping"] },
+          { slug: "loop-closure", area: "slam", title: "Loop closure", status: "parked", difficulty: "advanced", prerequisites: ["graph-slam"] },
+        ],
+      },
     ],
   },
   {
     slug: "case-studies",
-    title: "Case studies",
-    order: 12,
-    lessons: [
-      { slug: "ur20", title: "UR20 (Universal Robots)", order: 1, status: "in-progress", difficulty: "advanced", prerequisites: ["forward-kinematics", "inverse-kinematics", "jacobians", "newton-euler"] },
+    title: { en: "Case studies", pt: "Estudos de caso" },
+    chapters: [
+      {
+        slug: "case-studies",
+        title: { en: "Case studies", pt: "Estudos de caso" },
+        lessons: [
+          { slug: "ur20", area: "case-studies", title: "UR20 (Universal Robots)", status: "in-progress", difficulty: "advanced", prerequisites: ["forward-kinematics", "inverse-kinematics", "jacobians", "newton-euler"] },
+        ],
+      },
     ],
   },
 ];
 
-/** Look up an area by slug. */
-export function getArea(slug: string): Area | undefined {
-  return curriculum.find((a) => a.slug === slug);
+/** A lesson with the part and chapter that hold it. */
+export interface LessonPlacement {
+  lesson: LessonRef;
+  part: Part;
+  chapter: Chapter;
 }
 
-/** Look up a single lesson by area + slug. */
-export function getLesson(
-  areaSlug: string,
-  lessonSlug: string,
-): LessonRef | undefined {
-  return getArea(areaSlug)?.lessons.find((l) => l.slug === lessonSlug);
+const placements: LessonPlacement[] = curriculum.flatMap((part) =>
+  part.chapters.flatMap((chapter) =>
+    chapter.lessons.map((lesson) => ({ lesson, part, chapter })),
+  ),
+);
+const placementBySlug = new Map(placements.map((p) => [p.lesson.slug, p]));
+
+/** Every lesson, in course order. */
+export function getAllLessons(): LessonRef[] {
+  return placements.map((p) => p.lesson);
 }
 
-/** Flat list of every lesson with its area, in curriculum order. */
-export function getAllLessons(): LessonWithArea[] {
-  return curriculum.flatMap((area) =>
-    area.lessons.map((lesson) => ({ ...lesson, area: area.slug })),
-  );
-}
-
-/** A lesson is shown to readers only once it is past the draft stage. Drafts
- *  are hidden from navigation, the study roadmap, prev/next, and the sitemap
- *  (they remain reachable by direct URL for authoring/preview). */
+/** Readers see a lesson (navigation, prev/next, sitemap) once it is published or in progress. */
 export function isLessonVisible(lesson: LessonRef): boolean {
-  return lesson.status !== "draft";
+  return lesson.status === "published" || lesson.status === "in-progress";
 }
 
-/** Flat list of reader-visible lessons (drafts hidden), in curriculum order. */
-export function getVisibleLessons(): LessonWithArea[] {
+/**
+ * Whether the lesson route renders this lesson. Planned and parked lessons have
+ * no page in production; the dev server renders them so the author can preview
+ * a lesson while writing it.
+ */
+export function isLessonRoutable(
+  lesson: LessonRef,
+  dev = process.env.NODE_ENV === "development",
+): boolean {
+  return dev || isLessonVisible(lesson);
+}
+
+/** Reader-visible lessons, in course order. */
+export function getVisibleLessons(): LessonRef[] {
   return getAllLessons().filter(isLessonVisible);
 }
 
 /** Look up a lesson by its (globally unique) slug. */
-export function getLessonBySlug(slug: string): LessonWithArea | undefined {
-  for (const area of curriculum) {
-    const lesson = area.lessons.find((l) => l.slug === slug);
-    if (lesson) return { ...lesson, area: area.slug };
-  }
-  return undefined;
+export function getLessonBySlug(slug: string): LessonRef | undefined {
+  return placementBySlug.get(slug)?.lesson;
 }
 
-/** Resolve a lesson's prerequisite slugs to linkable lessons. */
-export function getPrerequisites(slug: string): LessonWithArea[] {
+/** Look up a single lesson by area + slug (its URL). */
+export function getLesson(areaSlug: string, lessonSlug: string): LessonRef | undefined {
+  const lesson = getLessonBySlug(lessonSlug);
+  return lesson?.area === areaSlug ? lesson : undefined;
+}
+
+/** The part and chapter that hold a lesson. */
+export function getLessonPlacement(slug: string): LessonPlacement | undefined {
+  return placementBySlug.get(slug);
+}
+
+/** Resolve a lesson's prerequisite slugs to linkable (visible) lessons. */
+export function getPrerequisites(slug: string): LessonRef[] {
   const lesson = getLessonBySlug(slug);
   if (!lesson) return [];
   return lesson.prerequisites
     .map(getLessonBySlug)
-    .filter((l): l is LessonWithArea => l !== undefined && isLessonVisible(l));
+    .filter((l): l is LessonRef => l !== undefined && isLessonVisible(l));
 }
 
-/** Previous / next lesson in flat curriculum order. */
+/** Previous / next visible lesson in course order. */
 export function getAdjacentLessons(
   areaSlug: string,
   lessonSlug: string,
-): { prev?: LessonWithArea; next?: LessonWithArea } {
+): { prev?: LessonRef; next?: LessonRef } {
   const flat = getVisibleLessons();
   const i = flat.findIndex((l) => l.area === areaSlug && l.slug === lessonSlug);
   if (i < 0) return {};
@@ -263,94 +443,23 @@ export function getAdjacentLessons(
 }
 
 /**
- * Group every lesson into study levels by its longest prerequisite chain
- * (level 0 = no prerequisites). Gives a recommended study order that respects
- * the dependency graph. Edges are followed only within the curriculum.
+ * How a chapter shows in navigation: `parked` inside the parked part, `planned`
+ * when none of its lessons is visible yet, `active` otherwise.
  */
-export function getStudyLevels(): LessonWithArea[][] {
-  const all = getVisibleLessons();
-  const bySlug = new Map(all.map((l) => [l.slug, l]));
-  const depthCache = new Map<string, number>();
-  const visiting = new Set<string>();
+export type ChapterState = "active" | "planned" | "parked";
 
-  const depth = (slug: string): number => {
-    const cached = depthCache.get(slug);
-    if (cached !== undefined) return cached;
-    const lesson = bySlug.get(slug);
-    if (!lesson || lesson.prerequisites.length === 0) {
-      depthCache.set(slug, 0);
-      return 0;
-    }
-    if (visiting.has(slug)) return 0; // cycle guard
-    visiting.add(slug);
-    let max = 0;
-    for (const p of lesson.prerequisites) {
-      if (bySlug.has(p)) max = Math.max(max, depth(p) + 1);
-    }
-    visiting.delete(slug);
-    depthCache.set(slug, max);
-    return max;
-  };
-
-  const levels: LessonWithArea[][] = [];
-  for (const lesson of all) {
-    const d = depth(lesson.slug);
-    (levels[d] ??= []).push(lesson);
-  }
-  // Drop empty levels (filtering hidden lessons can leave gaps).
-  return levels.filter((level) => level && level.length > 0);
+export function getChapterState(chapter: Chapter, part: Part): ChapterState {
+  if (part.parked) return "parked";
+  return chapter.lessons.some(isLessonVisible) ? "active" : "planned";
 }
 
-/**
- * Area-level prerequisite edges, derived from lesson prerequisites: area X
- * requires area Y when any lesson in X depends on a lesson in Y (Y ≠ X).
- */
-export function getAreaPrerequisites(): Map<string, string[]> {
-  const deps = new Map<string, Set<string>>();
-  for (const area of curriculum) deps.set(area.slug, new Set());
-  for (const area of curriculum) {
-    for (const lesson of area.lessons) {
-      for (const pre of lesson.prerequisites) {
-        const preArea = getLessonBySlug(pre)?.area;
-        if (preArea && preArea !== area.slug) deps.get(area.slug)!.add(preArea);
-      }
+/** Count lessons by status, over the whole map or one part. */
+export function countByStatus(parts: Part[] = curriculum): Record<LessonStatus, number> {
+  const counts: Record<LessonStatus, number> = { published: 0, "in-progress": 0, planned: 0, parked: 0 };
+  for (const part of parts) {
+    for (const chapter of part.chapters) {
+      for (const lesson of chapter.lessons) counts[lesson.status]++;
     }
   }
-  return new Map([...deps].map(([slug, set]) => [slug, [...set]]));
-}
-
-/** Areas grouped into dependency levels (level 0 = no prerequisite areas). */
-export function getAreaLevels(): Area[][] {
-  const deps = getAreaPrerequisites();
-  const depthCache = new Map<string, number>();
-  const visiting = new Set<string>();
-
-  const depth = (slug: string): number => {
-    const cached = depthCache.get(slug);
-    if (cached !== undefined) return cached;
-    const pre = deps.get(slug) ?? [];
-    if (pre.length === 0) {
-      depthCache.set(slug, 0);
-      return 0;
-    }
-    if (visiting.has(slug)) return 0; // cycle guard
-    visiting.add(slug);
-    let max = 0;
-    for (const p of pre) max = Math.max(max, depth(p) + 1);
-    visiting.delete(slug);
-    depthCache.set(slug, max);
-    return max;
-  };
-
-  const levels: Area[][] = [];
-  for (const area of curriculum) {
-    const d = depth(area.slug);
-    (levels[d] ??= []).push(area);
-  }
-  return levels.filter((level) => level && level.length > 0);
-}
-
-/** First reader-visible lesson of an area (for linking from the roadmap). */
-export function getFirstVisibleLesson(areaSlug: string): LessonRef | undefined {
-  return getArea(areaSlug)?.lessons.find(isLessonVisible);
+  return counts;
 }

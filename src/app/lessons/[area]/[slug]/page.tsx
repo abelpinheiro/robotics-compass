@@ -2,11 +2,14 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { LessonLayout } from "@/components/lesson/LessonLayout";
 import {
-  getArea,
-  getLesson,
-  getPrerequisites,
   getAdjacentLessons,
+  getLesson,
+  getLessonPlacement,
+  getPrerequisites,
+  isLessonRoutable,
 } from "@/lib/curriculum";
+import { partLabel } from "@/components/course-map/labels";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import { loadLesson } from "@/lib/content";
 import { getLocale } from "@/lib/i18n/server";
 
@@ -18,7 +21,8 @@ export async function generateMetadata({
   params: Promise<Params>;
 }): Promise<Metadata> {
   const { area, slug } = await params;
-  if (!getLesson(area, slug)) return {};
+  const lessonRef = getLesson(area, slug);
+  if (!lessonRef || !isLessonRoutable(lessonRef)) return {};
   const mod = await loadLesson(area, slug, await getLocale());
   if (!mod) return {};
   return {
@@ -33,20 +37,27 @@ export default async function LessonPage({
   params: Promise<Params>;
 }) {
   const { area, slug } = await params;
-  // Only lessons registered in the curriculum exist.
+  // Only lessons registered in the curriculum exist, and planned/parked ones
+  // have no page outside the dev server.
   const lessonRef = getLesson(area, slug);
-  if (!lessonRef) notFound();
+  if (!lessonRef || !isLessonRoutable(lessonRef)) notFound();
 
-  const mod = await loadLesson(area, slug, await getLocale());
+  const locale = await getLocale();
+  const mod = await loadLesson(area, slug, locale);
   if (!mod) notFound();
 
   const { default: Content, frontmatter } = mod;
-  const areaTitle = getArea(area)?.title;
+  const placement = getLessonPlacement(slug);
+  const chapter = placement?.chapter;
+  const label =
+    chapter?.number !== undefined
+      ? `${getDictionary(locale).nav.chapter(chapter.number)} · ${chapter.title[locale]}`
+      : placement && partLabel(placement.part, locale);
 
   return (
     <LessonLayout
       frontmatter={frontmatter}
-      areaTitle={areaTitle}
+      chapterLabel={label}
       status={lessonRef.status}
       difficulty={lessonRef.difficulty}
       prerequisites={getPrerequisites(slug)}

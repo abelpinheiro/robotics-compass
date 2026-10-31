@@ -1,5 +1,5 @@
 import { Callout } from "@/components/lesson/Callout";
-import { StudyRoadmap } from "@/components/StudyRoadmap";
+import { CourseOutline } from "@/components/CourseOutline";
 import { getServerDictionary } from "@/lib/i18n/server";
 
 export default async function Home() {
@@ -21,7 +21,7 @@ export default async function Home() {
       </div>
 
       <div className="mt-10">
-        <StudyRoadmap />
+        <CourseOutline />
       </div>
     </div>
   );
