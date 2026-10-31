@@ -108,3 +108,10 @@ Conventions:
 - Cell keys are `"row,col"` strings for Set/Map membership.
 
 The reference A* viz in the `a-star` lesson is the canonical example of this model.
+
+## Strings and math
+
+- All UI strings (title, caption, labels, text alternative) exist in EN and PT, typically in a
+  colocated `strings.tsx` typed `Record<Locale, …>` (Golden rule 9).
+- Keep the math in a pure module next to the viz and cover it with Vitest tests against
+  independent references (Golden rule 10).

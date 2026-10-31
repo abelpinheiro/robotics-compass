@@ -40,6 +40,7 @@ pnpm dev                       # http://localhost:3000
 | `pnpm start` | Serve the production build |
 | `pnpm typecheck` | `tsc --noEmit` |
 | `pnpm lint` | ESLint (flat config) |
+| `pnpm test` | Unit tests with Vitest (`pnpm test:watch` to watch) |
 | `pnpm screenshots` | Capture responsive screenshots (requires a running server; see below) |
 
 ## Project structure
@@ -92,10 +93,13 @@ viz-2d, viz-3d).
 ### Adding a lesson by hand
 
 1. Create `content/<area>/<slug>.mdx` from the **lesson-template** scaffold: front-matter
-   (`title`, `area`, `slug`, `order`, `summary`, `difficulty`, `prerequisites`,
-   `status: draft`) plus the seven empty section placeholders (Intuition · Formal definition ·
-   Visualization · Worked example · Common pitfalls · Exercises · Further reading).
-2. Register the lesson in `src/lib/curriculum.ts` under its area, in order.
+   (`title`, `area`, `slug`, `order`, `summary`) plus the seven empty section placeholders
+   (Intuition · Formal definition · Visualization · Worked example · Common pitfalls ·
+   Exercises · Further reading). A Portuguese version, if any, is the sibling
+   `<slug>.pt.mdx`.
+2. Register the lesson in `src/lib/curriculum.ts` under its area, in order, with
+   `status: "draft"`, its `difficulty` and its `prerequisites` (these live only there, not in
+   front-matter). Switch `status` to `"published"` to show it to readers.
 3. Leave all educational prose empty — the human author writes it (golden rule 1).
 
 ### Adding a visualization by hand
@@ -108,7 +112,7 @@ viz-2d, viz-3d).
 3. In the lesson MDX, `import` the embed and place it in the `## Visualization` section.
 
 The reference implementations are the **A\* grid search** (2D, in the `a-star` lesson) and the
-**2-link forward-kinematics arm** (3D, in the `forward-kinematics` lesson).
+**3-DOF modified-DH forward-kinematics arm** (3D, in the `forward-kinematics` lesson).
 
 ## Design system & theme
 

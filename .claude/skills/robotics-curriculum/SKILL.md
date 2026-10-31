@@ -14,8 +14,8 @@ This is the **canonical taxonomy**. `src/lib/curriculum.ts` must mirror it exact
 areas, same slugs, same order). **Do not add, remove, reorder, or rename topics without
 asking** (Golden rule 4). Path planning is intentionally the deepest area.
 
-Every topic becomes **one empty draft lesson** at `content/<area>/<slug>.mdx` with
-`status: draft`. Order below is the authoring/nav order.
+Every topic becomes **one empty draft lesson** at `content/<area>/<slug>.mdx`, registered in
+`src/lib/curriculum.ts` with `status: "draft"`. Order below is the authoring/nav order.
 
 ## Areas and topics (in order)
 
@@ -142,5 +142,6 @@ robots (DH, FK, IK, Jacobian, dynamics) — separate from the topic lessons but 
 - Topic slugs are the MDX filenames (kebab-case as written above).
 - `order` in each lesson's front-matter is its 1-based index within its area (the numbers
   above).
-- Prerequisite notes above are area-level guidance; per-lesson `prerequisites` front-matter is
-  filled by the human author (leave it as an empty list when scaffolding unless told otherwise).
+- Prerequisite notes above are area-level guidance. Per-lesson `status`, `difficulty`, and
+  `prerequisites` live on the lesson's `LessonRef` in `src/lib/curriculum.ts` (not in
+  front-matter); scaffolding proposes values there for the author to review.

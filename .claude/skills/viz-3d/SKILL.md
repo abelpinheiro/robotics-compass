@@ -83,10 +83,32 @@ carries its children — exactly how kinematic chains compose:
   and the end-effector make the transforms legible. A ground grid/plane gives spatial context.
 - Drive joint angles from React state bound to labeled sliders; call `invalidate()` on change.
 
+### DH-modelled arms (modified / Craig — Golden rule 8)
+
+When an arm is described by a DH table, nest **one group per factor** of
+^{i-1}_iT = Rot_X(α_{i-1})·Trans_X(a_{i-1})·Rot_Z(θ_i)·Trans_Z(d_i), so every triad is
+exactly DH frame {i} (Z on the joint axis) and the scene matches the matrices shown:
+
+```tsx
+<group rotation={[alpha, 0, 0]}>          {/* Rot_X(α_{i-1}) */}
+  <group position={[a, 0, 0]}>            {/* Trans_X(a_{i-1}) */}
+    <group rotation={[0, 0, theta]}>      {/* Rot_Z(θ_i) */}
+      <group position={[0, 0, d]}>        {/* Trans_Z(d_i) — frame {i} */}
+        {/* frame {i} triad, link mesh, then the next joint's groups */}
+```
+
+Compute the matrices with the shared kernel (`src/lib/kinematics/dh.ts`), never a local copy,
+and test the arm's math module (Golden rule 10).
+
 ## Required text alternative
 
 Describe what the scene shows and what the controls do (e.g. "a 2-link planar arm; sliders set
 joint 1 and joint 2 angles; coordinate frames are drawn at each joint and the end-effector").
 Provide it through `VizFrame` so it is available without the canvas.
 
-The reference 2-link FK arm in the `forward-kinematics` lesson is the canonical 3D example.
+All UI strings (title, caption, labels, text alternative) exist in EN and PT, typically in a
+colocated `strings.tsx` typed `Record<Locale, …>` (Golden rule 9).
+
+The 3-DOF modified-DH arm in the `forward-kinematics` lesson (`viz/fk/`) is the canonical 3D
+example: DH kernel, nested DH groups with frame labels, live DH table and matrices, EN/PT
+strings, and tests.
