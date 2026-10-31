@@ -138,6 +138,17 @@
 /* Lesson body typography scale (h2 24 / h3 19, generous rhythm). h1 lives in
    the LessonLayout header. */
 @layer components {
+  /* Exercises without an explicit number are numbered per lesson. */
+  .lesson-prose {
+    counter-reset: exercise;
+  }
+  .exercise-card {
+    counter-increment: exercise;
+  }
+  .exercise-number::after {
+    content: counter(exercise);
+  }
+
   .lesson-prose :where(h2) {
     font-size: 1.5rem;
     margin-top: 2.5rem;
