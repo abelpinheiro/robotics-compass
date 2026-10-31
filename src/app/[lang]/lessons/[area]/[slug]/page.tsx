@@ -70,6 +70,7 @@ export default async function LessonPage({
   return (
     <LessonLayout
       locale={locale}
+      slug={slug}
       frontmatter={frontmatter}
       chapterLabel={label}
       status={lessonRef.status}
