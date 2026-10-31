@@ -8,6 +8,11 @@ export function isLocale(value: string | undefined | null): value is Locale {
   return value === "en" || value === "pt";
 }
 
+/** A route's `lang` param as a Locale (the [lang] layout already 404s anything else). */
+export function toLocale(value: string): Locale {
+  return isLocale(value) ? value : defaultLocale;
+}
+
 /**
  * Pick a supported locale from an Accept-Language header (browser/OS language).
  * Falls back to the default locale.
