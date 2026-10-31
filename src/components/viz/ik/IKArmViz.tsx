@@ -4,11 +4,14 @@ import { useEffect, useRef, useState } from "react";
 import { Viz3D } from "@/components/viz/Viz3D";
 import { VizFrame } from "@/components/viz/VizFrame";
 import { MatrixDisplay } from "@/components/viz/MatrixDisplay";
+import { TransformLabel } from "@/components/viz/TransformLabel";
 import FKArmScene, { TCP_COLOR } from "@/components/viz/fk/FKArmScene";
 import { fkTCP, linkMatrices, toRad } from "@/components/viz/fk/fkMath";
 import type { P3 } from "@/components/viz/fk/fkMath";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { solveIK } from "./ikMath";
 import type { Elbow } from "./ikMath";
+import { ikStrings } from "./strings";
 
 const fmt = (n: number) => (Math.abs(n) < 5e-3 ? 0 : n).toFixed(2);
 const deg = (n: number) => `${Math.round(n)}°`;
@@ -24,12 +27,14 @@ const TRAIL_CAP = 400;
 function AxisSlider({
   label,
   value,
+  valueText,
   min,
   max,
   onChange,
 }: {
   label: string;
   value: number;
+  valueText: string;
   min: number;
   max: number;
   onChange: (v: number) => void;
@@ -45,7 +50,7 @@ function AxisSlider({
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
         className="accent-accent"
-        aria-valuetext={`${value.toFixed(2)} meters`}
+        aria-valuetext={valueText}
       />
       <span className="w-16 tabular-nums text-foreground">{value.toFixed(2)} m</span>
     </label>
@@ -53,14 +58,16 @@ function AxisSlider({
 }
 
 export default function IKArmViz() {
+  const { locale, t } = useLocale();
+  const s = ikStrings[locale];
   const [target, setTarget] = useState<P3>(HOME_TARGET);
   const [elbow, setElbow] = useState<Elbow>("down");
   const [trail, setTrail] = useState<P3[]>([]);
   const animRef = useRef<number | null>(null);
 
   const sol = solveIK(target, elbow);
-  const { T03 } = linkMatrices(sol.pose);
-  const tcp: P3 = [T03[0][3], T03[1][3], T03[2][3]];
+  const { T0T } = linkMatrices(sol.pose);
+  const tcp: P3 = [T0T[0][3], T0T[1][3], T0T[2][3]];
 
   const stopAnim = () => {
     if (animRef.current !== null) {
@@ -129,33 +136,31 @@ export default function IKArmViz() {
     setTrail([]);
   };
 
-  const description =
-    `A 3-DOF robot arm on a dark canvas whose tool center point (TCP) is driven to a ` +
-    `target position you set. The target is (x, y, z) = (${fmt(target[0])}, ` +
-    `${fmt(target[1])}, ${fmt(target[2])}) and is ` +
-    `${sol.reachable ? "reachable" : "outside the workspace, so the arm shows the closest pose"}. ` +
-    `The inverse-kinematics solver returns the joint angles θ₁=${deg(sol.pose.t1)}, ` +
-    `θ₂=${deg(sol.pose.t2)}, θ₃=${deg(sol.pose.t3)} (${elbow === "up" ? "elbow-up" : "elbow-down"} ` +
-    `branch). Feeding those angles back through forward kinematics gives ⁰₃T, whose ` +
-    `highlighted last column returns the TCP (${fmt(tcp[0])}, ${fmt(tcp[1])}, ${fmt(tcp[2])}). ` +
-    `Coordinate frames (x red, y green, z blue) sit at the base and each joint, and a ` +
-    `trail marks where the TCP has travelled.`;
+  const description = s.description({
+    target: `(${fmt(target[0])}, ${fmt(target[1])}, ${fmt(target[2])})`,
+    reachable: sol.reachable,
+    t1: deg(sol.pose.t1),
+    t2: deg(sol.pose.t2),
+    t3: deg(sol.pose.t3),
+    elbowUp: elbow === "up",
+    tcp: `(${fmt(tcp[0])}, ${fmt(tcp[1])}, ${fmt(tcp[2])})`,
+  });
 
   const btn =
     "rounded-md border border-border bg-surface px-3 py-1.5 text-sm font-medium text-foreground hover:bg-surface-2";
 
   return (
     <VizFrame
-      title="Inverse kinematics: Obtaining the joint angles from TCP target"
-      caption="Move the target position (or animate to a preset) and the arm solves for the joint angles that reach it. Toggle elbow-up / elbow-down to see the two solutions. Feed the solved angles back through forward kinematics and the pink last column of ⁰₃T returns your target."
+      title={s.title}
+      caption={s.caption}
       textAlternative={description}
       controls={
         <>
-          <AxisSlider label="target x" value={target[0]} min={XY_MIN} max={XY_MAX} onChange={(v) => setAxis(0, v)} />
-          <AxisSlider label="target y" value={target[1]} min={XY_MIN} max={XY_MAX} onChange={(v) => setAxis(1, v)} />
-          <AxisSlider label="target z" value={target[2]} min={Z_MIN} max={Z_MAX} onChange={(v) => setAxis(2, v)} />
+          <AxisSlider label={s.targetAxis("x")} value={target[0]} valueText={s.meters(target[0].toFixed(2))} min={XY_MIN} max={XY_MAX} onChange={(v) => setAxis(0, v)} />
+          <AxisSlider label={s.targetAxis("y")} value={target[1]} valueText={s.meters(target[1].toFixed(2))} min={XY_MIN} max={XY_MAX} onChange={(v) => setAxis(1, v)} />
+          <AxisSlider label={s.targetAxis("z")} value={target[2]} valueText={s.meters(target[2].toFixed(2))} min={Z_MIN} max={Z_MAX} onChange={(v) => setAxis(2, v)} />
           <div className="flex items-center gap-2 text-sm text-muted">
-            <span className="w-24">elbow</span>
+            <span className="w-24">{s.elbow}</span>
             <div className="inline-flex overflow-hidden rounded-md border border-border">
               {(["up", "down"] as Elbow[]).map((e) => (
                 <button
@@ -164,22 +169,22 @@ export default function IKArmViz() {
                   onClick={() => chooseElbow(e)}
                   aria-pressed={elbow === e}
                   className="px-3 py-1 text-sm text-foreground hover:bg-surface-2"
-                  style={elbow === e ? { backgroundColor: "var(--accent)", color: "#fff" } : undefined}
+                  style={elbow === e ? { backgroundColor: "var(--accent)", color: "var(--background)" } : undefined}
                 >
-                  {e === "up" ? "Up" : "Down"}
+                  {e === "up" ? s.up : s.down}
                 </button>
               ))}
             </div>
           </div>
           <span className="mx-1 h-6 w-px bg-border" />
           <button type="button" onClick={() => animateTo(TARGET_A)} className={btn}>
-            Target A
+            {s.targetA}
           </button>
           <button type="button" onClick={() => animateTo(TARGET_B)} className={btn}>
-            Target B
+            {s.targetB}
           </button>
           <button type="button" onClick={reset} className={btn}>
-            Reset
+            {t.viz.reset}
           </button>
         </>
       }
@@ -197,36 +202,35 @@ export default function IKArmViz() {
 
       <div className="mt-3 space-y-3 overflow-x-auto text-sm">
         <div>
-          <span className="text-muted">Target </span>
+          <span className="text-muted">{s.target} </span>
           <span className="font-mono font-semibold tabular-nums" style={{ color: TCP_COLOR }}>
             (x, y, z) = ({fmt(target[0])}, {fmt(target[1])}, {fmt(target[2])})
           </span>
           {sol.reachable ? (
-            <span className="ml-2 text-muted"> in reach (two solutions: elbow-up / elbow-down)</span>
+            <span className="ml-2 text-muted"> {s.inReach}</span>
           ) : (
             <span className="ml-2 font-medium" style={{ color: "var(--danger)" }}>
-              out of reach; showing the closest pose
+              {s.outOfReach}
             </span>
           )}
         </div>
         <div>
-          <span className="text-muted">Solved joint angles (output) </span>
+          <span className="text-muted">{s.solvedAngles} </span>
           <span className="font-mono font-semibold tabular-nums text-foreground">
             θ = ({deg(sol.pose.t1)}, {deg(sol.pose.t2)}, {deg(sol.pose.t3)})
           </span>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <span className="whitespace-nowrap text-muted">
-            <sup>0</sup>
-            <sub>3</sub>T = FK(θ) =
+            <TransformLabel from="0" to="T" /> = FK(θ) =
           </span>
           <MatrixDisplay
-            rows={T03}
+            rows={T0T}
             highlightCol={3}
             highlightColor={TCP_COLOR}
-            ariaLabel="forward-kinematics check of the solved joint angles"
+            ariaLabel={s.fkCheckAria}
           />
-          <span className="text-muted"> last column returns the target</span>
+          <span className="text-muted"> {s.lastColumnReturnsTarget}</span>
         </div>
       </div>
     </VizFrame>

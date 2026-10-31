@@ -3,13 +3,16 @@
 // component) means the FK viz and the IK solver invert exactly the same
 // transform the 3D scene draws.
 
+import { modifiedDH, type ModifiedDHRow } from "@/lib/kinematics/dh";
+import { chain, origin, type Mat4, type Vec3 } from "@/lib/kinematics/mat4";
+
+export type { Mat4 };
+export type P3 = Vec3;
+
 // Link lengths of the 3-DOF arm (base column, upper arm, forearm).
 export const L1 = 1.2;
 export const L2 = 1.3;
 export const L3 = 1.0;
-
-export type Mat4 = number[][];
-export type P3 = [number, number, number];
 
 /** Joint angles in degrees: base yaw, shoulder pitch, elbow pitch. */
 export interface Pose {
@@ -21,41 +24,35 @@ export interface Pose {
 export const toRad = (d: number) => (d * Math.PI) / 180;
 export const toDeg = (r: number) => (r * 180) / Math.PI;
 
-export function mul(a: Mat4, b: Mat4): Mat4 {
-  const o: Mat4 = [
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
-    [0, 0, 0, 0],
+/**
+ * Modified (Craig) DH table of the arm, angles in radians:
+ *
+ *   i | α_{i-1} | a_{i-1} | d_i | θ_i
+ *   1 |   0     |   0     | L1  | θ1
+ *   2 |  −90°   |   0     | 0   | θ2
+ *   3 |   0     |   L2    | 0   | θ3
+ *   T |   0     |   L3    | 0   | 0      ← tool frame {T}, fixed
+ *
+ * Z_1 is the vertical base axis; Z_2 and Z_3 are the horizontal shoulder and
+ * elbow axes. α_1 = −90° makes a positive θ2 or θ3 pitch the arm downward.
+ */
+export function dhTable(p: Pose): ModifiedDHRow[] {
+  return [
+    { alpha: 0, a: 0, d: L1, theta: toRad(p.t1) },
+    { alpha: -Math.PI / 2, a: 0, d: 0, theta: toRad(p.t2) },
+    { alpha: 0, a: L2, d: 0, theta: toRad(p.t3) },
+    { alpha: 0, a: L3, d: 0, theta: 0 },
   ];
-  for (let i = 0; i < 4; i++)
-    for (let j = 0; j < 4; j++)
-      for (let k = 0; k < 4; k++) o[i][j] += a[i][k] * b[k][j];
-  return o;
 }
 
-export const rotZ = (t: number): Mat4 => {
-  const c = Math.cos(t), s = Math.sin(t);
-  return [[c, -s, 0, 0], [s, c, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
-};
-export const rotY = (t: number): Mat4 => {
-  const c = Math.cos(t), s = Math.sin(t);
-  return [[c, 0, s, 0], [0, 1, 0, 0], [-s, 0, c, 0], [0, 0, 0, 1]];
-};
-export const transZ = (d: number): Mat4 => [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, d], [0, 0, 0, 1]];
-export const transX = (a: number): Mat4 => [[1, 0, 0, a], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]];
-
-/** The three joint transforms + their product, matching the scene's nested groups. */
+/** The link transforms ⁰₁T, ¹₂T, ²₃T, ³_TT and the chained base-to-tool ⁰_TT. */
 export function linkMatrices(p: Pose) {
-  const A1 = mul(rotZ(toRad(p.t1)), transZ(L1));
-  const A2 = mul(rotY(toRad(p.t2)), transX(L2));
-  const A3 = mul(rotY(toRad(p.t3)), transX(L3));
-  const T03 = mul(mul(A1, A2), A3);
-  return { A1, A2, A3, T03 };
+  const [T01, T12, T23, T3T] = dhTable(p).map(modifiedDH);
+  const T0T = chain(T01, T12, T23, T3T);
+  return { T01, T12, T23, T3T, T0T };
 }
 
 /** Forward kinematics: joint angles (deg) → TCP position in the base frame. */
 export function fkTCP(p: Pose): P3 {
-  const T = linkMatrices(p).T03;
-  return [T[0][3], T[1][3], T[2][3]];
+  return origin(linkMatrices(p).T0T);
 }
