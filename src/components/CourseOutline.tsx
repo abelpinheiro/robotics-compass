@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { curriculum, isLessonVisible } from "@/lib/curriculum";
-import { getLocale } from "@/lib/i18n/server";
+import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { localePath } from "@/lib/i18n/routing";
 import { StatusBadge } from "@/components/course-map/StatusBadge";
 import { hasChapterHeadings } from "@/components/course-map/labels";
 
@@ -10,8 +11,7 @@ import { hasChapterHeadings } from "@/components/course-map/labels";
  * chapters and how many lessons are available), each linking to that part in
  * the course map, plus a link to the full map.
  */
-export async function CourseOutline() {
-  const locale = await getLocale();
+export function CourseOutline({ locale }: { locale: Locale }) {
   const t = getDictionary(locale);
 
   return (
@@ -28,7 +28,7 @@ export async function CourseOutline() {
           return (
             <li key={part.slug}>
               <Link
-                href={`/course-map#part-${part.slug}`}
+                href={localePath(locale, `/course-map#part-${part.slug}`)}
                 className="flex h-full flex-col rounded-card border border-border bg-surface p-4 transition-colors hover:border-accent hover:bg-accent-weak"
               >
                 <span className="flex items-center justify-between gap-2">
@@ -57,7 +57,7 @@ export async function CourseOutline() {
       </ul>
 
       <Link
-        href="/course-map"
+        href={localePath(locale, "/course-map")}
         className="mt-4 inline-flex items-center gap-1 font-medium text-accent underline-offset-2 hover:underline"
       >
         {t.home.openMap} <span aria-hidden="true">→</span>

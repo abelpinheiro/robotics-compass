@@ -1,9 +1,21 @@
+import type { Metadata } from "next";
 import { Callout } from "@/components/lesson/Callout";
 import { CourseOutline } from "@/components/CourseOutline";
-import { getServerDictionary } from "@/lib/i18n/server";
+import { toLocale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import { localeAlternates } from "@/lib/i18n/routing";
 
-export default async function Home() {
-  const t = await getServerDictionary();
+type Params = Promise<{ lang: string }>;
+
+export async function generateMetadata({ params }: { params: Params }): Promise<Metadata> {
+  const { lang } = await params;
+  return { alternates: localeAlternates(toLocale(lang), "/") };
+}
+
+export default async function Home({ params }: { params: Params }) {
+  const { lang } = await params;
+  const locale = toLocale(lang);
+  const t = getDictionary(locale);
   return (
     <div>
       <div className="lesson-prose">
@@ -21,7 +33,7 @@ export default async function Home() {
       </div>
 
       <div className="mt-10">
-        <CourseOutline />
+        <CourseOutline locale={locale} />
       </div>
     </div>
   );

@@ -2,15 +2,16 @@ import type { ReactNode } from "react";
 import { Header } from "./Header";
 import { Sidebar } from "./Sidebar";
 import { SidebarProvider } from "./sidebar-context";
-import { getServerDictionary } from "@/lib/i18n/server";
+import type { Locale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 
 /**
  * Top-level light-theme layout: a skip link, the Header, then a two-column body
  * (Sidebar + main content with a comfortable reading measure). Wraps every page
  * via the root layout.
  */
-export async function AppShell({ children }: { children: ReactNode }) {
-  const t = await getServerDictionary();
+export function AppShell({ locale, children }: { locale: Locale; children: ReactNode }) {
+  const t = getDictionary(locale);
   return (
     <SidebarProvider>
       <div className="min-h-dvh bg-background">
@@ -21,7 +22,7 @@ export async function AppShell({ children }: { children: ReactNode }) {
           {t.nav.skipToContent}
         </a>
 
-        <Header />
+        <Header locale={locale} />
 
         <div className="flex w-full">
           <Sidebar />

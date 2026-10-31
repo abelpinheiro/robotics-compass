@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import SingularitiesScene, { SINGULAR_FRACTION } from "@/components/viz/singularities/SingularitiesScene";
 import { SCARA, scaraFK, type ScaraState } from "@/components/viz/singularities/singularitiesMath";
 import UrdfArmScene, { type UrdfArmConfig } from "./UrdfArmScene";
@@ -135,6 +136,7 @@ const btn =
   "rounded-md border border-border bg-surface px-2.5 py-1 text-xs font-medium text-foreground hover:bg-surface-2";
 
 export default function RobotPlayground() {
+  const { href: localized } = useLocale();
   const [robot, setRobot] = useState<Robot>("ur20");
   const [scara, setScara] = useState<ScaraState>(SCARA_INIT);
   const [armTheta, setArmTheta] = useState<Record<ArmKey, number[]>>({ ur20: UR20_HOME, kuka: KUKA_HOME, iiwa: IIWA_HOME });
@@ -173,7 +175,7 @@ export default function RobotPlayground() {
       className="theme-dark fixed inset-0 z-40 flex flex-col bg-background text-foreground"
     >
       <header className="flex h-14 shrink-0 items-center gap-4 px-4 border-b border-border">
-        <Link href="/" className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground">
+        <Link href={localized("/")} className="flex items-center gap-1.5 text-sm text-muted hover:text-foreground">
           <span aria-hidden>←</span> Robotics Compass
         </Link>
         <h1 className="font-serif text-base font-semibold">Robot playground</h1>

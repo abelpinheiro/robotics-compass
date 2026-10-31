@@ -1,32 +1,39 @@
 import type { MetadataRoute } from "next";
-import { getVisibleLessons } from "@/lib/curriculum";
+import { curriculum, getVisibleLessons } from "@/lib/curriculum";
+import { locales } from "@/lib/i18n/config";
+import { localeAlternates } from "@/lib/i18n/routing";
 import { SITE_URL } from "@/lib/site";
 
-// Served at /sitemap.xml. Lists the home page, the course map and every
-// visible lesson, sourced from the curriculum so new lessons appear automatically.
+// Served at /sitemap.xml: every page in every locale (/<locale>/…), each with
+// its hreflang alternates, sourced from the curriculum so new lessons appear
+// automatically. Planned and parked lessons have no page and are left out.
 export default function sitemap(): MetadataRoute.Sitemap {
   const now = new Date();
-
-  const lessons: MetadataRoute.Sitemap = getVisibleLessons().map((lesson) => ({
-    url: `${SITE_URL}/lessons/${lesson.area}/${lesson.slug}`,
-    lastModified: now,
-    changeFrequency: "monthly",
-    priority: 0.7,
-  }));
-
-  return [
-    {
-      url: SITE_URL,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 1,
-    },
-    {
-      url: `${SITE_URL}/course-map`,
-      lastModified: now,
-      changeFrequency: "weekly",
-      priority: 0.8,
-    },
-    ...lessons,
+  const pages: { path: string; priority: number; changeFrequency: "weekly" | "monthly" }[] = [
+    { path: "/", priority: 1, changeFrequency: "weekly" },
+    { path: "/course-map", priority: 0.8, changeFrequency: "weekly" },
+    { path: "/course-map/graph", priority: 0.5, changeFrequency: "weekly" },
+    ...curriculum.map((p) => ({ path: `/course-map/graph/${p.slug}`, priority: 0.4, changeFrequency: "weekly" as const })),
+    ...getVisibleLessons().map((l) => ({
+      path: `/lessons/${l.area}/${l.slug}`,
+      priority: 0.7,
+      changeFrequency: "monthly" as const,
+    })),
   ];
+
+  const absolute = (path: string) => `${SITE_URL}${path}`;
+  return pages.flatMap(({ path, priority, changeFrequency }) =>
+    locales.map((locale) => {
+      const { canonical, languages } = localeAlternates(locale, path);
+      return {
+        url: absolute(canonical),
+        lastModified: now,
+        changeFrequency,
+        priority,
+        alternates: {
+          languages: Object.fromEntries(Object.entries(languages).map(([l, p]) => [l, absolute(p)])),
+        },
+      };
+    }),
+  );
 }

@@ -71,7 +71,7 @@ function subscribe(cb: () => void) {
  */
 export function Sidebar() {
   const { open, close } = useSidebar();
-  const { locale, t } = useLocale();
+  const { locale, t, href: localized } = useLocale();
   const pathname = usePathname();
 
   const raw = useSyncExternalStore(subscribe, readStore, () => "[]");
@@ -87,9 +87,11 @@ export function Sidebar() {
     writeStore(JSON.stringify([...next]));
   };
 
-  const currentPart = pathname.startsWith("/lessons/")
-    ? getLessonPlacement(pathname.split("/")[3] ?? "")?.part.slug
-    : undefined;
+  // /<locale>/lessons/<area>/<slug>
+  const segments = pathname.split("/");
+  const currentPart =
+    segments[2] === "lessons" ? getLessonPlacement(segments[4] ?? "")?.part.slug : undefined;
+  const mapHref = localized("/course-map");
 
   const asideClass = open
     ? "fixed top-14 bottom-0 left-0 z-40 w-72 max-w-[85vw] overflow-y-auto border-r border-border bg-surface p-4 shadow-xl md:sticky md:top-14 md:z-auto md:block md:h-[calc(100dvh-3.5rem)] md:w-64 md:max-w-none md:shrink-0 md:shadow-none"
@@ -108,9 +110,9 @@ export function Sidebar() {
 
       <aside id="curriculum-nav" className={asideClass}>
         <Link
-          href="/course-map"
+          href={mapHref}
           onClick={close}
-          aria-current={pathname === "/course-map" ? "page" : undefined}
+          aria-current={pathname === mapHref ? "page" : undefined}
           className="mb-4 flex items-center justify-between gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-semibold text-accent hover:bg-accent-weak"
         >
           <span>{t.nav.courseMap}</span>
@@ -185,7 +187,7 @@ export function Sidebar() {
                             )}
                             <ul className="space-y-0.5">
                               {lessons.map((lesson) => {
-                                const href = `/lessons/${lesson.area}/${lesson.slug}`;
+                                const href = localized(`/lessons/${lesson.area}/${lesson.slug}`);
                                 const current = pathname === href;
                                 return (
                                   <li key={lesson.slug}>

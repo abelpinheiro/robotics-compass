@@ -115,7 +115,7 @@ summary: ""
 {/* TODO(author): add references and further reading. */}
 ```
 
-The lesson route (`src/app/lessons/[area]/[slug]/`) renders the front-matter into the
+The lesson route (`src/app/[lang]/lessons/[area]/[slug]/`, at `/<locale>/lessons/<area>/<slug>`) renders the front-matter into the
 LessonLayout header and the body through `mdx-components`. Empty sections render as headings
 with no content — that is intended; they signal the author where to write.
 

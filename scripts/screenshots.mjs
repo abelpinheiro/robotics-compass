@@ -15,9 +15,9 @@ const OUT = "screenshots";
 const WIDTHS = [375, 768, 1440, 1920];
 
 const PAGES = [
-  ["home", "/"],
-  ["a-star", "/lessons/path-planning/a-star"],
-  ["forward-kinematics", "/lessons/kinematics/forward-kinematics"],
+  ["home", "/en"],
+  ["course-map", "/en/course-map"],
+  ["forward-kinematics", "/en/lessons/kinematics/forward-kinematics"],
 ];
 
 mkdirSync(OUT, { recursive: true });

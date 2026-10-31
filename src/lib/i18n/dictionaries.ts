@@ -13,6 +13,7 @@ export interface Dictionary {
     chapter: (n: number) => string;
   };
   langToggle: { label: string; en: string; pt: string };
+  notFound: { title: string; body: string; home: string };
   badge: { published: string; "in-progress": string; planned: string; parked: string };
   difficulty: { intro: string; core: string; advanced: string };
   lesson: {
@@ -70,6 +71,11 @@ const en: Dictionary = {
     chapter: (n) => `Chapter ${n}`,
   },
   langToggle: { label: "Change language", en: "EN", pt: "PT" },
+  notFound: {
+    title: "Page not found",
+    body: "This page does not exist, or the lesson is still planned. The course map lists every lesson and what is available.",
+    home: "Home",
+  },
   badge: { published: "published", "in-progress": "in progress", planned: "planned", parked: "parked" },
   difficulty: { intro: "intro", core: "core", advanced: "advanced" },
   lesson: {
@@ -132,6 +138,11 @@ const pt: Dictionary = {
     chapter: (n) => `Capítulo ${n}`,
   },
   langToggle: { label: "Mudar idioma", en: "EN", pt: "PT" },
+  notFound: {
+    title: "Página não encontrada",
+    body: "Esta página não existe, ou a lição ainda está planejada. O mapa do curso lista todas as lições e o que já está disponível.",
+    home: "Início",
+  },
   badge: { published: "publicado", "in-progress": "em progresso", planned: "planejado", parked: "estacionado" },
   difficulty: { intro: "introdução", core: "intermediário", advanced: "avançado" },
   lesson: {

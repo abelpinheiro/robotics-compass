@@ -1,8 +1,9 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import type { Difficulty, LessonRef, LessonStatus } from "@/lib/curriculum";
-import { getLocale } from "@/lib/i18n/server";
+import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
+import { localePath } from "@/lib/i18n/routing";
 import { localizedLessonTitle } from "@/lib/i18n/titles";
 
 // Front-matter is for content the author writes (title, summary). Structural
@@ -28,7 +29,8 @@ const DIFFICULTY_DOT: Record<Difficulty, string> = {
  * (chapter, status, difficulty, linked prerequisites), then the lesson prose,
  * then prev/next navigation. Empty author fields stay empty (Golden rule 1).
  */
-export async function LessonLayout({
+export function LessonLayout({
+  locale,
   frontmatter,
   chapterLabel,
   status,
@@ -37,6 +39,7 @@ export async function LessonLayout({
   adjacent = {},
   children,
 }: {
+  locale: Locale;
   frontmatter: LessonFrontmatter;
   /** localized "Chapter 4 · …" label shown above the title */
   chapterLabel?: string;
@@ -48,8 +51,8 @@ export async function LessonLayout({
 }) {
   const { title, summary } = frontmatter;
   const { prev, next } = adjacent;
-  const locale = await getLocale();
   const t = getDictionary(locale);
+  const lessonHref = (l: LessonRef) => localePath(locale, `/lessons/${l.area}/${l.slug}`);
 
   return (
     <article className="lesson-prose">
@@ -79,7 +82,7 @@ export async function LessonLayout({
               {prerequisites.map((p, i) => (
                 <span key={p.slug}>
                   <Link
-                    href={`/lessons/${p.area}/${p.slug}`}
+                    href={lessonHref(p)}
                     className="text-accent underline underline-offset-2"
                   >
                     {localizedLessonTitle(p.slug, p.title, locale)}
@@ -101,7 +104,7 @@ export async function LessonLayout({
         >
           {prev ? (
             <Link
-              href={`/lessons/${prev.area}/${prev.slug}`}
+              href={lessonHref(prev)}
               className="group flex max-w-[48%] flex-col rounded-lg border border-border px-4 py-3 hover:bg-surface-2"
             >
               <span className="text-xs text-muted">← {t.lesson.previous}</span>
@@ -114,7 +117,7 @@ export async function LessonLayout({
           )}
           {next && (
             <Link
-              href={`/lessons/${next.area}/${next.slug}`}
+              href={lessonHref(next)}
               className="group ml-auto flex max-w-[48%] flex-col rounded-lg border border-border px-4 py-3 text-right hover:bg-surface-2"
             >
               <span className="text-xs text-muted">{t.lesson.next} →</span>
