@@ -428,6 +428,11 @@ export function getPrerequisites(slug: string): LessonRef[] {
     .filter((l): l is LessonRef => l !== undefined && isLessonVisible(l));
 }
 
+/** Lessons that list `slug` as a prerequisite, in course order. */
+export function getDependents(slug: string): LessonRef[] {
+  return getAllLessons().filter((l) => l.prerequisites.includes(slug));
+}
+
 /** Previous / next visible lesson in course order. */
 export function getAdjacentLessons(
   areaSlug: string,
