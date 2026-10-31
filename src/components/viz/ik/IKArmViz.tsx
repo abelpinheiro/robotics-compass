@@ -61,7 +61,7 @@ export default function IKArmViz() {
   const { locale, t } = useLocale();
   const s = ikStrings[locale];
   const [target, setTarget] = useState<P3>(HOME_TARGET);
-  const [elbow, setElbow] = useState<Elbow>("down");
+  const [elbow, setElbow] = useState<Elbow>("up");
   const [trail, setTrail] = useState<P3[]>([]);
   const animRef = useRef<number | null>(null);
 
@@ -132,7 +132,7 @@ export default function IKArmViz() {
   const reset = () => {
     stopAnim();
     setTarget(HOME_TARGET);
-    setElbow("down");
+    setElbow("up");
     setTrail([]);
   };
 

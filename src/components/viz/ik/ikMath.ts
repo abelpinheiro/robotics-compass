@@ -53,7 +53,8 @@ export function solveIK(target: P3, elbow: Elbow): IKSolution {
   }
 
   const c3 = clamp((rc * rc + sc * sc - L2 * L2 - L3 * L3) / (2 * L2 * L3), -1, 1);
-  const t3 = (elbow === "up" ? -1 : 1) * Math.acos(c3);
+  // s points down, so θ₃ > 0 bends the elbow above the shoulder–target line.
+  const t3 = (elbow === "up" ? 1 : -1) * Math.acos(c3);
   const t2 = Math.atan2(sc, rc) - Math.atan2(L3 * Math.sin(t3), L2 + L3 * Math.cos(t3));
 
   return { pose: { t1: toDeg(t1), t2: toDeg(t2), t3: toDeg(t3) }, reachable };
