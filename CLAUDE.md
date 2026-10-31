@@ -9,7 +9,7 @@ Robotics Compass (https://robotics-compass.vercel.app) is an interactive, **visu
 website for learning robotics, written by the author alongside their master's studies. It is
 structured like a robotics textbook (Craig is the main reference), every topic carries a live,
 manipulable visualization, and it is **bilingual (EN/PT)**. It also has a dark **playground**
-(`/playground`) with real robots (UR20, KUKA KR6, LBR iiwa) and a SCARA, and **case studies**
+(`/<locale>/playground`) with real robots (UR20, KUKA KR6, LBR iiwa) and a SCARA, and **case studies**
 of specific robots. Tonal inspiration: `robotics101-viscircuit.web.app` — calm, academic, precise.
 
 The current direction is to turn it from "notes with visualizations" into a **study platform**
@@ -92,14 +92,18 @@ robotics-compass/
 │  └─ <area>/<slug>.pt.mdx        # optional Portuguese translation (falls back to English)
 ├─ docs/ROADMAP.md                # backlog
 ├─ src/
+│  ├─ proxy.ts                    # redirects unprefixed URLs to /<locale>/… (cookie, then browser)
 │  ├─ app/
-│  │  ├─ layout.tsx               # root layout, light theme default, locale
 │  │  ├─ globals.css              # design tokens (:root + .theme-dark) + Tailwind
-│  │  ├─ page.tsx                 # home (course outline by part)
-│  │  ├─ course-map/              # course map: table of contents + prerequisite graph
-│  │  ├─ lessons/[area]/[slug]/   # dynamic lesson route renders content/*.mdx
-│  │  └─ playground/              # dark simulator page
-│  ├─ mdx-components.tsx          # global MDX component map
+│  │  ├─ sitemap.ts, robots.ts    # metadata routes (sitemap: every locale + hreflang)
+│  │  └─ [lang]/                  # every page, statically generated per locale (en, pt)
+│  │     ├─ layout.tsx            # root layout, light theme default, <html lang>
+│  │     ├─ page.tsx              # home (course outline by part)
+│  │     ├─ course-map/           # table of contents; graph/ and graph/[part]/ views
+│  │     ├─ lessons/[area]/[slug]/ # lesson route renders content/*.mdx
+│  │     ├─ playground/           # dark simulator page
+│  │     └─ not-found.tsx         # localized 404 (+ [...rest] catch-all)
+│  ├─ mdx-components.tsx          # global MDX component map (locale-aware links)
 │  ├─ components/
 │  │  ├─ shell/                   # AppShell, Header (compass logo), Sidebar, LanguageToggle
 │  │  ├─ lesson/                  # LessonLayout, Callout, section primitives
@@ -109,14 +113,14 @@ robotics-compass/
 │  └─ lib/
 │     ├─ curriculum.ts            # course map (parts → chapters → lessons) — single source of truth
 │     ├─ content.ts               # MDX loading (locale file first, then English)
-│     ├─ i18n/                    # locale config, dictionaries, PT titles
+│     ├─ i18n/                    # locale config + URL routing helpers, dictionaries, PT titles
 │     └─ kinematics/              # shared math kernel (4×4 transforms, modified DH)
 └─ public/                        # static assets (images/<area>/, models/ for URDF meshes)
 ```
 
 Conventions:
 - **Lessons live in `content/<area>/<slug>.mdx`** and are rendered by the dynamic route
-  `src/app/lessons/[area]/[slug]/`. Adding a lesson = add an MDX file + register it in the
+  `src/app/[lang]/lessons/[area]/[slug]/` at `/<locale>/lessons/<area>/<slug>`. Adding a lesson = add an MDX file + register it in the
   curriculum config; never hand-author 70 route folders.
 - **`src/lib/curriculum.ts` is the canonical course map**: Parts (I–VI plus case studies) →
   numbered chapters (1–11 follow Craig 2–13) → lessons. It holds each lesson's `status`,
@@ -132,6 +136,13 @@ Conventions:
 - **Translations:** a lesson's Portuguese version is the sibling `<slug>.pt.mdx`, written by
   the author like any other lesson prose. PT titles for navigation live in
   `src/lib/i18n/titles.ts`.
+- **Locale URLs:** every page lives at `/<locale>/…` (`en`, `pt`) and is statically
+  generated. The locale comes from the route param (`params.lang` → `toLocale`, or
+  `useLocale()` in client code) — never from cookies or headers in render code, which would
+  make pages dynamic. Build internal links with `localePath(locale, path)` /
+  `useLocale().href(path)`. Links inside lesson MDX are written without a locale
+  (`/lessons/…`); `MdxLink` adds it. The `locale` cookie only remembers the toggle's choice
+  for unprefixed URLs (handled in `src/proxy.ts`).
 - Visualizations are React components under `src/components/viz/`, lazy-loaded and wired into
   a lesson's `Visualization` section slot. Their math lives in a separate, tested module.
 - Path aliases: import app code via `@/…` (maps to `src/…`).

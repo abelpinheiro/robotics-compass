@@ -51,12 +51,14 @@ pnpm dev                       # http://localhost:3000
 content/                       # lesson MDX — one file per topic
   <area>/<slug>.mdx
 src/
+  proxy.ts                     # sends unprefixed URLs to /<locale>/…
   app/
-    layout.tsx                 # root layout (light theme default) + fonts + AppShell
     globals.css                # design tokens (:root + .theme-dark) + Tailwind
-    page.tsx                   # home (course outline by part)
-    course-map/                # course map: table of contents + prerequisite graph
-    lessons/[area]/[slug]/     # dynamic route that renders content/*.mdx
+    [lang]/                    # every page, static per locale (/en/…, /pt/…)
+      layout.tsx               # root layout (light theme default) + fonts + AppShell
+      page.tsx                 # home (course outline by part)
+      course-map/              # course map: table of contents + prerequisite graph
+      lessons/[area]/[slug]/   # route that renders content/*.mdx
   mdx-components.tsx           # global MDX component map
   components/
     shell/                     # AppShell, Header (compass logo), Sidebar nav
@@ -69,7 +71,7 @@ src/
 ```
 
 - **Lessons** live in `content/<area>/<slug>.mdx` and are rendered by the dynamic route
-  `src/app/lessons/[area]/[slug]/`. Adding a lesson = add an MDX file **and** register it in
+  `src/app/[lang]/lessons/[area]/[slug]/` at `/<locale>/lessons/<area>/<slug>`. Adding a lesson = add an MDX file **and** register it in
   `src/lib/curriculum.ts`.
 - **`src/lib/curriculum.ts`** is the canonical course map — the sidebar, the course map and
   prev/next read from it. It mirrors the `robotics-curriculum` skill. A lesson's `area` is only
@@ -137,7 +139,7 @@ WCAG **AA** contrast, full keyboard navigation, visible focus states, honored
 With the app running (`pnpm build && pnpm start` in one terminal):
 
 ```bash
-pnpm screenshots                          # captures home + both viz lessons at 375/768/1440/1920px
+pnpm screenshots                          # captures home, course map and the FK lesson at 375/768/1440/1920px
 BASE_URL=http://localhost:3001 pnpm screenshots   # custom target
 ```
 

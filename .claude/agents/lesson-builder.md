@@ -24,7 +24,7 @@ Process for each lesson:
    - Body: the seven fixed sections (Intuition · Formal definition · Visualization · Worked
      example · Common pitfalls · Exercises · Further reading), each with only its empty
      author/viz placeholder comment.
-3. Ensure the lesson is reachable: the dynamic route `src/app/lessons/[area]/[slug]/` renders
+3. Ensure the lesson is reachable: the route `src/app/[lang]/lessons/[area]/[slug]/` renders
    `content/`, and the lesson is registered in its chapter in `src/lib/curriculum.ts` (with a PT
    title in `src/lib/i18n/titles.ts`). Set the lesson's **`difficulty`** (`intro`/`core`/
    `advanced`) and **`prerequisites`** (prereq lesson slugs) on its `LessonRef` in
