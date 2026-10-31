@@ -85,12 +85,15 @@ utilities (`bg-surface`, `text-muted`, `border-border`) over raw Tailwind palett
 All live under `src/components/`.
 
 - **AppShell** (`shell/`) — top-level layout: Header + Sidebar + main content column. Light
-  theme. Holds the reading-width content measure and consistent page padding.
+  theme. Holds the reading-width content measure and consistent page padding. `<main>` is an
+  inline-size container, so a wide figure (the course-map graph) can span it with `cqw` units.
 - **Header** (`shell/`) — slim top bar with the **compass logo** (a simple compass/needle SVG
   mark) + wordmark, links to home. Keyboard reachable, visible focus ring (`--color-accent`).
-- **Sidebar** (`shell/`) — curriculum navigation, grouped by area in taxonomy order, reads
-  from `src/lib/curriculum.ts`. Shows lesson status (e.g. a `draft` marker). Collapsible on
-  small screens; current page marked with `aria-current="page"`.
+- **Sidebar** (`shell/`) — course navigation read from `src/lib/curriculum.ts`: a "Course map"
+  link, then Parts (numeral kicker + serif title, collapsible) → numbered chapters → visible
+  lessons. Chapters with nothing visible show as *planned* (no link); the parked part is one
+  line. Status tags use the shared `StatusBadge` (`course-map/`). Drawer on small screens;
+  current page marked with `aria-current="page"`.
 - **LessonLayout** (`lesson/`) — wraps MDX lesson body: serif headings, 1.7 body leading,
   comfortable reading measure (~68ch), section spacing. Renders front-matter (title, summary,
   difficulty, prerequisites, status) as a lesson header.

@@ -1,23 +1,10 @@
 import type { Locale } from "./config";
 
-// Portuguese titles. English titles come from src/lib/curriculum.ts; these are
-// the PT overrides used when the locale is "pt".
-const areaTitlesPt: Record<string, string> = {
-  foundations: "Fundamentos",
-  kinematics: "Cinemática",
-  dynamics: "Dinâmica",
-  control: "Controle",
-  "reinforcement-learning": "Aprendizado por reforço",
-  "path-planning": "Planejamento de trajetórias",
-  perception: "Percepção",
-  "state-estimation": "Estimação de estado",
-  slam: "SLAM",
-  manipulation: "Manipulação",
-  "mobile-robots": "Robôs móveis",
-  "case-studies": "Estudos de caso",
-};
-
-const lessonTitlesPt: Record<string, string> = {
+// Portuguese lesson titles. English titles come from src/lib/curriculum.ts;
+// these are the PT overrides used when the locale is "pt". Part and chapter
+// titles live in curriculum.ts as Record<Locale, string>. Grouped by content
+// folder (the lesson's `area`).
+export const lessonTitlesPt: Record<string, string> = {
   // foundations
   "vectors-and-frames": "Vetores e referenciais",
   "rotations-2d": "Rotações em 2D",
@@ -31,6 +18,8 @@ const lessonTitlesPt: Record<string, string> = {
   "inverse-kinematics": "Cinemática inversa",
   "velocity-kinematics": "Cinemática de velocidade",
   jacobians: "Jacobianas",
+  "product-of-exponentials": "Produto de exponenciais",
+  "redundancy-and-null-space": "Redundância e espaço nulo",
   // dynamics
   "newton-euler": "Dinâmica de Newton–Euler",
   "lagrangian-dynamics": "Dinâmica lagrangiana",
@@ -43,6 +32,11 @@ const lessonTitlesPt: Record<string, string> = {
   "trajectory-tracking": "Seguimento de trajetória",
   "computed-torque": "Controle por torque computado",
   "impedance-control": "Controle de impedância",
+  "hybrid-force-position-control": "Controle híbrido de posição e força",
+  // trajectories
+  "polynomial-trajectories": "Trajetórias polinomiais",
+  "lspb-trajectories": "Segmentos lineares com concordâncias parabólicas (LSPB)",
+  "cartesian-trajectories": "Trajetórias no espaço cartesiano",
   // reinforcement-learning
   mdps: "Processos de decisão de Markov",
   "value-iteration": "Iteração de valor",
@@ -108,14 +102,6 @@ const lessonTitlesPt: Record<string, string> = {
   // case-studies
   ur20: "UR20 (Universal Robots)",
 };
-
-export function localizedAreaTitle(
-  slug: string,
-  enTitle: string,
-  locale: Locale,
-): string {
-  return locale === "pt" ? (areaTitlesPt[slug] ?? enTitle) : enTitle;
-}
 
 export function localizedLessonTitle(
   slug: string,
