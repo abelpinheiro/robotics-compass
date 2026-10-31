@@ -1,5 +1,6 @@
 import type { Locale } from "@/lib/i18n/config";
 import { variantRng, type Rng } from "./random";
+import { conditionsSchema, planarArmSetupSchema } from "./schema";
 import { renderInline, renderTex, renderText, renderWithGaps, type Values } from "./text";
 import type { ClientAnswer, ClientExercise, ClientVariant, ExerciseDef, Params } from "./types";
 
@@ -89,6 +90,25 @@ function buildAnswer(def: ExerciseDef, p: Params, rng: Rng, locale: Locale, valu
           ]),
         ),
       };
+    case "interactive": {
+      const conditions = conditionsSchema.parse(def.conditions(p));
+      return {
+        kind: "interactive",
+        widget: def.widget,
+        setup: planarArmSetupSchema.parse(def.setup(p)),
+        conditions: conditions.map(({ feedback, ...c }) => (feedback ? { ...c, feedbackHtml: block(feedback[locale]) } : c)),
+        reference: def.solve(p),
+      };
+    }
+    case "python":
+      return {
+        kind: "python",
+        entry: def.entry,
+        starter: def.starter,
+        reference: def.reference,
+        cases: def.cases(p, rng).map((args) => ({ args, expected: def.solve(args, p) })),
+        tolerance: def.tolerance,
+      };
   }
 }
 
@@ -103,6 +123,13 @@ export function buildVariant(def: ExerciseDef, variant: number, locale: Locale):
       if (id in values) throw new Error(`${def.id}: gap "${id}" clashes with a parameter`);
       values[id] = g.solve(params);
     }
+  }
+  if (def.kind === "interactive") {
+    // the reference state can be quoted in the texts as {{ref1}}, {{ref2}}, …
+    def.solve(params).forEach((v, i) => {
+      if (`ref${i + 1}` in values) throw new Error(`${def.id}: ref${i + 1} clashes with a parameter`);
+      values[`ref${i + 1}`] = v;
+    });
   }
   const answer = buildAnswer(def, params, rng, locale, values);
   return {

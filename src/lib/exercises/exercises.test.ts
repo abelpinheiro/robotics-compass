@@ -1,19 +1,25 @@
 import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { compile } from "mathjs";
+import type { PyodideAPI } from "pyodide";
 import { getLessonBySlug } from "@/lib/curriculum";
 import { locales } from "@/lib/i18n/config";
 import { buildClientExercise, variantCount, variantParams } from "./build";
-import { checkNumeric, checkOrder, checkSymbolic } from "./check";
+import { checkConditions, checkNumeric, checkOrder, checkPyValue, checkSymbolic } from "./check";
+import { planarArmValues, snapAngle } from "./planarArm";
+import { runPythonCases } from "./python";
 import { exerciseSets, getExercise, isExerciseVisible } from "./registry";
 import { validateSet } from "./schema";
-import type { ExerciseDef } from "./types";
+import { nodePyodide } from "./test-pyodide";
+import type { ExerciseDef, Params, PythonDef } from "./types";
 
 // Every registered exercise, every variant, both locales: the data is valid,
 // the texts render, the reference answer passes the browser's checker (and a
 // perturbed one does not), and the reference solution agrees with its
-// independent verification.
+// independent verification. Python exercises also run their reference code
+// (which must pass every case) and their starter code (which must not) in
+// Pyodide.
 
 const mathjsCompile = (expr: string) => {
   const code = compile(expr);
@@ -121,7 +127,54 @@ describe.each(all.map((e) => [e.id, e] as const))("exercise %s", (_, def) => {
           }
           break;
         }
+        case "interactive": {
+          const { setup, conditions, reference } = answer;
+          const step = setup.step ?? 1;
+          const holds = (angles: number[]) => checkConditions(planarArmValues(setup, angles), conditions).ok;
+          expect(reference, where).toHaveLength(setup.links.length);
+          for (const a of setup.initial) expect(snapAngle(a, step), `${where}: initial angles on the step`).toBe(a);
+          expect(holds(reference), `${where}: reference ${reference}`).toBe(true);
+          // the controls move in steps: the reference must stay valid when snapped to them
+          expect(holds(reference.map((a) => snapAngle(a, step))), `${where}: snapped reference`).toBe(true);
+          expect(holds(setup.initial), `${where}: must not start solved`).toBe(false);
+          expect(holds(reference.map((a) => a + 15)), `${where}: perturbed reference`).toBe(false);
+          break;
+        }
+        case "python": {
+          if (def.kind !== "python") throw new Error("kind mismatch");
+          const p = variantParams(def, i).params as never;
+          expect(answer.cases.length, where).toBeGreaterThanOrEqual(2);
+          for (const c of answer.cases) {
+            def.verifyCase(c.args, c.expected, p);
+            expect(checkPyValue(c.expected, c.expected, answer.tolerance), where).toBe("ok");
+          }
+          break;
+        }
       }
     });
+  });
+});
+
+const pythonExercises = all.filter((e): e is PythonDef<Params> => e.kind === "python");
+
+describe.runIf(pythonExercises.length > 0)("Python exercises in Pyodide", () => {
+  let py: PyodideAPI;
+  beforeAll(async () => {
+    py = await nodePyodide();
+  }, 120_000);
+
+  it.each(pythonExercises.map((e) => [e.id, e] as const))("%s: the reference passes every case and the starter does not", (_, def) => {
+    for (const { answer } of buildClientExercise(def, "en").variants) {
+      if (answer.kind !== "python") throw new Error("kind mismatch");
+      const args = answer.cases.map((c) => c.args);
+      const passes = (code: string) => {
+        const r = runPythonCases(py, code, answer.entry, args);
+        return r.status === "done" && r.results.every((res, k) => "value" in res && checkPyValue(res.value, answer.cases[k].expected, answer.tolerance) === "ok");
+      };
+      const ref = runPythonCases(py, answer.reference, answer.entry, args);
+      expect(ref.status, `${def.id} reference`).toBe("done");
+      expect(passes(answer.reference), `${def.id} reference: ${JSON.stringify(ref)}`).toBe(true);
+      expect(passes(answer.starter), `${def.id} starter`).toBe(false);
+    }
   });
 });

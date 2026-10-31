@@ -1,5 +1,7 @@
 import type { Locale } from "@/lib/i18n/config";
-import type { Tolerance } from "./check";
+import type { Condition, PyValue, Tolerance } from "./check";
+import type { PlanarArmQuantity, PlanarArmSetup } from "./planarArm";
+import type { PyArg } from "./python";
 import type { Rng } from "./random";
 
 // ---------------------------------------------------------------------------
@@ -99,13 +101,54 @@ export interface GapsDef<P extends Params> extends Base<P> {
   verify: (p: P) => void;
 }
 
+export interface ConditionDef extends Condition {
+  quantity: PlanarArmQuantity;
+  /** shown when this condition fails (the first failing one is shown) */
+  feedback?: Text;
+}
+
+export interface InteractiveDef<P extends Params> extends Base<P> {
+  kind: "interactive";
+  /** the widget the reader manipulates (lib/exercises/planarArm.ts) */
+  widget: "planar-arm";
+  setup: (p: P) => PlanarArmSetup;
+  /** ranges the widget's quantities must fall in; every one must hold */
+  conditions: (p: P) => ConditionDef[];
+  /**
+   * A reference state that meets the conditions (joint angles in degrees),
+   * shown on the widget with the solution. Texts can quote it as
+   * {{ref1}}, {{ref2}}, …
+   */
+  solve: (p: P) => number[];
+  verify: (p: P) => void;
+}
+
+export interface PythonDef<P extends Params> extends Base<P> {
+  kind: "python";
+  /** name of the function the reader writes */
+  entry: string;
+  /** code the editor starts with: imports and the signature, no solution */
+  starter: string;
+  /** reference implementation: shown with the solution and run by the tests */
+  reference: string;
+  /** the argument lists the function is called with in one variant */
+  cases: (p: P, rng: Rng) => PyArg[][];
+  /** expected return value for one case, computed in TypeScript (e.g. by the kernel) */
+  solve: (args: PyArg[], p: P) => PyValue;
+  /** independent check of `solve` for one case; throws on a mismatch */
+  verifyCase: (args: PyArg[], expected: PyValue, p: P) => void;
+  tolerance: Tolerance;
+}
+
 export type ExerciseDef<P extends Params = Params> =
   | NumericDef<P>
   | McqDef<P>
   | SymbolicDef<P>
   | OrderDef<P>
   | WrongStepDef<P>
-  | GapsDef<P>;
+  | GapsDef<P>
+  | InteractiveDef<P>
+  | PythonDef<P>;
 
 export type ExerciseKind = ExerciseDef["kind"];
 
@@ -143,6 +186,21 @@ export type ClientAnswer =
         | { kind: "numeric"; value: number; tolerance: Tolerance; unitHtml?: string }
         | { kind: "choice"; options: string[]; correct: number }
       >;
+    }
+  | {
+      kind: "interactive";
+      widget: "planar-arm";
+      setup: PlanarArmSetup;
+      conditions: (Condition & { feedbackHtml?: string })[];
+      reference: number[];
+    }
+  | {
+      kind: "python";
+      entry: string;
+      starter: string;
+      reference: string;
+      cases: { args: PyArg[]; expected: PyValue }[];
+      tolerance: Tolerance;
     };
 
 export interface ClientVariant {
