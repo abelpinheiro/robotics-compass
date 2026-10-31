@@ -97,6 +97,9 @@ exactly DH frame {i} (Z on the joint axis) and the scene matches the matrices sh
         {/* frame {i} triad, link mesh, then the next joint's groups */}
 ```
 
+Name the tool frame **{T}** (Craig's tool frame): the last link transform is ^{n}_T T and the
+base-to-tool product is ^0_T T. Label every frame in the scene ({0}, {1}, …, {T}).
+
 Compute the matrices with the shared kernel (`src/lib/kinematics/dh.ts`), never a local copy,
 and test the arm's math module (Golden rule 10).
 
