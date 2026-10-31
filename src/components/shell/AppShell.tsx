@@ -25,9 +25,11 @@ export async function AppShell({ children }: { children: ReactNode }) {
 
         <div className="flex w-full">
           <Sidebar />
+          {/* An inline-size container, so a wide figure (the course-map graph)
+              can span all of <main> beyond the reading column via cqw units. */}
           <main
             id="main-content"
-            className="min-w-0 flex-1 px-4 pt-8 pb-16 sm:px-8 sm:pt-10"
+            className="@container min-w-0 flex-1 px-4 pt-8 pb-16 sm:px-8 sm:pt-10"
           >
             <div className="mx-auto max-w-[72ch]">{children}</div>
           </main>
