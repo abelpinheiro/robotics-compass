@@ -69,11 +69,11 @@ $$
 
 Vamos extrair os parâmetros DH de um robô planar 2R simples (um braço robótico com duas juntas rotacionais que se movem no plano de uma mesa, como um braço humano apoiado sobre uma escrivaninha). O primeiro elo tem comprimento $L_1$ e o segundo tem comprimento $L_2$.
 
-![Atribuição de referenciais DH (vista de cima) para um braço planar 2R: os eixos das juntas Z_0, Z_1, Z_2 apontam todos para fora da mesa (desenhados como pontos circulados), então toda torção alpha é zero; as origens dos referenciais ficam nas juntas, então todo deslocamento d é zero. Cada eixo X corre ao longo do seu elo, com comprimentos a_0 = L_1 e a_1 = L_2, e os ângulos de junta theta_1 e theta_2 são as duas variáveis.](/images/kinematics/modeling-manipulators-2r-planar.svg)
+![Atribuição de referenciais DH modificada (Craig), vista de cima, para um braço planar 2R: todos os eixos das juntas apontam para fora da mesa (desenhados como pontos circulados), então toda torção alpha é zero, e todo deslocamento d é zero. Os referenciais {0} e {1} compartilham origem e eixo Z na junta 1; X_1 corre ao longo do elo 1, a um ângulo theta_1 do X_0 fixo. O referencial {2} fica na junta 2, com X_2 ao longo do elo 2, a um ângulo theta_2 da direção de X_1, e o referencial da ferramenta {T} fica na ponta. Os comprimentos dos elos aparecem como a_1 = L_1 e a_2 = L_2.](/images/kinematics/modeling-manipulators-2r-planar.svg)
 
 Primeiro, alinhamos todos os eixos Z com o eixo de rotação. Como o robô se move sobre uma mesa plana, todos os motores giram em torno do eixo vertical. Portanto, $Z_0$, $Z_1$ e $Z_2$ apontam todos para cima, para fora da mesa.
 
-Em segundo lugar, alinhamos os eixos X ao longo dos elos. $X_0$ aponta ao longo do Elo 1, $X_1$ aponta ao longo do Elo 2.
+Em segundo lugar, alinhamos os eixos X ao longo dos elos. $X_1$ aponta ao longo do Elo 1 (de $Z_1$ a $Z_2$) e $X_2$ aponta ao longo do Elo 2. $X_0$ é fixo na base, escolhido para coincidir com $X_1$ quando $\theta_1 = 0$. Um referencial da ferramenta (tool frame) $\{T\}$ na ponta do Elo 2 marca o fim do braço.
 
 Agora, construímos a Tabela DH linha por linha:
 
@@ -81,7 +81,7 @@ Elo 1 (indo do Referencial 0 ao Referencial 1):
 
 $\alpha_0$: Os eixos $Z_0$ e $Z_1$ estão inclinados um em relação ao outro? Não, eles são perfeitamente paralelos. $\rightarrow 0$
 
-$a_0$: Distância de $Z_0$ a $Z_1$ ao longo de $X_0$. Este é o comprimento do elo. $\rightarrow L_1$
+$a_0$: Distância de $Z_0$ a $Z_1$ ao longo de $X_0$. Os dois são o eixo da junta 1, então coincidem. $\rightarrow 0$
 
 $\theta_1$: O ângulo do primeiro motor. $\rightarrow \theta_1^*$ (O * indica que é uma variável, não uma constante).
 
@@ -89,13 +89,18 @@ $d_1$: O Referencial 1 está deslocado para cima ou para baixo ao longo do eixo 
 
 Elo 2 (indo do Referencial 1 ao Referencial 2):
 
-Seguindo a mesma lógica para o segundo elo, obtemos: $\alpha_1 = 0$, $a_1 = L_2$, $\theta_2 = \theta_2^*$, $d_2 = 0$.
+Seguindo a mesma lógica para o segundo elo, obtemos: $\alpha_1 = 0$, $a_1 = L_1$ (a distância de $Z_1$ a $Z_2$ ao longo de $X_1$, ou seja, o comprimento do Elo 1), $\theta_2 = \theta_2^*$, $d_2 = 0$.
+
+Referencial da ferramenta (indo do Referencial 2 ao Referencial $\{T\}$):
+
+Nenhuma junta move a ferramenta em relação ao Elo 2, então esta linha é constante: $\alpha_2 = 0$, $a_2 = L_2$ (o comprimento do Elo 2), $\theta_T = 0$, $d_T = 0$.
 
 
 | Elo ($i$)  | $\alpha_{i-1}$ | $a_{i-1}$ | $\theta_i$   | $d_i$ |
 |:-----------|:--------------:|:---------:|:------------:|:-----:|
-| 1          | $0$            | $L_1$     | $\theta_1^*$ | $0$   |
-| 2          | $0$            | $L_2$     | $\theta_2^*$ | $0$   |
+| 1          | $0$            | $0$       | $\theta_1^*$ | $0$   |
+| 2          | $0$            | $L_1$     | $\theta_2^*$ | $0$   |
+| T          | $0$            | $L_2$     | $0$          | $0$   |
 
 
 ## Erros comuns

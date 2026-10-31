@@ -69,11 +69,11 @@ $$
 
 Let's extract the DH parameters of a simple 2R Planar Robot (a robotic arm with two rotational joints moving flat on a table, like a human arm resting on a desk). The first link has length $L_1$ and the second has length $L_2$.
 
-![Top-down DH frame assignment for a 2R planar arm: the joint axes Z_0, Z_1, Z_2 all point out of the table (drawn as circled dots), so every twist alpha is zero; the frame origins sit at the joints, so every offset d is zero. Each X axis runs along its link, with link lengths a_0 = L_1 and a_1 = L_2, and the joint angles theta_1 and theta_2 are the two variables.](/images/kinematics/modeling-manipulators-2r-planar.svg)
+![Top-down modified (Craig) DH frame assignment for a 2R planar arm: all joint axes point out of the table (drawn as circled dots), so every twist alpha is zero, and every offset d is zero. Frames {0} and {1} share their origin and Z axis at joint 1; X_1 runs along link 1, at angle theta_1 from the fixed X_0. Frame {2} sits at joint 2 with X_2 along link 2, at angle theta_2 from the X_1 direction, and the tool frame {T} sits at the tip. The link lengths appear as a_1 = L_1 and a_2 = L_2.](/images/kinematics/modeling-manipulators-2r-planar.svg)
 
 First, we align all Z-axes with the axis of rotation. Since the robot moves on a flat table, all motors spin around the vertical axis. Therefore, $Z_0$, $Z_1$, and $Z_2$ all point straight up out of the table.
 
-Secondly, align the X-axes along the links. $X_0$ points along Link 1, $X_1$ points along Link 2.
+Secondly, align the X-axes along the links. $X_1$ points along Link 1 (from $Z_1$ to $Z_2$) and $X_2$ points along Link 2. $X_0$ is fixed to the base, chosen to coincide with $X_1$ when $\theta_1 = 0$. A tool frame $\{T\}$ at the tip of Link 2 marks the end of the arm.
 
 
 
@@ -83,7 +83,7 @@ Link 1 (Moving from Frame 0 to Frame 1):
 
 $\alpha_0$: Are the $Z_0$ and $Z_1$ axes tilted relative to each other? No, they are perfectly parallel. $\rightarrow 0$
 
-$a_0$: Distance from $Z_0$ to $Z_1$ along $X_0$. This is the length of the link. $\rightarrow L_1$
+$a_0$: Distance from $Z_0$ to $Z_1$ along $X_0$. Both are the axis of joint 1, so they coincide. $\rightarrow 0$
 
 $\theta_1$: The angle of the first motor. $\rightarrow \theta_1^*$ (The * indicates it is a variable, not a constant).
 
@@ -91,13 +91,18 @@ $d_1$: Is Frame 1 shifted up or down the $Z_1$ axis? No, they are on the same pl
 
 Link 2 (Moving from Frame 1 to Frame 2):
 
-Following the same logic for the second link, we get: $\alpha_1 = 0$, $a_1 = L_2$, $\theta_2 = \theta_2^*$, $d_2 = 0$.
+Following the same logic for the second link, we get: $\alpha_1 = 0$, $a_1 = L_1$ (the distance from $Z_1$ to $Z_2$ along $X_1$, i.e. the length of Link 1), $\theta_2 = \theta_2^*$, $d_2 = 0$.
+
+Tool frame (Moving from Frame 2 to Frame $\{T\}$):
+
+No joint moves the tool relative to Link 2, so this row is constant: $\alpha_2 = 0$, $a_2 = L_2$ (the length of Link 2), $\theta_T = 0$, $d_T = 0$.
 
 
 | Link ($i$) | $\alpha_{i-1}$ | $a_{i-1}$ | $\theta_i$   | $d_i$ |
 |:-----------|:--------------:|:---------:|:------------:|:-----:|
-| 1          | $0$            | $L_1$     | $\theta_1^*$ | $0$   |
-| 2          | $0$            | $L_2$     | $\theta_2^*$ | $0$   |
+| 1          | $0$            | $0$       | $\theta_1^*$ | $0$   |
+| 2          | $0$            | $L_1$     | $\theta_2^*$ | $0$   |
+| T          | $0$            | $L_2$     | $0$          | $0$   |
 
 
 ## Common pitfalls
