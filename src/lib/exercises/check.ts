@@ -79,3 +79,42 @@ export function checkOrder(ids: string[], correct: string[]): CheckResult & { in
     ? { ok: true, inPlace }
     : { ok: false, reason: "wrong", inPlace };
 }
+
+/** A range on one named quantity of an interactive widget; a missing side is unbounded. */
+export interface Condition {
+  quantity: string;
+  min?: number;
+  max?: number;
+}
+
+/**
+ * Interactive answers: every condition must hold for the quantities computed
+ * from the widget's state. A missing or non-finite quantity fails. Returns the
+ * indices of the failing conditions, in order.
+ */
+export function checkConditions(values: Record<string, number>, conditions: Condition[]): { ok: boolean; failed: number[] } {
+  const failed = conditions.flatMap((c, i) => {
+    const v = values[c.quantity];
+    const holds = Number.isFinite(v) && (c.min === undefined || v >= c.min) && (c.max === undefined || v <= c.max);
+    return holds ? [] : [i];
+  });
+  return { ok: failed.length === 0, failed };
+}
+
+/** A value returned by Python: a number, or nested lists of them; null for nan/inf. */
+export type PyValue = number | null | PyValue[];
+
+/**
+ * Python answers: the value the reader's function returned for one case
+ * against the expected one. "shape" when the nesting or the lengths differ.
+ */
+export function checkPyValue(got: PyValue, expected: PyValue, tol: Tolerance): "ok" | "shape" | "wrong" {
+  if (Array.isArray(expected)) {
+    if (!Array.isArray(got) || got.length !== expected.length) return "shape";
+    const parts = expected.map((e, i) => checkPyValue(got[i], e, tol));
+    return parts.includes("shape") ? "shape" : parts.includes("wrong") ? "wrong" : "ok";
+  }
+  if (Array.isArray(got)) return "shape";
+  if (got === null || expected === null) return "wrong";
+  return withinTolerance(got, expected, tol) ? "ok" : "wrong";
+}

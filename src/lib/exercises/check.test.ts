@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compile } from "mathjs";
-import { checkNumeric, checkOrder, checkSymbolic, parseNumber, withinTolerance } from "./check";
+import { checkConditions, checkNumeric, checkOrder, checkPyValue, checkSymbolic, parseNumber, withinTolerance } from "./check";
 import { createRng, hashString, variantRng } from "./random";
 
 const mathjsCompile = (expr: string) => {
@@ -83,5 +83,45 @@ describe("seeded randomness", () => {
       expect(u).toBeLessThanOrEqual(1.2);
     }
     expect(r.shuffle([1, 2, 3, 4, 5]).sort()).toEqual([1, 2, 3, 4, 5]);
+  });
+});
+
+describe("checkConditions", () => {
+  const conditions = [{ quantity: "detJ", min: -0.01, max: 0.01 }, { quantity: "elbowHeight", min: 0.02 }];
+
+  it("passes when every range holds, inclusive at the bounds", () => {
+    expect(checkConditions({ detJ: 0.01, elbowHeight: 0.02 }, conditions)).toEqual({ ok: true, failed: [] });
+  });
+
+  it("lists the failing conditions in order", () => {
+    expect(checkConditions({ detJ: 0.2, elbowHeight: -0.1 }, conditions)).toEqual({ ok: false, failed: [0, 1] });
+    expect(checkConditions({ detJ: 0, elbowHeight: 0.01 }, conditions)).toEqual({ ok: false, failed: [1] });
+  });
+
+  it("fails a missing or non-finite quantity", () => {
+    expect(checkConditions({ detJ: 0 }, conditions).failed).toEqual([1]);
+    expect(checkConditions({ detJ: NaN, elbowHeight: 1 }, conditions).failed).toEqual([0]);
+  });
+});
+
+describe("checkPyValue", () => {
+  const tol = { abs: 1e-6 };
+
+  it("compares numbers and nested lists entry by entry", () => {
+    expect(checkPyValue(1.0000001, 1, tol)).toBe("ok");
+    expect(checkPyValue([[1, 0], [0, 1]], [[1, 0], [0, 1 + 1e-7]], tol)).toBe("ok");
+    expect(checkPyValue([[1, 0], [0, 2]], [[1, 0], [0, 1]], tol)).toBe("wrong");
+  });
+
+  it("reports a different nesting or length as a shape error", () => {
+    expect(checkPyValue([1, 0, 0, 1], [[1, 0], [0, 1]], tol)).toBe("shape");
+    expect(checkPyValue([[1, 0]], [[1, 0], [0, 1]], tol)).toBe("shape");
+    expect(checkPyValue([1], 1, tol)).toBe("shape");
+    expect(checkPyValue(1, [1], tol)).toBe("shape");
+  });
+
+  it("treats nan/inf (null) as wrong", () => {
+    expect(checkPyValue(null, 1, tol)).toBe("wrong");
+    expect(checkPyValue([[null, 0]], [[1, 0]], tol)).toBe("wrong");
   });
 });
