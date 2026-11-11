@@ -102,7 +102,9 @@ All live under `src/components/`.
 - **Lesson components** (`lesson/`, template v2) — MotivatingQuestion (accent-weak box, accent
   left border), Proof / ProofStep / Why (bordered card, CSS-counter step numbers, native
   `<details>` for "why?"), ExerciseCard (level tag, progressive hints, solution with a success
-  left border), Connections (bordered card with a `<dl>`). Details in the lesson-template skill.
+  left border), Connections (bordered card with a `<dl>`). Exercise feedback keeps text at
+  `foreground` and signals right/wrong with a `success`/`danger` left border plus ✓/✗ (those
+  tokens are below AA as text on white). Details in the lesson-template skill.
 - **VizFrame** (`viz/`) — the framed container every visualization sits in: caption, a
   **required text-alternative** (`<figcaption>` / visually-hidden description), and controls
   region. Provides consistent border/radius/padding.

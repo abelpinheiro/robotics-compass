@@ -1,10 +1,11 @@
 import type { ComponentType } from "react";
+import type { MDXComponents } from "mdx/types";
 import type { LessonFrontmatter } from "@/components/lesson/LessonLayout";
 import type { Locale } from "@/lib/i18n/config";
 
 export interface LessonModule {
-  /** the compiled MDX body component */
-  default: ComponentType;
+  /** the compiled MDX body component (extra components can be passed per render) */
+  default: ComponentType<{ components?: MDXComponents }>;
   /** front-matter exported by remark-mdx-frontmatter */
   frontmatter: LessonFrontmatter;
 }

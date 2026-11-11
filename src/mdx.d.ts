@@ -2,6 +2,7 @@
 // loaded dynamically by src/lib/content.ts, which types them itself.
 declare module "*.mdx" {
   import type { ComponentType } from "react";
-  const MDXContent: ComponentType;
+  import type { MDXComponents } from "mdx/types";
+  const MDXContent: ComponentType<{ components?: MDXComponents }>;
   export default MDXContent;
 }

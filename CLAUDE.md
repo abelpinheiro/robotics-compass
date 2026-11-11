@@ -108,11 +108,13 @@ robotics-compass/
 │  │  ├─ shell/                   # AppShell, Header (compass logo), Sidebar, LanguageToggle
 │  │  ├─ lesson/                  # LessonLayout, Callout, section primitives
 │  │  ├─ course-map/              # labels, status badge, prerequisite graph + its tested layout
+│  │  ├─ exercises/               # <Exercise id> (server) + ExerciseRunner (client)
 │  │  ├─ viz/                     # VizFrame, Viz2D, Viz3D wrappers + viz impls
 │  │  └─ playground/              # RobotPlayground + per-robot math (URDF chains)
 │  └─ lib/
 │     ├─ curriculum.ts            # course map (parts → chapters → lessons) — single source of truth
 │     ├─ content.ts               # MDX loading (locale file first, then English)
+│     ├─ exercises/               # exercise engine: schema, seeded variants, text, checkers, registry
 │     ├─ i18n/                    # locale config + URL routing helpers, dictionaries, PT titles
 │     └─ kinematics/              # shared math kernel (4×4 transforms, modified DH)
 └─ public/                        # static assets (images/<area>/, models/ for URDF meshes)
@@ -144,11 +146,18 @@ Conventions:
   (`/lessons/…`); `MdxLink` adds it. The `locale` cookie only remembers the toggle's choice
   for unprefixed URLs (handled in `src/proxy.ts`).
 - **Lesson components (template v2)**, global in `src/mdx-components.tsx`: `<MotivatingQuestion>`,
-  `<Proof>` / `<ProofStep>` / `<Why prereq>`, and (Phase 4) `<Exercise id>` filling the
-  `ExerciseCard`. They are frames — the author writes everything inside them. Connections
+  `<Proof>` / `<ProofStep>` / `<Why prereq>`, and `<Exercise id>` (passed by the lesson page,
+  which knows the locale). They are frames — the author writes everything inside them. Connections
   ("builds on" / "leads to" from the prerequisite graph, plus optional `seeAlso` front-matter)
   render automatically at the end of every lesson. Section headings get ids from their text.
   Dev-only gallery: `/<locale>/dev/components`. See `.claude/skills/lesson-template`.
+- **Exercises** live in `content/<area>/<slug>.exercises.ts` (registered in
+  `src/lib/exercises/registry.ts`, zod-validated on load so a malformed one fails the build):
+  numeric, mcq, symbolic, order, wrong-step and gaps; levels L1–L4; seeded variants; progressive
+  hints. Each has a reference `solve` plus an independent `verify`/`evaluate`, run for every
+  variant by `src/lib/exercises/exercises.test.ts`. Drafts (`status: "draft"`) render only on
+  the dev server and never reach production HTML or JS; the browser only gets rendered HTML and
+  answer data. Details in `.claude/skills/lesson-template`.
 - Visualizations are React components under `src/components/viz/`, lazy-loaded and wired into
   a lesson's `Visualization` section slot. Their math lives in a separate, tested module.
 - Path aliases: import app code via `@/…` (maps to `src/…`).

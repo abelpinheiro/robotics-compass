@@ -10,6 +10,7 @@ import {
   isLessonRoutable,
 } from "@/lib/curriculum";
 import { loadLesson } from "@/lib/content";
+import { Exercise } from "@/components/exercises/Exercise";
 import { partLabel } from "@/components/course-map/labels";
 import { toLocale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -78,7 +79,12 @@ export default async function LessonPage({
       prerequisites={getPrerequisites(slug)}
       adjacent={getAdjacentLessons(area, slug)}
     >
-      <Content />
+      <Content
+        components={{
+          // <Exercise id="…" /> needs the page's locale to render its text
+          Exercise: (props: { id: string; number?: number }) => <Exercise {...props} locale={locale} />,
+        }}
+      />
     </LessonLayout>
   );
 }

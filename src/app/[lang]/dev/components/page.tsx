@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { toLocale } from "@/lib/i18n/config";
 import { Connections } from "@/components/lesson/Connections";
+import { Exercise } from "@/components/exercises/Exercise";
 import Gallery from "./gallery.mdx";
 
 export const metadata: Metadata = { title: "Lesson components", robots: { index: false } };
@@ -17,7 +18,9 @@ export default async function ComponentGallery({ params }: { params: Promise<{ l
   return (
     <article className="lesson-prose">
       <h1 className="text-[2rem] leading-tight font-semibold">Lesson components (dev)</h1>
-      <Gallery />
+      <Gallery
+        components={{ Exercise: (props: { id: string; number?: number }) => <Exercise {...props} locale={locale} /> }}
+      />
       <Connections slug="jacobians" locale={locale} seeAlso={["/playground", "/lessons/case-studies/ur20"]} />
     </article>
   );
