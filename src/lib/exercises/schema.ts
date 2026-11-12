@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { planarArmQuantities } from "./planarArm";
 import type { ExerciseSet } from "./types";
 
 // Runtime validation of exercise data files. The registry validates every set
@@ -33,6 +34,26 @@ const gap = z.discriminatedUnion("kind", [
   }),
 ]);
 
+/** What an interactive exercise's `setup` returns (checked when each variant is built). */
+export const planarArmSetupSchema = z
+  .object({
+    links: z.array(z.number().positive()).min(1).max(4),
+    initial: z.array(z.number()),
+    target: z.tuple([z.number(), z.number()]).optional(),
+    showTip: z.boolean().optional(),
+    step: z.number().positive().max(15).optional(),
+  })
+  .refine((s) => s.initial.length === s.links.length, "initial needs one angle per link");
+
+/** What an interactive exercise's `conditions` returns. */
+export const conditionsSchema = z
+  .array(
+    z
+      .object({ quantity: z.enum(planarArmQuantities), min: z.number().optional(), max: z.number().optional(), feedback: text.optional() })
+      .refine((c) => c.min !== undefined || c.max !== undefined, "a condition needs min or max"),
+  )
+  .min(1);
+
 export const exerciseSchema = z.discriminatedUnion("kind", [
   z.object({ ...base, kind: z.literal("numeric"), solve: fn, tolerance, unit: z.string().optional(), verify: fn }),
   z.object({
@@ -64,6 +85,28 @@ export const exerciseSchema = z.discriminatedUnion("kind", [
       .refine((s) => s.filter((x) => x.wrong).length === 1, "exactly one step must be wrong"),
   }),
   z.object({ ...base, kind: z.literal("gaps"), template: text, gaps: z.record(z.string(), gap), verify: fn }),
+  z.object({
+    ...base,
+    kind: z.literal("interactive"),
+    widget: z.literal("planar-arm"),
+    setup: fn,
+    conditions: fn,
+    solve: fn,
+    verify: fn,
+  }),
+  z
+    .object({
+      ...base,
+      kind: z.literal("python"),
+      entry: z.string().regex(/^[A-Za-z_]\w*$/, "a Python function name"),
+      starter: z.string().trim().min(1),
+      reference: z.string().trim().min(1),
+      cases: fn,
+      solve: fn,
+      verifyCase: fn,
+      tolerance,
+    })
+    .refine((d) => d.starter.includes(`def ${d.entry}(`) && d.reference.includes(`def ${d.entry}(`), "starter and reference must define the entry function"),
 ]);
 
 export const exerciseSetSchema = z.object({ lesson: z.string().min(1), exercises: z.array(exerciseSchema) });

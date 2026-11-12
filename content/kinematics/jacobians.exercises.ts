@@ -346,4 +346,125 @@ export default defineExercises("jacobians", [
       expectClose(elbow[1], L1 * Math.sin(deg(t1)), "P2 is the elbow (y)");
     },
   }),
+
+  exercise({
+    id: "jacobians-2r-find-singular",
+    status: "draft",
+    level: 2,
+    kind: "interactive",
+    widget: "planar-arm",
+    params: (rng) => ({
+      ...lengths(rng),
+      t1: rng.int(1, 7) * 10,
+      t2: rng.pick([40, 60, 90, 120, -45, -90]),
+    }),
+    statement: {
+      en: "The planar 2R arm below has $L_1 = {{L1}}\\,\\mathrm{m}$ and $L_2 = {{L2}}\\,\\mathrm{m}$. Move it into a **singular configuration**, then check.",
+      pt: "O braço planar 2R abaixo tem $L_1 = {{L1}}\\,\\mathrm{m}$ e $L_2 = {{L2}}\\,\\mathrm{m}$. Leve-o a uma **configuração singular (singularity)** e verifique.",
+    },
+    hints: [
+      {
+        en: "A configuration is singular when $\\det J = 0$. Which joint angles does $\\det J$ depend on?",
+        pt: "Uma configuração é singular quando $\\det J = 0$. De quais ângulos de junta $\\det J$ depende?",
+      },
+      {
+        en: "$\\det J = L_1 L_2 \\sin\\theta_2$: stretch the arm out straight, or fold it back on itself.",
+        pt: "$\\det J = L_1 L_2 \\sin\\theta_2$: estique o braço em linha reta, ou dobre-o sobre si mesmo.",
+      },
+    ],
+    solution: {
+      en: "$\\det J = L_1 L_2 \\sin\\theta_2$ vanishes for $\\theta_2 = 0^\\circ$ (stretched) or $\\theta_2 = 180^\\circ$ (folded), whatever $\\theta_1$ is. In both, the two columns of $J$ are parallel: the tip can only move perpendicular to the arm.",
+      pt: "$\\det J = L_1 L_2 \\sin\\theta_2$ se anula para $\\theta_2 = 0^\\circ$ (esticado) ou $\\theta_2 = 180^\\circ$ (dobrado), qualquer que seja $\\theta_1$. Nos dois casos, as duas colunas de $J$ são paralelas: a ponta só consegue se mover perpendicularmente ao braço.",
+    },
+    setup: ({ L1, L2, t1, t2 }) => ({ links: [L1, L2], initial: [t1, t2] }),
+    conditions: ({ L1, L2 }) => [
+      {
+        quantity: "detJ",
+        min: -0.01 * L1 * L2,
+        max: 0.01 * L1 * L2,
+        feedback: {
+          en: "Not singular yet: in this configuration the tip can still move in every direction of the plane.",
+          pt: "Ainda não é singular: nesta configuração a ponta ainda consegue se mover em qualquer direção do plano.",
+        },
+      },
+    ],
+    solve: ({ t1 }) => [t1, 0],
+    verify: ({ L1, L2, t1 }) => {
+      for (const t2 of [0, Math.PI]) {
+        const { J } = kernel2R(L1, L2, deg(t1), t2);
+        expectClose(det2(J), 0, `kernel det J at θ2 = ${t2}`);
+        // both columns are perpendicular to the (straight) arm
+        for (const k of [0, 1]) expectClose(J[0][k] * Math.cos(deg(t1)) + J[1][k] * Math.sin(deg(t1)), 0, `column ${k + 1} ⟂ arm`);
+      }
+      expectClose(Math.hypot(...origin(kernel2R(L1, L2, deg(t1), 0).fT).slice(0, 2)), L1 + L2, "stretched arm reaches L1 + L2");
+    },
+  }),
+
+  exercise({
+    id: "jacobians-2r-python",
+    status: "draft",
+    level: 3,
+    kind: "python",
+    entry: "jacobian_2r",
+    statement: {
+      en: "Write `jacobian_2r(L1, L2, t1, t2)`, which returns, as a $2\\times2$ NumPy array, the Jacobian of the planar 2R arm's tip position $(x, y)$ with respect to $(\\theta_1, \\theta_2)$. Angles are in radians.",
+      pt: "Escreva `jacobian_2r(L1, L2, t1, t2)`, que devolve, como um array NumPy $2\\times2$, a Jacobiana (Jacobian) da posição $(x, y)$ da ponta do braço planar 2R em relação a $(\\theta_1, \\theta_2)$. Ângulos em radianos.",
+    },
+    hints: [
+      {
+        en: "Start from $x = L_1 c_1 + L_2 c_{12}$ and $y = L_1 s_1 + L_2 s_{12}$.",
+        pt: "Comece de $x = L_1 c_1 + L_2 c_{12}$ e $y = L_1 s_1 + L_2 s_{12}$.",
+      },
+      {
+        en: "Column $i$ is $\\partial(x, y)/\\partial\\theta_i$. Only the $L_2$ terms depend on $\\theta_2$.",
+        pt: "A coluna $i$ é $\\partial(x, y)/\\partial\\theta_i$. Só os termos com $L_2$ dependem de $\\theta_2$.",
+      },
+    ],
+    solution: {
+      en: "$$J = \\begin{bmatrix} -L_1 s_1 - L_2 s_{12} & -L_2 s_{12} \\\\ L_1 c_1 + L_2 c_{12} & L_2 c_{12} \\end{bmatrix}$$\n\nThe reference code below writes this matrix with NumPy.",
+      pt: "$$J = \\begin{bmatrix} -L_1 s_1 - L_2 s_{12} & -L_2 s_{12} \\\\ L_1 c_1 + L_2 c_{12} & L_2 c_{12} \\end{bmatrix}$$\n\nO código de referência abaixo escreve essa matriz com NumPy.",
+    },
+    starter: `import numpy as np
+
+
+def jacobian_2r(L1, L2, t1, t2):
+    ...
+`,
+    reference: `import numpy as np
+
+
+def jacobian_2r(L1, L2, t1, t2):
+    s1, c1 = np.sin(t1), np.cos(t1)
+    s12, c12 = np.sin(t1 + t2), np.cos(t1 + t2)
+    return np.array([
+        [-L1 * s1 - L2 * s12, -L2 * s12],
+        [L1 * c1 + L2 * c12, L2 * c12],
+    ])
+`,
+    cases: (_, rng) => [
+      [1, 1, 0, Math.PI / 2],
+      [rng.int(4, 12) / 10, rng.int(3, 10) / 10, rng.uniform(-3, 3, 3), rng.uniform(-3, 3, 3)],
+      [rng.int(4, 12) / 10, rng.int(3, 10) / 10, rng.uniform(-3, 3, 3), 0],
+      [rng.int(4, 12) / 10, rng.int(3, 10) / 10, rng.uniform(-3, 3, 3), rng.uniform(-3, 3, 3)],
+    ],
+    solve: (args) => {
+      const [L1, L2, t1, t2] = args as number[];
+      const { J } = kernel2R(L1, L2, t1, t2);
+      return [J[0], J[1]];
+    },
+    verifyCase: (args, expected) => {
+      // central finite differences of the tip position, written out by hand
+      const [L1, L2, t1, t2] = args as number[];
+      const tip = (a: number, b: number) => [L1 * Math.cos(a) + L2 * Math.cos(a + b), L1 * Math.sin(a) + L2 * Math.sin(a + b)];
+      const h = 1e-6;
+      const d1 = tip(t1 + h, t2).map((v, i) => (v - tip(t1 - h, t2)[i]) / (2 * h));
+      const d2 = tip(t1, t2 + h).map((v, i) => (v - tip(t1, t2 - h)[i]) / (2 * h));
+      const J = expected as number[][];
+      for (const r of [0, 1]) {
+        expectClose(J[r][0], d1[r], `∂/∂θ1 row ${r}`, 1e-7);
+        expectClose(J[r][1], d2[r], `∂/∂θ2 row ${r}`, 1e-7);
+      }
+    },
+    tolerance: { abs: 1e-6 },
+  }),
 ]);

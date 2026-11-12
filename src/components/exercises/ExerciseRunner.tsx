@@ -1,46 +1,26 @@
 "use client";
 
-import { useId, useState, type ReactNode } from "react";
+import dynamic from "next/dynamic";
+import { useId, useRef, useState, type ReactNode, type RefObject } from "react";
 import { useLocale } from "@/lib/i18n/LocaleProvider";
 import { checkNumeric, checkOrder, checkSymbolic, type Evaluator } from "@/lib/exercises/check";
 import type { ClientAnswer, ClientExercise } from "@/lib/exercises/types";
 import { ExerciseCard } from "@/components/lesson/ExerciseCard";
 import { exerciseStrings, type ExerciseStrings } from "./strings";
+import { Html, inputClass as input, primaryButton as primary, Result, secondaryButton, type Feedback } from "./ui";
 
 // The interactive side of an exercise. It receives only rendered HTML and
 // answer data built on the server (lib/exercises/build.ts), and checks the
 // reader's answer with the shared pure checkers (lib/exercises/check.ts).
-// mathjs is loaded only when a symbolic answer is checked.
+// mathjs is loaded only when a symbolic answer is checked; the interactive
+// widget and the Python editor (whose worker loads Pyodide on the first run)
+// are separate chunks, loaded only by exercises that use them.
 
-type Feedback = { ok: boolean; message: string; detailHtml?: string } | null;
+const InteractiveAnswer = dynamic(() => import("./InteractiveAnswer"));
+const PythonAnswer = dynamic(() => import("./python/PythonAnswer"));
 
-const Html = ({ html, inline = false }: { html: string; inline?: boolean }) =>
-  inline ? <span dangerouslySetInnerHTML={{ __html: html }} /> : <div dangerouslySetInnerHTML={{ __html: html }} />;
-
-const input =
-  "rounded-md border border-border bg-background px-2.5 py-1.5 text-[0.9375rem] text-foreground focus:border-accent";
-const primary =
-  "rounded-md border border-accent bg-accent px-3 py-1.5 text-sm font-medium text-background hover:opacity-90 disabled:opacity-50";
-
-function Result({ feedback }: { feedback: Feedback }) {
-  return (
-    <div role="status" aria-live="polite">
-      {feedback && (
-        <div
-          className={`mt-3 rounded-lg border-l-4 bg-surface px-3 py-2 text-[0.9375rem] text-foreground ${
-            feedback.ok ? "border-success" : "border-danger"
-          }`}
-        >
-          <p className="!my-0 font-semibold">
-            <span aria-hidden="true">{feedback.ok ? "✓ " : "✗ "}</span>
-            {feedback.message}
-          </p>
-          {feedback.detailHtml && <Html html={feedback.detailHtml} />}
-        </div>
-      )}
-    </div>
-  );
-}
+/** Lets the solution put a state on the interactive widget ("show it on the arm"). */
+type ShowRef = RefObject<((state: number[]) => void) | null>;
 
 let mathjsCompile: Promise<(expression: string) => Evaluator> | null = null;
 function loadCompiler() {
@@ -268,7 +248,7 @@ function GapsAnswer({ answer, s }: { answer: Extract<ClientAnswer, { kind: "gaps
   );
 }
 
-function AnswerArea({ answer, s }: { answer: ClientAnswer; s: ExerciseStrings }): ReactNode {
+function AnswerArea({ answer, s, showRef }: { answer: ClientAnswer; s: ExerciseStrings; showRef: ShowRef }): ReactNode {
   switch (answer.kind) {
     case "numeric":
       return <NumericAnswer answer={answer} s={s} />;
@@ -282,13 +262,40 @@ function AnswerArea({ answer, s }: { answer: ClientAnswer; s: ExerciseStrings })
       return <OrderAnswer answer={answer} s={s} />;
     case "gaps":
       return <GapsAnswer answer={answer} s={s} />;
+    case "interactive":
+      return <InteractiveAnswer answer={answer} s={s} showRef={showRef} />;
+    case "python":
+      return <PythonAnswer answer={answer} s={s} />;
   }
+}
+
+/** The worked solution, plus what some kinds add to it. */
+function Solution({ html, answer, s, showRef }: { html: string; answer: ClientAnswer; s: ExerciseStrings; showRef: ShowRef }) {
+  return (
+    <>
+      <Html html={html} />
+      {answer.kind === "interactive" && (
+        <button type="button" className={`${secondaryButton} mt-2`} onClick={() => showRef.current?.(answer.reference)}>
+          {s.showOnArm}
+        </button>
+      )}
+      {answer.kind === "python" && (
+        <>
+          <p className="!mb-1 font-semibold">{s.referenceCode}</p>
+          <pre className="!my-0 overflow-x-auto rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm text-foreground">
+            <code>{answer.reference.trimEnd()}</code>
+          </pre>
+        </>
+      )}
+    </>
+  );
 }
 
 export function ExerciseRunner({ exercise, number }: { exercise: ClientExercise; number?: number }) {
   const { locale } = useLocale();
   const s = exerciseStrings[locale];
   const [variant, setVariant] = useState(0);
+  const showRef: ShowRef = useRef(null);
   const v = exercise.variants[variant];
   const count = exercise.variants.length;
 
@@ -306,16 +313,12 @@ export function ExerciseRunner({ exercise, number }: { exercise: ClientExercise;
         ) : undefined
       }
       statement={<Html html={v.statementHtml} />}
-      answer={<AnswerArea answer={v.answer} s={s} />}
+      answer={<AnswerArea answer={v.answer} s={s} showRef={showRef} />}
       hints={v.hintsHtml.map((h, i) => <Html key={i} html={h} />)}
-      solution={<Html html={v.solutionHtml} />}
+      solution={<Solution html={v.solutionHtml} answer={v.answer} s={s} showRef={showRef} />}
       actions={
         count > 1 ? (
-          <button
-            type="button"
-            className="rounded-md border border-border bg-background px-3 py-1.5 text-sm font-medium text-foreground hover:bg-surface-2"
-            onClick={() => setVariant((variant + 1) % count)}
-          >
+          <button type="button" className={secondaryButton} onClick={() => setVariant((variant + 1) % count)}>
             {s.anotherVersion}
           </button>
         ) : undefined

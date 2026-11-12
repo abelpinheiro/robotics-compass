@@ -117,7 +117,8 @@ robotics-compass/
 │     ├─ exercises/               # exercise engine: schema, seeded variants, text, checkers, registry
 │     ├─ i18n/                    # locale config + URL routing helpers, dictionaries, PT titles
 │     └─ kinematics/              # shared math kernel (4×4 transforms, modified DH)
-└─ public/                        # static assets (images/<area>/, models/ for URDF meshes)
+└─ public/                        # static assets (images/<area>/, models/ for URDF meshes,
+                                  #   workers/ for the Python exercises' Pyodide worker)
 ```
 
 Conventions:
@@ -153,11 +154,15 @@ Conventions:
   Dev-only gallery: `/<locale>/dev/components`. See `.claude/skills/lesson-template`.
 - **Exercises** live in `content/<area>/<slug>.exercises.ts` (registered in
   `src/lib/exercises/registry.ts`, zod-validated on load so a malformed one fails the build):
-  numeric, mcq, symbolic, order, wrong-step and gaps; levels L1–L4; seeded variants; progressive
-  hints. Each has a reference `solve` plus an independent `verify`/`evaluate`, run for every
-  variant by `src/lib/exercises/exercises.test.ts`. Drafts (`status: "draft"`) render only on
-  the dev server and never reach production HTML or JS; the browser only gets rendered HTML and
-  answer data. Details in `.claude/skills/lesson-template`.
+  numeric, mcq, symbolic, order, wrong-step, gaps, interactive (the reader moves a planar arm
+  until ranges on its quantities hold) and python (the reader writes a NumPy function, run in
+  the browser by Pyodide from its pinned CDN build in the module worker
+  `public/workers/python-worker.mjs`); levels L1–L4; seeded variants; progressive hints. Each
+  has a reference `solve` plus an independent `verify`/`evaluate`/`verifyCase`, run for every
+  variant by `src/lib/exercises/exercises.test.ts`, which also runs each Python reference (and
+  starter) in Pyodide. Drafts (`status: "draft"`) render only on the dev server and never reach
+  production HTML or JS; the browser only gets rendered HTML and answer data. Details in
+  `.claude/skills/lesson-template`.
 - Visualizations are React components under `src/components/viz/`, lazy-loaded and wired into
   a lesson's `Visualization` section slot. Their math lives in a separate, tested module.
 - Path aliases: import app code via `@/…` (maps to `src/…`).
