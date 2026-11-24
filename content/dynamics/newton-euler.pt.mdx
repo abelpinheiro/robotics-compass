@@ -1,0 +1,175 @@
+---
+title: "Dinâmica de Newton–Euler"
+area: dynamics
+slug: newton-euler
+order: 1
+summary: ""
+---
+
+import NewtonEulerVizEmbed from "@/components/viz/newtoneuler/NewtonEulerVizEmbed";
+import { Callout } from "@/components/lesson/Callout";
+
+<Callout variant="warning" title="Em construção">
+  Este capítulo está incompleto: várias seções ainda têm apenas equações e visualizações, e o texto está sendo escrito.
+</Callout>
+
+## Intuição
+
+{/* TODO(author): intuição. Pergunta da lição: dado o movimento, qual torque? As duas passagens: cinemática para fora, forças para dentro. */}
+
+## Definição formal
+
+{/* TODO(author): os parâmetros de cada elo: massa, centro de massa e tensor de inércia (lição de corpo rígido). */}
+
+$$
+m_i, \qquad {}^{i}P_{C_i}, \qquad {}^{C_i}I_i
+$$
+
+### Um corpo rígido (revisão)
+
+$$
+F = m\,\dot v_{C}, \qquad N = {}^{C}I\,\dot\omega + \omega \times {}^{C}I\,\omega
+$$
+
+### O algoritmo recursivo de Newton–Euler
+
+{/* TODO(author): apresentar as duas passagens. */}
+
+### Passagem para fora (base → ponta)
+
+{/* TODO(author): como velocidades e acelerações se propagam. */}
+
+#### Junta rotacional
+
+$$
+{}^{i+1}\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\omega_i + \dot\theta_{i+1}\,{}^{i+1}\hat Z_{i+1}
+$$
+
+$$
+{}^{i+1}\dot\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\dot\omega_i + {}^{i+1}_{i}R\,{}^{i}\omega_i \times \dot\theta_{i+1}\,{}^{i+1}\hat Z_{i+1} + \ddot\theta_{i+1}\,{}^{i+1}\hat Z_{i+1}
+$$
+
+$$
+{}^{i+1}\dot v_{i+1} = {}^{i+1}_{i}R\left( {}^{i}\dot\omega_i \times {}^{i}P_{i+1} + {}^{i}\omega_i \times \left( {}^{i}\omega_i \times {}^{i}P_{i+1} \right) + {}^{i}\dot v_i \right)
+$$
+
+#### Junta prismática
+
+$$
+{}^{i+1}\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\omega_i, \qquad {}^{i+1}\dot\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\dot\omega_i
+$$
+
+$$
+\begin{aligned}
+{}^{i+1}\dot v_{i+1} ={}& {}^{i+1}_{i}R\left( {}^{i}\dot\omega_i \times {}^{i}P_{i+1} + {}^{i}\omega_i \times \left( {}^{i}\omega_i \times {}^{i}P_{i+1} \right) + {}^{i}\dot v_i \right) \\
+&+ 2\,{}^{i+1}\omega_{i+1} \times \dot d_{i+1}\,{}^{i+1}\hat Z_{i+1} + \ddot d_{i+1}\,{}^{i+1}\hat Z_{i+1}
+\end{aligned}
+$$
+
+#### Centro de massa do elo
+
+$$
+{}^{i}\dot v_{C_i} = {}^{i}\dot\omega_i \times {}^{i}P_{C_i} + {}^{i}\omega_i \times \left( {}^{i}\omega_i \times {}^{i}P_{C_i} \right) + {}^{i}\dot v_i
+$$
+
+### Passagem para dentro (ponta → base)
+
+{/* TODO(author): força e momento inerciais de cada elo. */}
+
+$$
+{}^{i}F_i = m_i\,{}^{i}\dot v_{C_i}, \qquad {}^{i}N_i = {}^{C_i}I_i\,{}^{i}\dot\omega_i + {}^{i}\omega_i \times {}^{C_i}I_i\,{}^{i}\omega_i
+$$
+
+#### Caso estático
+
+{/* TODO(author): robô parado, sem gravidade, com uma força na ponta: F_i = N_i = 0. O resultado deve coincidir com a dualidade da Jacobiana. F é a força que o robô aplica no ambiente. */}
+
+$$
+{}^{i}f_i = {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}, \qquad {}^{i}n_i = {}^{i}_{i+1}R\,{}^{i+1}n_{i+1} + {}^{i}P_{i+1} \times {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}
+$$
+
+$$
+\tau_i = {}^{i}n_i^{T}\,{}^{i}\hat Z_i
+\qquad\Longrightarrow\qquad
+\tau = J^{T}F
+$$
+
+#### Elos em movimento
+
+{/* TODO(author): como forças e momentos se propagam; o que muda em relação ao caso estático. */}
+
+$$
+{}^{i}f_i = {}^{i}_{i+1}R\,{}^{i+1}f_{i+1} + {}^{i}F_i
+$$
+
+$$
+{}^{i}n_i = {}^{i}N_i + {}^{i}_{i+1}R\,{}^{i+1}n_{i+1} + {}^{i}P_{C_i} \times {}^{i}F_i + {}^{i}P_{i+1} \times {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}
+$$
+
+$$
+\tau_i = {}^{i}n_i^{T}\,{}^{i}\hat Z_i \ \text{(rotacional)}, \qquad \tau_i = {}^{i}f_i^{T}\,{}^{i}\hat Z_i \ \text{(prismática)}
+$$
+
+### Condições de contorno
+
+{/* TODO(author): condições na base e na ponta; o truque da gravidade (gravity trick). */}
+
+$$
+{}^{0}\omega_0 = {}^{0}\dot\omega_0 = 0, \qquad {}^{0}\dot v_0 = -\,\mathbf{g}, \qquad {}^{n+1}f_{n+1} = {}^{n+1}n_{n+1} = 0
+$$
+
+{/* TODO(author): gancho: o conjunto dos torques tem esta forma, estudada em Equações de movimento. */}
+
+$$
+M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q) = \tau
+$$
+
+## Visualização
+
+{/* TODO(author): o que as duas passagens calculam e como ler as setas.
+    A seta a_c é a aceleração real, com o peso desenhado à parte; a recursão acima põe a gravidade na base. f, n e τ são os mesmos. */}
+
+<NewtonEulerVizEmbed />
+
+## Exemplo resolvido
+
+{/* TODO(author): a recursão no braço 2R planar, passo a passo, com os números abaixo. */}
+
+$$
+l = (1,\ 0.8)\ \mathrm{m}, \quad l_c = (0.5,\ 0.4)\ \mathrm{m}, \quad m = (2,\ 1.2)\ \mathrm{kg}
+$$
+
+$$
+I = (0.08,\ 0.05)\ \mathrm{kg\,m^2}, \quad g = 9.81\ \mathrm{m/s^2}
+$$
+
+$$
+\theta = (30^\circ,\ 60^\circ), \qquad \dot\theta = (1,\ 2)\ \mathrm{rad/s}, \qquad \ddot\theta = (1,\ 1)\ \mathrm{rad/s^2}, \qquad {}^{0}\dot v_0 = [\,0,\ 9.81,\ 0\,]^{T}
+$$
+
+| | Elo 1 | Elo 2 |
+|---|---|---|
+| $({}^i\omega_i)_z$ | 1 | 3 |
+| $({}^i\dot\omega_i)_z$ | 1 | 2 |
+| $({}^i\dot v_i)_{xy}$ | (4.905, 8.496) | (10.176, 1.366) |
+| $({}^i\dot v_{C_i})_{xy}$ | (4.405, 8.996) | (6.576, 2.166) |
+| $({}^iF_i)_{xy}$ | (8.810, 17.991) | (7.891, 2.599) |
+| $({}^iN_i)_z$ | 0.080 | 0.100 |
+| $({}^if_i)_{xy}$ | (10.505, 26.125) | (7.891, 2.599) |
+| $({}^in_i)_z$ | 18.349 | 1.140 |
+
+$$
+\tau = \begin{bmatrix} 18.349 \\ 1.140 \end{bmatrix} \mathrm{N\,m}
+$$
+
+## Erros comuns
+
+{/* TODO(author): sinal de v̇₀; somar vetores de referenciais diferentes; esquecer P_C × F; contar a gravidade duas vezes. */}
+
+## Exercícios
+
+{/* TODO(exercises): blocos de exercício. */}
+
+## Leituras adicionais
+
+{/* TODO(author): Craig, cap. 6 (conferir as seções na sua edição). */}
