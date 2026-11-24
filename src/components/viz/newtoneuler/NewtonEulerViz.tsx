@@ -9,6 +9,7 @@ import {
   coriolisTorque,
   gravityTorque,
   DEFAULT_ARM,
+  type Arm2R,
   type NEState,
   type Vec2,
 } from "./newtonEulerMath";
@@ -36,11 +37,13 @@ const LAST = STEPS.length - 1;
 function Canvas2D({
   width,
   height,
+  arm,
   st,
   step,
 }: {
   width: number;
   height: number;
+  arm: Arm2R;
   st: NEState;
   step: number;
 }) {
@@ -70,8 +73,8 @@ function Canvas2D({
       success: tok("--success", "#16a34a"),
     };
 
-    const tr = neSolve(ARM, st);
-    const reach = ARM.L1 + ARM.L2;
+    const tr = neSolve(arm, st);
+    const reach = arm.L1 + arm.L2;
     const scale = (Math.min(width, height) * 0.36) / reach;
     const ox = width * 0.42;
     const oy = height * 0.6;
@@ -172,7 +175,7 @@ function Canvas2D({
     ctx.lineCap = "butt";
 
     // weights at COMs (gravity), shown from the Configuration step on
-    if (ARM.g > 0) {
+    if (arm.g > 0) {
       arrow(l1.comPos, l1.weight, FORCE_PX_PER * scale, col.faint, "m₁g", 10);
       arrow(l2.comPos, l2.weight, FORCE_PX_PER * scale, col.faint, "m₂g", 10);
     }
@@ -214,7 +217,7 @@ function Canvas2D({
     dot(l1.jointPos, 6, col.fg);
     dot(l2.jointPos, 5, col.fg);
     dot(l2.distalPos, 5, col.fg);
-  }, [width, height, st, step]);
+  }, [width, height, arm, st, step]);
 
   return <canvas ref={ref} style={{ width, height }} className="touch-none" aria-hidden="true" />;
 }
@@ -329,7 +332,7 @@ export default function NewtonEulerViz() {
       }
     >
       <Viz2D aspectRatio={1.5}>
-        {({ width, height }) => <Canvas2D width={width} height={height} st={{ ...st }} step={step} />}
+        {({ width, height }) => <Canvas2D width={width} height={height} arm={arm} st={{ ...st }} step={step} />}
       </Viz2D>
 
       <div className="mt-3 space-y-1.5 text-sm">
