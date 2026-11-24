@@ -63,7 +63,7 @@ $$
 
 ### Momento de inércia em torno de um eixo
 
-Ao rotacionar em torno de um único eixo fixo, O **momento de inércia escalar** ($I_{\text{eixo}}$) mede o quanto a massa do corpo resiste à aceleração angular ao redor daquele eixo específico.
+Ao rotacionar em torno de um único eixo fixo, o **momento de inércia escalar** ($I_{\text{eixo}}$) mede o quanto a massa do corpo resiste à aceleração angular ao redor daquele eixo específico.
 
 $$
 I_{\text{eixo}} = \int_{V} r^{2}\,\rho\,dv
@@ -90,7 +90,7 @@ I_{yy} = \int_{V} (x^2+z^2)\,\rho\,dv, \qquad
 I_{zz} = \int_{V} (x^2+y^2)\,\rho\,dv
 $$
 
-Os termos fora da diagonal, chamados de **produtos de inércia**, verificam o desbalanceamento de massa entre pares de eixos:
+Os termos fora da diagonal, chamados de **produtos de inércia**, medem o desbalanceamento de massa entre pares de eixos:
 
 $$
 I_{xy} = \int_{V} xy\,\rho\,dv, \qquad
@@ -106,7 +106,7 @@ $$
 
 ### Teorema dos eixos paralelos
 
-Ao invés de calcular as integrais acimas para cada junta do robô constantemente, podemos simplificar os cálculos ao usar o tensor de inércia no referencial $\{C\}$ centrado no **centro de massa** do elo (${}^{C}I$) e transportá-lo para um referencial $\{A\}$ na junta, que possui a mesma orientação de $\{C\}$, mas está deslocado por um vetor $P_C = [x_c, y_c, z_c]^T$. O **teorema dos eixos paralelos** realiza essa translação:
+Em vez de calcular as integrais acima para cada junta do robô constantemente, podemos simplificar os cálculos ao usar o tensor de inércia no referencial $\{C\}$ centrado no **centro de massa** do elo (${}^{C}I$) e transportá-lo para um referencial $\{A\}$ na junta, que possui a mesma orientação de $\{C\}$, mas está deslocado por um vetor $P_C = [x_c, y_c, z_c]^T$. O **teorema dos eixos paralelos** realiza essa translação:
 
 $$
 {}^{A}I = {}^{C}I + m\left( P_C^{T}P_C\,\mathbf{1}_3 - P_C\,P_C^{T} \right),
