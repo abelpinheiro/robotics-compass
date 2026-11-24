@@ -1,0 +1,168 @@
+---
+title: "Equações de movimento"
+area: dynamics
+slug: equations-of-motion
+order: 3
+summary: ""
+---
+
+{/* TODO(author): pergunta motivadora (opcional), com <MotivatingQuestion answer="#definicao-formal">. */}
+
+## Intuição
+
+{/* TODO(author): intuição. Pergunta da lição: o que a fórmula diz, e dado o torque, qual é o movimento? */}
+
+## Definição formal
+
+### A equação no espaço das juntas
+
+{/* TODO(author): o sentido físico de cada termo. */}
+
+$$
+\underbrace{M(q)\,\ddot q}_{\text{inércia}} + \underbrace{C(q,\dot q)\,\dot q}_{\text{Coriolis e centrífuga}} + \underbrace{g(q)}_{\text{gravidade}} = \tau
+$$
+
+{/* TODO(author): as duas lições anteriores chegam a esta mesma equação. */}
+
+### Propriedades de M e C
+
+{/* TODO(author): o que cada propriedade garante. A segunda depende da escolha de C (Christoffel). */}
+
+$$
+M(q) = M(q)^{T}, \qquad \dot q^{T} M(q)\,\dot q > 0 \quad \text{para } \dot q \neq 0
+$$
+
+$$
+\left( \dot M - 2C \right)^{T} = -\left( \dot M - 2C \right)
+$$
+
+### Dinâmica inversa e dinâmica direta
+
+{/* TODO(author): dinâmica inversa (inverse dynamics) para controle; dinâmica direta (forward dynamics) para simulação. */}
+
+$$
+\tau = M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q)
+\qquad\Longleftrightarrow\qquad
+\ddot q = M(q)^{-1}\left( \tau - C(q,\dot q)\,\dot q - g(q) \right)
+$$
+
+{/* TODO(author): obter M com Newton–Euler, coluna a coluna (e_j é a j-ésima coluna da identidade). */}
+
+$$
+M(q)\,e_j = \mathrm{RNE}\left( q,\ \dot q = 0,\ \ddot q = e_j,\ \mathbf{g} = 0 \right)
+$$
+
+### Simulação
+
+{/* TODO(author): integração numérica; Euler explícito como caso mais simples. */}
+
+$$
+\dot q_{k+1} = \dot q_k + \ddot q_k\,\Delta t, \qquad q_{k+1} = q_k + \dot q_k\,\Delta t
+$$
+
+### A equação no espaço cartesiano
+
+{/* TODO(author): do espaço das juntas ao cartesiano; exige J quadrada e longe de singularidades. */}
+
+$$
+\mathcal{F} = M_x(q)\,\ddot x + V_x(q,\dot q) + G_x(q)
+$$
+
+$$
+M_x = J^{-T} M J^{-1}, \qquad
+V_x = J^{-T}\left( C\,\dot q - M J^{-1}\dot J\,\dot q \right), \qquad
+G_x = J^{-T} g
+$$
+
+<Proof title="De juntas para cartesiano">
+<ProofStep>
+
+$$
+\tau = J^{T}\mathcal{F}
+$$
+
+<Why prereq="jacobians">{/* TODO(author) */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+\dot x = J\,\dot q \quad\Longrightarrow\quad \ddot x = J\,\ddot q + \dot J\,\dot q
+\quad\Longrightarrow\quad \ddot q = J^{-1}\left( \ddot x - \dot J\,\dot q \right)
+$$
+
+<Why>{/* TODO(author) */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+\mathcal{F} = J^{-T}\left[ M J^{-1}\left( \ddot x - \dot J\,\dot q \right) + C\,\dot q + g \right]
+$$
+
+<Why>{/* TODO(author) */}</Why>
+</ProofStep>
+</Proof>
+
+### Contato na ponta e atrito nas juntas
+
+{/* TODO(author): F é a força que o robô aplica no ambiente; atrito viscoso (v) e de Coulomb (c). */}
+
+$$
+\tau = M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q) + J^{T}F + \tau_{\text{atrito}},
+\qquad
+\tau_{\text{atrito},\,i} = v_i\,\dot q_i + c_i\,\operatorname{sgn}(\dot q_i)
+$$
+
+## Visualização
+
+{/* TODO(viz): braço 2R solto, com integrador à escolha (Euler ou RK4) e gráfico da energia. */}
+
+## Exemplo resolvido
+
+### Forma fechada do braço 2R
+
+$$
+M(q) = \begin{bmatrix}
+m_1 l_{c1}^2 + I_1 + m_2\!\left(l_1^2 + l_{c2}^2 + 2 l_1 l_{c2}\cos\theta_2\right) + I_2 & m_2\!\left(l_{c2}^2 + l_1 l_{c2}\cos\theta_2\right) + I_2 \\
+m_2\!\left(l_{c2}^2 + l_1 l_{c2}\cos\theta_2\right) + I_2 & m_2 l_{c2}^2 + I_2
+\end{bmatrix}
+$$
+
+$$
+h = m_2 l_1 l_{c2}\sin\theta_2, \qquad
+C(q,\dot q) = \begin{bmatrix} -h\,\dot\theta_2 & -h\,(\dot\theta_1+\dot\theta_2) \\ h\,\dot\theta_1 & 0 \end{bmatrix}
+$$
+
+$$
+g(q) = \begin{bmatrix} (m_1 l_{c1} + m_2 l_1)\,g\cos\theta_1 + m_2 l_{c2}\,g\cos(\theta_1+\theta_2) \\ m_2 l_{c2}\,g\cos(\theta_1+\theta_2) \end{bmatrix}
+$$
+
+### Com os números do capítulo
+
+{/* TODO(author): mesmo estado da lição de Newton–Euler; g₂ = 0 porque o elo 2 está na vertical. */}
+
+| | Junta 1 (N·m) | Junta 2 (N·m) |
+|---|---|---|
+| $M\ddot q$ | 2.984 | 0.724 |
+| $C\dot q$ | −3.326 | 0.416 |
+| $g$ | 18.691 | 0 |
+| $\tau$ | **18.349** | **1.140** |
+
+### A inércia depende da postura
+
+{/* TODO(author): braço dobrado (θ₂ = 180°): 1.062; esticado (θ₂ = 0): 2.982. */}
+
+$$
+M_{11}(\theta_2) = 2.022 + 0.96\cos\theta_2 \quad (\mathrm{kg\,m^2})
+$$
+
+## Erros comuns
+
+{/* TODO(author): C não é única (outra C com o mesmo Cq̇ pode quebrar a antissimetria); inverter M em vez de resolver o sistema; forma cartesiana perto de singularidade; confiar em Euler com passo grande. */}
+
+## Exercícios
+
+{/* TODO(exercises): blocos de exercício. */}
+
+## Leituras adicionais
+
+{/* TODO(author): Craig, cap. 6 (conferir as seções na sua edição). */}

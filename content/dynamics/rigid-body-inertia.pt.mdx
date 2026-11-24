@@ -1,0 +1,206 @@
+---
+title: "Corpo rígido e inércia"
+area: dynamics
+slug: rigid-body-inertia
+order: 0
+summary: ""
+---
+
+{/* TODO(author): pergunta motivadora (opcional), com <MotivatingQuestion answer="#definicao-formal">. */}
+
+## Intuição
+
+{/* TODO(author): intuição. Pergunta da lição: quanto custa acelerar um elo? */}
+
+## Definição formal
+
+{/* TODO(author): abertura: da velocidade (cinemática de velocidade) à aceleração, e da aceleração à força. */}
+
+### Aceleração de um ponto
+
+{/* TODO(author): derivar a equação geral da velocidade mais uma vez. Dizer o que é cada termo. */}
+
+$$
+\begin{aligned}
+{}^{A}\dot V_{Q} ={}&
+\underbrace{{}^{A}\dot V_{B\text{ORG}}}_{\text{origem}}
++ \underbrace{{}^{A}_{B}R\,{}^{B}\dot V_{Q}}_{\text{movimento em }\{B\}}
++ \underbrace{2\,{}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}V_{Q}}_{\text{Coriolis}}\\[4pt]
+&+ \underbrace{{}^{A}\dot\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q}_{\text{tangencial}}
++ \underbrace{{}^{A}\Omega_{B} \times \left({}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q\right)}_{\text{centrípeta}}
+\end{aligned}
+$$
+
+{/* TODO(author): caso do elo rígido (Q fixo em B): dois termos somem. */}
+
+$$
+{}^{A}\dot V_{Q} = {}^{A}\dot V_{B\text{ORG}} + {}^{A}\dot\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q + {}^{A}\Omega_{B} \times \left({}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q\right)
+$$
+
+### Aceleração angular
+
+{/* TODO(author): por que aparece um termo extra ao somar acelerações angulares (comparar com a soma de velocidades angulares). */}
+
+$$
+{}^{A}\dot\Omega_{C} = {}^{A}\dot\Omega_{B} + {}^{A}_{B}R\,{}^{B}\dot\Omega_{C} + {}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}\Omega_{C}
+$$
+
+### Massa e centro de massa
+
+{/* TODO(author): massa (diferente de peso) e centro de massa (center of mass). */}
+
+$$
+m = \int_{V} \rho\,dv, \qquad {}^{A}P_{C} = \frac{1}{m}\int_{V} {}^{A}P\,\rho\,dv
+$$
+
+### Momento de inércia em torno de um eixo
+
+{/* TODO(author): o caso escalar, antes do tensor; r é a distância até o eixo. */}
+
+$$
+I_{\text{eixo}} = \int_{V} r^{2}\,\rho\,dv
+$$
+
+### Tensor de inércia
+
+{/* TODO(author): o que muda de um eixo para o tensor (inertia tensor); 1₃ é a identidade 3×3; momentos e produtos de inércia. */}
+
+$$
+{}^{A}I = \begin{bmatrix}
+I_{xx} & -I_{xy} & -I_{xz} \\
+-I_{xy} & I_{yy} & -I_{yz} \\
+-I_{xz} & -I_{yz} & I_{zz}
+\end{bmatrix}
+= \int_{V} \left( P^{T}P\,\mathbf{1}_3 - P\,P^{T} \right)\rho\,dv
+$$
+
+$$
+I_{xx} = \int_{V} (y^2+z^2)\,\rho\,dv, \qquad
+I_{yy} = \int_{V} (x^2+z^2)\,\rho\,dv, \qquad
+I_{zz} = \int_{V} (x^2+y^2)\,\rho\,dv
+$$
+
+$$
+I_{xy} = \int_{V} xy\,\rho\,dv, \qquad
+I_{xz} = \int_{V} xz\,\rho\,dv, \qquad
+I_{yz} = \int_{V} yz\,\rho\,dv
+$$
+
+{/* TODO(author): ligação com o caso escalar, para um eixo de direção unitária n passando pela origem de A. */}
+
+$$
+I_{\text{eixo}} = \hat n^{T}\,{}^{A}I\,\hat n
+$$
+
+### Teorema dos eixos paralelos
+
+{/* TODO(author): teorema dos eixos paralelos (parallel-axis theorem). {C} e {A} têm a mesma orientação; {C} fica no centro de massa. */}
+
+$$
+{}^{A}I = {}^{C}I + m\left( P_C^{T}P_C\,\mathbf{1}_3 - P_C\,P_C^{T} \right),
+\qquad
+{}^{A}I_{zz} = {}^{C}I_{zz} + m\,(x_c^2 + y_c^2)
+$$
+
+### Mudança de orientação e eixos principais
+
+{/* TODO(author): tensor em outro referencial com a mesma origem; eixos principais (principal axes). */}
+
+$$
+{}^{A}I = {}^{A}_{B}R\;{}^{B}I\;{}^{A}_{B}R^{T},
+\qquad
+{}^{A}I = R\,\operatorname{diag}(I_1, I_2, I_3)\,R^{T}
+$$
+
+### Equações de Newton e de Euler
+
+{/* TODO(author): força resultante no centro de massa e momento em torno dele. */}
+
+$$
+F = m\,\dot v_{C}, \qquad N = {}^{C}I\,\dot\omega + \omega \times {}^{C}I\,\omega
+$$
+
+<Proof title="De onde vem o termo ω × Iω">
+<ProofStep>
+
+$$
+N = \frac{d}{dt}\left( {}^{0}I\,\omega \right) = {}^{0}\dot I\,\omega + {}^{0}I\,\dot\omega
+$$
+
+<Why>{/* TODO(author) */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+{}^{0}I = R\;{}^{C}I\;R^{T}
+$$
+
+<Why>{/* TODO(author): a inércia é constante no referencial do corpo, não na base. */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+{}^{0}\dot I = \dot R\;{}^{C}I\;R^{T} + R\;{}^{C}I\;\dot R^{T} = S(\omega)\,{}^{0}I - {}^{0}I\,S(\omega)
+$$
+
+<Why prereq="velocity-kinematics">{/* TODO(author): derivada da matriz de rotação e S antissimétrica. */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+N = {}^{0}I\,\dot\omega + S(\omega)\,{}^{0}I\,\omega - {}^{0}I\,S(\omega)\,\omega = {}^{0}I\,\dot\omega + \omega \times {}^{0}I\,\omega
+$$
+
+<Why>{/* TODO(author): o último termo some porque ω × ω = 0. */}</Why>
+</ProofStep>
+</Proof>
+
+### Energia cinética de um corpo rígido
+
+{/* TODO(author): será usada na lição de Lagrange. */}
+
+$$
+T = \tfrac12\,m\,v_C^{T}v_C + \tfrac12\,\omega^{T}\,{}^{C}I\,\omega
+$$
+
+## Visualização
+
+{/* TODO(viz): caixa com dimensões, massa e ponto de referência ajustáveis, com o tensor ao lado. */}
+
+## Exemplo resolvido
+
+{/* TODO(author): barra fina uniforme de massa m e comprimento L, girando em torno do centro e depois da ponta. */}
+
+$$
+{}^{C}I_{zz} = \frac{m}{L}\int_{-L/2}^{L/2} x^2\,dx = \frac{mL^2}{12},
+\qquad
+{}^{A}I_{zz} = \frac{mL^2}{12} + m\left(\frac{L}{2}\right)^{2} = \frac{mL^2}{3}
+$$
+
+{/* TODO(author): caixa uniforme de lados a (x), b (y), c (z), no centro de massa. */}
+
+$$
+{}^{C}I = \frac{m}{12}\begin{bmatrix}
+b^2+c^2 & 0 & 0 \\
+0 & a^2+c^2 & 0 \\
+0 & 0 & a^2+b^2
+\end{bmatrix}
+$$
+
+{/* TODO(author): elo 1 do braço do capítulo, em torno da junta 1. */}
+
+$$
+I_1 + m_1 l_{c1}^2 = 0.08 + 2\,(0.5)^2 = 0.58\ \mathrm{kg\,m^2}
+$$
+
+## Erros comuns
+
+{/* TODO(author): massa e peso; tensor e ω em referenciais diferentes; eixos paralelos sem partir do centro de massa; sinal dos produtos de inércia; supor que o tensor é constante na base. */}
+
+## Exercícios
+
+{/* TODO(exercises): blocos de exercício. */}
+
+## Leituras adicionais
+
+{/* TODO(author): Craig, cap. 6 (conferir as seções na sua edição). */}

@@ -1,0 +1,149 @@
+---
+title: "Dinâmica lagrangiana"
+area: dynamics
+slug: lagrangian-dynamics
+order: 2
+summary: ""
+---
+
+{/* TODO(author): pergunta motivadora (opcional), com <MotivatingQuestion answer="#definicao-formal">. */}
+
+## Intuição
+
+{/* TODO(author): intuição. Pergunta da lição: dá para chegar ao mesmo torque sem calcular as forças internas? */}
+
+## Definição formal
+
+### Energia cinética e potencial de um elo
+
+{/* TODO(author): a energia cinética vem da lição de corpo rígido; g é o vetor da gravidade na base. */}
+
+$$
+T_i = \tfrac12\,m_i\,v_{C_i}^{T}v_{C_i} + \tfrac12\,{}^{i}\omega_i^{T}\,{}^{C_i}I_i\,{}^{i}\omega_i,
+\qquad
+U_i = -\,m_i\,\mathbf{g}^{T}\,{}^{0}P_{C_i}
+$$
+
+### Energia cinética do manipulador
+
+{/* TODO(author): Jacobianas do centro de massa de cada elo. */}
+
+$$
+v_{C_i} = J_{v_i}(q)\,\dot q, \qquad \omega_i = J_{\omega_i}(q)\,\dot q
+$$
+
+$$
+T = \tfrac12\,\dot q^{T} M(q)\,\dot q,
+\qquad
+M(q) = \sum_{i=1}^{n} \left( m_i\,J_{v_i}^{T}J_{v_i} + J_{\omega_i}^{T}\;{}^{0}_{i}R\;{}^{C_i}I_i\;{}^{0}_{i}R^{T}\,J_{\omega_i} \right)
+$$
+
+### A lagrangiana e as equações de Euler–Lagrange
+
+{/* TODO(author): L é uma diferença, não um balanço; τ reúne os torques que não vêm de U. */}
+
+$$
+\mathcal{L}(q,\dot q) = T(q,\dot q) - U(q),
+\qquad
+\frac{d}{dt}\frac{\partial \mathcal{L}}{\partial \dot q_k} - \frac{\partial \mathcal{L}}{\partial q_k} = \tau_k
+$$
+
+### Forma geral para o manipulador
+
+<Proof title="De Euler–Lagrange à forma matricial">
+<ProofStep>
+
+$$
+\frac{\partial \mathcal{L}}{\partial \dot q_k} = \sum_j M_{kj}\,\dot q_j
+$$
+
+<Why>{/* TODO(author): U não depende de q̇; M é simétrica. */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+\frac{d}{dt}\frac{\partial \mathcal{L}}{\partial \dot q_k} = \sum_j M_{kj}\,\ddot q_j + \sum_{i,j} \frac{\partial M_{kj}}{\partial q_i}\,\dot q_i\,\dot q_j
+$$
+
+<Why>{/* TODO(author): M depende de q, que depende do tempo. */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+\frac{\partial \mathcal{L}}{\partial q_k} = \tfrac12 \sum_{i,j} \frac{\partial M_{ij}}{\partial q_k}\,\dot q_i\,\dot q_j - \frac{\partial U}{\partial q_k}
+$$
+
+<Why>{/* TODO(author) */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+\sum_j M_{kj}\,\ddot q_j + \sum_{i,j} c_{ijk}\,\dot q_i\,\dot q_j + \frac{\partial U}{\partial q_k} = \tau_k,
+\qquad
+c_{ijk} = \tfrac12\left( \frac{\partial M_{kj}}{\partial q_i} + \frac{\partial M_{ki}}{\partial q_j} - \frac{\partial M_{ij}}{\partial q_k} \right)
+$$
+
+<Why>{/* TODO(author): simetrizar a soma em i e j (símbolos de Christoffel). */}</Why>
+</ProofStep>
+</Proof>
+
+$$
+C_{kj}(q,\dot q) = \sum_i c_{ijk}\,\dot q_i, \qquad g_k(q) = \frac{\partial U}{\partial q_k}
+$$
+
+### Energia total e trabalho dos motores
+
+{/* TODO(author): aqui sim há um balanço de energia; serve para verificar o resultado. */}
+
+$$
+E = T + U, \qquad \dot E = \dot q^{T}\tau
+$$
+
+## Visualização
+
+{/* TODO(viz): braço 2R em movimento, com barras de T, U e E. */}
+
+## Exemplo resolvido
+
+### Um elo
+
+{/* TODO(author): θ medido a partir da horizontal. */}
+
+$$
+\mathcal{L} = \tfrac12\,(m\,l_c^2 + I)\,\dot\theta^2 - m\,g\,l_c\sin\theta
+\quad\Longrightarrow\quad
+\tau = (m\,l_c^2 + I)\,\ddot\theta + m\,g\,l_c\cos\theta
+$$
+
+### O braço 2R
+
+{/* TODO(author): energias, derivadas e torques. */}
+
+$$
+\begin{aligned}
+T ={}& \tfrac12 (m_1 l_{c1}^2 + I_1)\,\dot\theta_1^2 + \tfrac12 I_2 (\dot\theta_1+\dot\theta_2)^2 \\
+&+ \tfrac12 m_2 \left[ l_1^2\dot\theta_1^2 + l_{c2}^2(\dot\theta_1+\dot\theta_2)^2 + 2\,l_1 l_{c2}\cos\theta_2\,\dot\theta_1(\dot\theta_1+\dot\theta_2) \right]
+\end{aligned}
+$$
+
+$$
+U = m_1\,g\,l_{c1}\sin\theta_1 + m_2\,g\left( l_1\sin\theta_1 + l_{c2}\sin(\theta_1+\theta_2) \right)
+$$
+
+{/* TODO(author): com os números da lição de Newton–Euler, o resultado é o mesmo. */}
+
+$$
+\tau = \begin{bmatrix} 18.349 \\ 1.140 \end{bmatrix} \mathrm{N\,m}
+$$
+
+## Erros comuns
+
+{/* TODO(author): velocidade angular do elo 2 é θ̇₁ + θ̇₂; esquecer que M varia no tempo; sinal e referência de U; ω e o tensor em referenciais diferentes. */}
+
+## Exercícios
+
+{/* TODO(exercises): blocos de exercício. */}
+
+## Leituras adicionais
+
+{/* TODO(author): Craig, cap. 6 (conferir as seções na sua edição). */}
