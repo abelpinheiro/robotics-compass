@@ -1,7 +1,7 @@
 // Planar 2-DOF (RR) manipulator dynamics by the recursive Newton–Euler algorithm.
 // Everything is in the planar base frame (x right, y up); joint axes are +z (out of
-// plane), gravity acts in −y. The recursion here is verified to machine precision
-// (~1e-14) against the closed form M(q)q̈ + C(q,q̇)q̇ + g(q) over random configs, so the
+// plane), gravity acts in −y. newtonEulerMath.test.ts checks the recursion against Craig's
+// 3D recursion, Lagrange's equations and the closed form M(q)q̈ + C(q,q̇)q̇ + g(q), so the
 // visualization's arrows and the readouts are consistent.
 //
 // Outward pass (base → tip): angular velocity/acceleration and COM linear acceleration.
