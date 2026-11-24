@@ -118,7 +118,8 @@ export const curriculum: Part[] = [
         craig: "6",
         title: { en: "Manipulator dynamics", pt: "Dinâmica de manipuladores" },
         lessons: [
-          { slug: "newton-euler", area: "dynamics", title: "Newton–Euler dynamics", status: "in-progress", difficulty: "core", prerequisites: ["velocity-kinematics"] },
+          { slug: "rigid-body-inertia", area: "dynamics", title: "Rigid bodies and inertia", status: "planned", difficulty: "core", prerequisites: ["velocity-kinematics"] },
+          { slug: "newton-euler", area: "dynamics", title: "Newton–Euler dynamics", status: "in-progress", difficulty: "core", prerequisites: ["velocity-kinematics", "rigid-body-inertia"] },
           { slug: "lagrangian-dynamics", area: "dynamics", title: "Lagrangian dynamics", status: "planned", difficulty: "core", prerequisites: ["newton-euler"] },
           { slug: "equations-of-motion", area: "dynamics", title: "Equations of motion", status: "planned", difficulty: "core", prerequisites: ["lagrangian-dynamics"] },
         ],

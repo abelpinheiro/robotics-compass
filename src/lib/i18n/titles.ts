@@ -21,6 +21,7 @@ export const lessonTitlesPt: Record<string, string> = {
   "product-of-exponentials": "Produto de exponenciais",
   "redundancy-and-null-space": "Redundância e espaço nulo",
   // dynamics
+  "rigid-body-inertia": "Corpo rígido e inércia",
   "newton-euler": "Dinâmica de Newton–Euler",
   "lagrangian-dynamics": "Dinâmica lagrangiana",
   "equations-of-motion": "Equações de movimento",
