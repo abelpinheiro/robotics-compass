@@ -1,4 +1,6 @@
-const fmt = (n: number) => (Math.abs(n) < 1e-9 ? 0 : n).toFixed(2);
+// values that round to zero are shown without a minus sign
+const fmt = (n: number, digits: number) =>
+  (Math.abs(n) < 0.5 * 10 ** -digits ? 0 : n).toFixed(digits);
 
 /** A bracketed numeric matrix, token-styled, for viz readouts. */
 export function MatrixDisplay({
@@ -6,12 +8,15 @@ export function MatrixDisplay({
   ariaLabel,
   highlightCol,
   highlightColor,
+  digits = 2,
 }: {
   rows: number[][];
   ariaLabel?: string;
   /** Emphasize the top-3 rows of this column (e.g. the TCP position). */
   highlightCol?: number;
   highlightColor?: string;
+  /** Decimal places shown. */
+  digits?: number;
 }) {
   const cols = rows[0]?.length ?? 0;
   return (
@@ -37,7 +42,7 @@ export function MatrixDisplay({
                 className={`text-right tabular-nums ${hl ? "font-bold" : ""}`}
                 style={hl ? { color: highlightColor } : undefined}
               >
-                {fmt(v)}
+                {fmt(v, digits)}
               </span>
             );
           }),
