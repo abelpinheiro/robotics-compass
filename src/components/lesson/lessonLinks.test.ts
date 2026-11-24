@@ -27,11 +27,15 @@ describe("lessonConnections", () => {
     const { uses, leadsTo } = lessonConnections("jacobians", "en");
     expect(uses.map((l) => l.label)).toEqual(["Velocity kinematics"]);
     expect(leadsTo.map((l) => l.label)).toEqual([
+      "Newton–Euler dynamics",
       "Hybrid position/force control",
       "Redundancy and null space",
       "UR20 (Universal Robots)",
     ]);
-    expect(leadsTo.filter((l) => l.href).map((l) => l.href)).toEqual(["/en/lessons/case-studies/ur20"]);
+    expect(leadsTo.filter((l) => l.href).map((l) => l.href)).toEqual([
+      "/en/lessons/dynamics/newton-euler",
+      "/en/lessons/case-studies/ur20",
+    ]);
   });
 
   it("agrees with getDependents for every lesson", () => {
