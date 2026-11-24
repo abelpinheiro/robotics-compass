@@ -100,8 +100,9 @@ describe("course map (curriculum.ts)", () => {
   it("links prev/next between visible lessons in course order", () => {
     expect(getAdjacentLessons("kinematics", "jacobians")).toMatchObject({
       prev: { slug: "velocity-kinematics" },
-      next: { slug: "newton-euler" },
+      next: { slug: "rigid-body-inertia" },
     });
+    expect(getAdjacentLessons("dynamics", "newton-euler").prev?.slug).toBe("rigid-body-inertia");
     // newton-euler → (planned chapters skipped) → mdps → ur20
     expect(getAdjacentLessons("dynamics", "newton-euler").next?.slug).toBe("mdps");
     expect(getAdjacentLessons("reinforcement-learning", "mdps").next?.slug).toBe("ur20");

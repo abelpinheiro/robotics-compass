@@ -1,0 +1,189 @@
+---
+title: "Corpo rígido e inércia"
+area: dynamics
+slug: rigid-body-inertia
+order: 0
+summary: ""
+---
+
+import RodInertiaVizEmbed from "@/components/viz/inertia/RodInertiaVizEmbed";
+import BoxInertiaVizEmbed from "@/components/viz/inertia/BoxInertiaVizEmbed";
+
+{/* TODO(author): pergunta motivadora (opcional), com <MotivatingQuestion answer="#definicao-formal">. */}
+
+## Intuição
+Até aqui, estudamos o movimento de forma puramente cinemática: ângulos de junta viravam posições e velocidades na ponta da ferramenta, sem importar se o braço era feito de plástico leve ou aço maciço. Na vida real, porém, mover um elo resulta em um custo energético e mecânico.
+
+**Quanto custa acelerar um elo?** A resposta depende de duas coisas: **quanta matéria** ele tem e **como essa matéria está distribuída** em relação ao eixo de rotação.
+
+Empurrar um objeto em linha reta exige vencer sua **massa** ($m$). Fazê-lo girar exige vencer seu **momento de inércia** ($I$). Para visualizar esses conceitos, compare o esforço de girar uma vassoura segurando-a pelo meio com o de girá-la segurando pela ponta do cabo. A massa é a mesma, mas, no segundo caso, há mais matéria longe do eixo de rotação, e a resistência ao giro é maior.
+Em um manipulador robótico de múltiplos elos, cada motor precisa vencer não apenas a inércia do próprio elo, mas também toda a massa e distribuição inercial dos elos que vêm depois dele.
+
+## Definição formal
+Para conectar o conceito cinemático discutido anteriormente com as forças e torques dos atuadores, derivamos as equações de velocidade no tempo para obter **acelerações**, e então multiplicamos essas acelerações pelas propriedades inerciais do corpo rígido para obter **forças e momentos**.
+
+### Aceleração de um ponto
+Para calcular de forma genérica a aceleração de um ponto $Q$ observado a partir de um referencial $\{A\}$, derivamos no tempo a equação da velocidade geral de um vetor ${}^{B}Q$ e obtemos:
+
+$$
+\begin{aligned}
+{}^{A}\dot V_{Q} ={}&
+\underbrace{{}^{A}\dot V_{B\text{ORG}}}_{\text{origem}}
++ \underbrace{{}^{A}_{B}R\,{}^{B}\dot V_{Q}}_{\text{movimento em }\{B\}}
++ \underbrace{2\,{}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}V_{Q}}_{\text{Coriolis}}\\[4pt]
+&+ \underbrace{{}^{A}\dot\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q}_{\text{tangencial}}
++ \underbrace{{}^{A}\Omega_{B} \times \left({}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q\right)}_{\text{centrípeta}}
+\end{aligned}
+$$
+
+Quando o elo é rígido e $\{B\}$ está preso a ele, um ponto $Q$ do elo fica fixo em $\{B\}$. Isso significa que o vetor ${}^{B}Q$ é constante no tempo, fazendo com que sua velocidade (${}^{B}V_{Q}$) e aceleração (${}^{B}\dot V_{Q}$) sejam nulas. Os termos de movimento relativo e de Coriolis desaparecem, simplificando a expressão para:
+
+$$
+{}^{A}\dot V_{Q} = {}^{A}\dot V_{B\text{ORG}} + {}^{A}\dot\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q + {}^{A}\Omega_{B} \times \left({}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q\right)
+$$
+
+
+### Aceleração angular
+
+Vimos que velocidades angulares se somam diretamente quando expressas no mesmo referencial: ${}^{A}\Omega_{C} = {}^{A}\Omega_{B} + {}^{A}_{B}R\,{}^{B}\Omega_{C}$. Ao derivar essa equação no tempo para encontrar a aceleração angular, aplicamos a regra do produto no segundo termo. Como a matriz de rotação ${}^{A}_{B}R$ também varia no tempo ($\dot R = S({}^{A}\Omega_{B})\,R$), surge um termo extra de produto vetorial:
+
+$$
+{}^{A}\dot\Omega_{C} = {}^{A}\dot\Omega_{B} + {}^{A}_{B}R\,{}^{B}\dot\Omega_{C} + {}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}\Omega_{C}
+$$
+
+### Massa e centro de massa
+
+A **massa** ($m$) é uma propriedade que mede a quantidade de matéria de um corpo e sua resistência à aceleração linear. Ela não deve ser confundida com o **peso** ($W = m\,g$), que é a força gravitacional exercida sobre essa massa.
+
+Para um corpo contínuo de densidade $\rho$ e volume $V$, a massa total e a posição do seu **centro de massa** (${}^{A}P_{C}$) são dadas por:
+
+$$
+m = \int_{V} \rho\,dv, \qquad {}^{A}P_{C} = \frac{1}{m}\int_{V} {}^{A}P\,\rho\,dv
+$$
+
+### Momento de inércia em torno de um eixo
+
+Ao rotacionar em torno de um único eixo fixo, o **momento de inércia escalar** ($I_{\text{eixo}}$) mede o quanto a massa do corpo resiste à aceleração angular ao redor daquele eixo específico.
+
+$$
+I_{\text{eixo}} = \int_{V} r^{2}\,\rho\,dv
+$$
+
+### Tensor de inércia
+
+Em 3D, um corpo rígido pode girar em torno de qualquer combinação dos eixos $X$, $Y$ e $Z$. Além disso, se a massa não estiver distribuída de forma simétrica em relação ao eixo $X$, girá-lo em torno desse eixo pode gerar torques reativos nos eixos $Y$ e $Z$. Assim, substituímos o escalar por uma matriz simétrica $3 \times 3$ chamada **tensor de inércia** (${}^{A}I$):
+
+$$
+{}^{A}I = \begin{bmatrix}
+I_{xx} & -I_{xy} & -I_{xz} \\
+-I_{xy} & I_{yy} & -I_{yz} \\
+-I_{xz} & -I_{yz} & I_{zz}
+\end{bmatrix}
+= \int_{V} \left( P^{T}P\,\mathbf{1}_3 - P\,P^{T} \right)\rho\,dv
+$$
+
+onde $\mathbf{1}_3$ é a matriz identidade $3 \times 3$ e $P = [x, y, z]^T$ é a posição de cada elemento de volume em $\{A\}$. Os termos da diagonal principal são os **momentos de inércia de massa**, que medem a resistência ao giro em torno de cada eixo:
+
+$$
+I_{xx} = \int_{V} (y^2+z^2)\,\rho\,dv, \qquad
+I_{yy} = \int_{V} (x^2+z^2)\,\rho\,dv, \qquad
+I_{zz} = \int_{V} (x^2+y^2)\,\rho\,dv
+$$
+
+Os termos fora da diagonal, chamados de **produtos de inércia**, medem o desbalanceamento de massa entre pares de eixos:
+
+$$
+I_{xy} = \int_{V} xy\,\rho\,dv, \qquad
+I_{xz} = \int_{V} xz\,\rho\,dv, \qquad
+I_{yz} = \int_{V} yz\,\rho\,dv
+$$
+
+Com o tensor ${}^{A}I$ em mãos, podemos recuperar o momento de inércia escalar em torno de qualquer eixo arbitrário que passe pela origem de $\{A\}$ e tenha direção unitária $\hat n$:
+
+$$
+I_{\text{eixo}} = \hat n^{T}\,{}^{A}I\,\hat n
+$$
+
+### Teorema dos eixos paralelos
+
+Em vez de calcular as integrais acima para cada junta do robô constantemente, podemos simplificar os cálculos ao usar o tensor de inércia no referencial $\{C\}$ centrado no **centro de massa** do elo (${}^{C}I$) e transportá-lo para um referencial $\{A\}$ na junta, que possui a mesma orientação de $\{C\}$, mas está deslocado por um vetor $P_C = [x_c, y_c, z_c]^T$. O **teorema dos eixos paralelos** realiza essa translação:
+
+$$
+{}^{A}I = {}^{C}I + m\left( P_C^{T}P_C\,\mathbf{1}_3 - P_C\,P_C^{T} \right),
+\qquad
+{}^{A}I_{zz} = {}^{C}I_{zz} + m\,(x_c^2 + y_c^2)
+$$
+
+### Mudança de orientação e eixos principais
+
+Quando dois referenciais $\{A\}$ e $\{B\}$ compartilham a mesma origem, mas têm orientações diferentes, relacionadas pela matriz ${}^{A}_{B}R$, transformamos o tensor por congruência. Além disso, como ${}^{A}I$ é real e simétrico, sempre existe uma orientação em que os produtos de inércia se anulam e o tensor se torna diagonal. As direções desses eixos, os autovetores de ${}^{A}I$, são os **eixos principais de inércia (principal axes)**, e os autovalores $I_{1}, I_{2}, I_{3}$ são os momentos principais:
+
+$$
+{}^{A}I = {}^{A}_{B}R\;{}^{B}I\;{}^{A}_{B}R^{T},
+\qquad
+{}^{A}I = R\,\operatorname{diag}(I_1, I_2, I_3)\,R^{T}
+$$
+
+### Equações de Newton e de Euler
+Com a cinemática de aceleração e as propriedades inerciais definidas, escrevemos as duas leis fundamentais que governam o movimento de um elo rígido. A **equação de Newton** relaciona a força resultante $F$ aplicada ao corpo com a aceleração linear de seu centro de massa ($\dot v_C$), enquanto a **equação de Euler** relaciona o momento resultante $N$ em torno do centro de massa com a velocidade e aceleração angulares:
+
+$$
+F = m\,\dot v_{C}, \qquad N = {}^{C}I\,\dot\omega + \omega \times {}^{C}I\,\omega
+$$
+
+### Energia cinética de um corpo rígido
+
+Enquanto a formulação de Newton-Euler trabalha diretamente com forças e acelerações vetoriais, a formulação de **Lagrange** (que veremos adiante) obtém as equações de movimento derivando as energias do sistema. Pelo teorema de König, a energia cinética total $T$ de um elo rígido se decompõe perfeitamente na soma da energia de translação do centro de massa com a energia de rotação em torno dele:
+
+$$
+T = \tfrac12\,m\,v_C^{T}v_C + \tfrac12\,\omega^{T}\,{}^{C}I\,\omega
+$$
+
+## Visualização
+
+<RodInertiaVizEmbed />
+
+<BoxInertiaVizEmbed />
+
+## Exemplo resolvido
+**1. Barra fina uniforme (centro vs. ponta):**
+Considere uma barra de massa $m$ e comprimento $L$ alinhada ao eixo $X$. No centro de massa $\{C\}$, a densidade linear é $\lambda = m/L$ e a integral ao longo de $[-L/2, L/2]$ fornece o momento em torno de $Z$. Usando o teorema dos eixos paralelos para deslocar o eixo de rotação para a ponta $\{A\}$ ($x_c = L/2$, $y_c = 0$), a inércia quadruplica:
+
+$$
+{}^{C}I_{zz} = \frac{m}{L}\int_{-L/2}^{L/2} x^2\,dx = \frac{mL^2}{12},
+\qquad
+{}^{A}I_{zz} = \frac{mL^2}{12} + m\left(\frac{L}{2}\right)^{2} = \frac{mL^2}{3}
+$$
+
+![Uma barra fina uniforme de massa m e comprimento L ao longo do eixo X, em dois painéis. À esquerda, o eixo de rotação Z passa pelo centro de massa {C}: um elemento de comprimento dx fica à distância x do eixo, com x de menos L/2 a L/2, e o momento de inércia é m L ao quadrado sobre 12. À direita, o eixo passa pela ponta {A}: o vetor P_C, de comprimento L/2, vai de {A} até {C}, e o momento de inércia é m L ao quadrado sobre 3, quatro vezes maior.](/images/dynamics/rigid-body-inertia-rod.svg)
+
+**2. Paralelepípedo (caixa uniforme) no centro de massa:**
+Para um elo modelado como uma caixa de massa $m$ e lados $a$ (em $X$), $b$ (em $Y$) e $c$ (em $Z$), a simetria em relação aos três planos coordenados faz com que todos os produtos de inércia sejam zero, resultando em um tensor puramente diagonal:
+
+$$
+{}^{C}I = \frac{m}{12}\begin{bmatrix}
+b^2+c^2 & 0 & 0 \\
+0 & a^2+c^2 & 0 \\
+0 & 0 & a^2+b^2
+\end{bmatrix}
+$$
+
+![Uma caixa uniforme de massa m com o referencial {C} no seu centro. O lado a fica ao longo de X, o lado b ao longo de Y e o lado c ao longo de Z. Os três planos coordenados de {C} cortam a caixa ao meio e são planos de simetria, por isso os produtos de inércia são zero.](/images/dynamics/rigid-body-inertia-box.svg)
+
+**3. Elo 1 de um manipulador planar em torno da junta 1:**
+Suponha que o elo 1 tenha massa $m_1 = 2\ \mathrm{kg}$, centro de massa localizado a $l_{c1} = 0.5\ \mathrm{m}$ do eixo da junta 1, e momento de inércia centroidal $I_1 = {}^{C}I_{zz1} = 0.08\ \mathrm{kg\,m^2}$. A inércia efetiva que o motor da junta 1 enxerga ao acelerar esse elo é:
+
+$$
+I_1 + m_1 l_{c1}^2 = 0.08 + 2\,(0.5)^2 = 0.58\ \mathrm{kg\,m^2}
+$$
+
+![O elo 1 de um manipulador planar, preso à base pela junta 1. O centro de massa C_1, com massa m_1 = 2 kg e momento de inércia I_1 = 0.08 kg m² em torno do eixo Z que passa por ele, fica a l_c1 = 0.5 m do eixo da junta 1. Abaixo, uma barra mostra a soma que o motor da junta 1 enxerga: 0.08 de I_1 mais 0.50 de m_1 l_c1 ao quadrado, total de 0.58 kg m².](/images/dynamics/rigid-body-inertia-link1.svg)
+
+## Erros comuns
+
+1. **Aplicar o teorema dos eixos paralelos entre dois eixos quaisquer:** A fórmula ${}^{A}I = {}^{C}I + m(P_C^T P_C \mathbf{1}_3 - P_C P_C^T)$ só é válida quando um dos referenciais ($\{C\}$) está **exatamente no centro de massa**. Para ir de um eixo arbitrário $\{A\}$ para outro eixo arbitrário $\{B\}$, você deve primeiro voltar ao centro de massa $\{C\}$ (subtraindo o termo de translação) e depois ir para $\{B\}$.
+2. **Errar o sinal dos produtos de inércia:** Definimos $I_{xy} = \int xy\,\rho\,dv$ com sinal positivo, mas na montagem da matriz do tensor ${}^{A}I$, os elementos fora da diagonal entram como **$-I_{xy}, -I_{xz}, -I_{yz}$**.
+3. **Assumir que o tensor de inércia é constante na base:** Embora o tensor ${}^{C}I$ seja constante no referencial preso ao elo, visto da base $\{0\}$ ele muda continuamente conforme o robô se move (${}^{0}I(q) = R(q)\,{}^{C}I\,R(q)^T$). Esquecer essa dependência angular elimina o termo $\omega \times I\omega$ das equações dinâmicas.
+
+## Leituras adicionais
+1. Craig, cap. 6, seção 6.2, 6.3

@@ -22,72 +22,103 @@ import { Callout } from "@/components/lesson/Callout";
 
 ## Formal definition
 To model a robot's dynamics, we need three physical parameters for each of its links:
+
+{/* TODO(author): "weight" below: mass and weight are different quantities. */}
+
 1. **Mass ($m_i$)**: The weight of the link.
-2. **Center of Mass ($P_{ci}$)**: The 3D vector pointing to the balance point of the link.
-3. **Inertia Tensor ($I_i$)**: A $3 \times 3$ matrix describing how the link's mass is distributed around its center of mass, dictating how hard it is to rotate.
+2. **Center of Mass (${}^{i}P_{C_i}$)**: The 3D vector pointing to the balance point of the link.
+3. **Inertia Tensor (${}^{C_i}I_i$)**: A $3 \times 3$ matrix describing how the link's mass is distributed around its center of mass, dictating how hard it is to rotate.
+
+### Single rigid body
+
+{/* TODO(author): explain Newton's and Euler's equations for one link. Becomes a short review once "Rigid bodies and inertia" is published. */}
+
+$$
+F = m\,\dot v_{C}, \qquad N = {}^{C}I\,\dot\omega + \omega \times {}^{C}I\,\omega
+$$
+
+where $\dot v_{C}$ is the centre-of-mass acceleration and ${}^{C}I$ is the inertia tensor about the COM.
 
 ### The Recursive Newton-Euler Algorithm
 Just as we used Velocity Propagation to find the Jacobian recursively, we use the **Newton-Euler formulation** to recursively compute joint torques. It is split into two passes:
 
-**1. The Outward Pass (Kinematics)**
-We start at the base and move to the end-effector. We propagate the angular and linear velocities ($\omega_i, v_i$), but now we also compute their derivatives: angular acceleration ($\dot{\omega}_i$) and linear acceleration ($\dot{v}_i$). Finally, we calculate the linear acceleration of each link's center of mass ($\dot{v}_{ci}$).
-
-**2. The Inward Pass (Forces and Torques)**
-We start at the end-effector and move backward to the base. First, we apply Newton's and Euler's equations to find the inertial force ($F_i$) and moment ($N_i$) acting on each link's center of mass:
-$$
-F_i = m_i \dot{v}_{ci}
-$$
-$$
-N_i = I_i \dot{\omega}_i + \omega_i \times (I_i \omega_i)
-$$
-Then, we balance the forces acting on the joints. The force and torque exerted by link $i$ on link $i+1$ are computed backward down the chain. The Z-component of the resulting joint torque vector gives us the physical motor torque ($\tau_i$) required at that joint.
-
-### Single rigid body
-
-{/* TODO(author): explain Newton's and Euler's equations for one link. */}
-
-$$
-F = m\,a_c, \qquad N = {}^{c}I\,\dot\omega + \omega \times ({}^{c}I\,\omega)
-$$
-
-where $a_c$ is the centre-of-mass acceleration and ${}^{c}I$ is the inertia tensor about the COM.
-
 ### Outward recursion (base → tip)
+
+We start at the base and move to the end-effector. We propagate the angular and linear velocities ($\omega_i, v_i$), but now we also compute their derivatives: angular acceleration ($\dot{\omega}_i$) and linear acceleration ($\dot{v}_i$). Finally, we calculate the linear acceleration of each link's center of mass ($\dot{v}_{C_i}$).
 
 {/* TODO(author): explain how velocities and accelerations propagate outward. */}
 
-For revolute joint $i{+}1$ with axis $\hat z_{i+1}$:
+For revolute joint $i{+}1$ with axis $\hat Z_{i+1}$:
 
 $$
-\omega_{i+1} = \omega_i + \dot\theta_{i+1}\,\hat z_{i+1}
-$$
-
-$$
-\dot\omega_{i+1} = \dot\omega_i + \omega_i \times \dot\theta_{i+1}\,\hat z_{i+1} + \ddot\theta_{i+1}\,\hat z_{i+1}
+{}^{i+1}\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\omega_i + \dot\theta_{i+1}\,{}^{i+1}\hat Z_{i+1}
 $$
 
 $$
-\dot v_{c,\,i+1} = \dot v_{i+1} + \dot\omega_{i+1}\times r_{c,\,i+1} + \omega_{i+1}\times(\omega_{i+1}\times r_{c,\,i+1})
+{}^{i+1}\dot\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\dot\omega_i + {}^{i+1}_{i}R\,{}^{i}\omega_i \times \dot\theta_{i+1}\,{}^{i+1}\hat Z_{i+1} + \ddot\theta_{i+1}\,{}^{i+1}\hat Z_{i+1}
 $$
 
 $$
-F_{i+1} = m_{i+1}\,\dot v_{c,\,i+1}, \qquad N_{i+1} = {}^{c}I_{i+1}\,\dot\omega_{i+1} + \omega_{i+1}\times {}^{c}I_{i+1}\,\omega_{i+1}
+{}^{i+1}\dot v_{i+1} = {}^{i+1}_{i}R\left( {}^{i}\dot\omega_i \times {}^{i}P_{i+1} + {}^{i}\omega_i \times \left( {}^{i}\omega_i \times {}^{i}P_{i+1} \right) + {}^{i}\dot v_i \right)
+$$
+
+{/* TODO(author): prismatic joint. */}
+
+$$
+{}^{i+1}\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\omega_i, \qquad {}^{i+1}\dot\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\dot\omega_i
+$$
+
+$$
+\begin{aligned}
+{}^{i+1}\dot v_{i+1} ={}& {}^{i+1}_{i}R\left( {}^{i}\dot\omega_i \times {}^{i}P_{i+1} + {}^{i}\omega_i \times \left( {}^{i}\omega_i \times {}^{i}P_{i+1} \right) + {}^{i}\dot v_i \right) \\
+&+ 2\,{}^{i+1}\omega_{i+1} \times \dot d_{i+1}\,{}^{i+1}\hat Z_{i+1} + \ddot d_{i+1}\,{}^{i+1}\hat Z_{i+1}
+\end{aligned}
+$$
+
+{/* TODO(author): centre of mass of link i (either joint type). */}
+
+$$
+{}^{i}\dot v_{C_i} = {}^{i}\dot\omega_i \times {}^{i}P_{C_i} + {}^{i}\omega_i \times \left( {}^{i}\omega_i \times {}^{i}P_{C_i} \right) + {}^{i}\dot v_i
 $$
 
 ### Inward recursion (tip → base)
 
+We start at the end-effector and move backward to the base. First, we apply Newton's and Euler's equations to find the inertial force ($F_i$) and moment ($N_i$) acting on each link's center of mass:
+
+$$
+{}^{i}F_i = m_i\,{}^{i}\dot v_{C_i}, \qquad {}^{i}N_i = {}^{C_i}I_i\,{}^{i}\dot\omega_i + {}^{i}\omega_i \times {}^{C_i}I_i\,{}^{i}\omega_i
+$$
+
+Then, we balance the forces acting on the joints. The force and torque exerted by link $i$ on link $i+1$ are computed backward down the chain. The Z-component of the resulting joint torque vector gives us the physical motor torque ($\tau_i$) required at that joint.
+
+#### Static case
+
+{/* TODO(author): the robot at rest, without gravity, with a force at the tip: F_i = N_i = 0. The result must match the Jacobian duality. F is the force the robot applies on the environment. */}
+
+$$
+{}^{i}f_i = {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}, \qquad {}^{i}n_i = {}^{i}_{i+1}R\,{}^{i+1}n_{i+1} + {}^{i}P_{i+1} \times {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}
+$$
+
+$$
+\tau_i = {}^{i}n_i^{T}\,{}^{i}\hat Z_i
+\qquad\Longrightarrow\qquad
+\tau = J^{T}F
+$$
+
+#### Moving links
+
 {/* TODO(author): explain how forces and moments propagate inward to give joint torques. */}
 
 $$
-f_i = F_i + f_{i+1}
+{}^{i}f_i = {}^{i}_{i+1}R\,{}^{i+1}f_{i+1} + {}^{i}F_i
 $$
 
 $$
-n_i = N_i + n_{i+1} + r_{c,\,i}\times F_i + r_{i+1}\times f_{i+1}
+{}^{i}n_i = {}^{i}N_i + {}^{i}_{i+1}R\,{}^{i+1}n_{i+1} + {}^{i}P_{C_i} \times {}^{i}F_i + {}^{i}P_{i+1} \times {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}
 $$
 
 $$
-\tau_i = n_i^{\top}\,\hat z_i
+\tau_i = {}^{i}n_i^{T}\,{}^{i}\hat Z_i \ \text{(revolute)}, \qquad \tau_i = {}^{i}f_i^{T}\,{}^{i}\hat Z_i \ \text{(prismatic)}
 $$
 
 ### Boundary conditions
@@ -95,10 +126,12 @@ $$
 {/* TODO(author): explain the base/tip conditions and the gravity trick. */}
 
 $$
-\omega_0 = \dot\omega_0 = 0, \qquad \dot v_0 = -\,\mathbf{g}, \qquad f_{n+1} = n_{n+1} = 0
+{}^{0}\omega_0 = {}^{0}\dot\omega_0 = 0, \qquad {}^{0}\dot v_0 = -\,\mathbf{g}, \qquad {}^{n+1}f_{n+1} = {}^{n+1}n_{n+1} = 0
 $$
 
-Setting the base acceleration to $-\mathbf{g}$ folds gravity into the recursion (the "gravity trick"). Collecting the joint torques over all configurations yields the standard form developed in [Equations of motion](/lessons/dynamics/equations-of-motion):
+Setting the base acceleration to $-\mathbf{g}$ folds gravity into the recursion (the "gravity trick"). Collecting the joint torques over all configurations yields the standard form developed in Equations of motion:
+
+{/* TODO: link "Equations of motion" again when that lesson is published (it has no page in production yet). */}
 
 $$
 M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q) = \tau
@@ -106,13 +139,43 @@ $$
 
 ## Visualization
 
-{/* TODO(author): explain what the two sweeps compute and how to read the acceleration, force, and torque arrows. */}
+{/* TODO(author): explain what the two sweeps compute and how to read the acceleration, force, and torque arrows.
+    The a_c arrow is the true acceleration, with the weight drawn separately; the recursion above folds gravity into the base instead. Same f, n and τ. */}
 
 <NewtonEulerVizEmbed />
 
 ## Worked example
 
-{/* TODO(author): work through the recursion for the planar 2R arm step by step. */}
+{/* TODO(author): work through the recursion for the planar 2R arm step by step, with the numbers below. */}
+
+$$
+l = (1,\ 0.8)\ \mathrm{m}, \quad l_c = (0.5,\ 0.4)\ \mathrm{m}, \quad m = (2,\ 1.2)\ \mathrm{kg}
+$$
+
+$$
+I = (0.08,\ 0.05)\ \mathrm{kg\,m^2}, \quad g = 9.81\ \mathrm{m/s^2}
+$$
+
+$$
+\theta = (30^\circ,\ 60^\circ), \qquad \dot\theta = (1,\ 2)\ \mathrm{rad/s}, \qquad \ddot\theta = (1,\ 1)\ \mathrm{rad/s^2}, \qquad {}^{0}\dot v_0 = [\,0,\ 9.81,\ 0\,]^{T}
+$$
+
+| | Link 1 | Link 2 |
+|---|---|---|
+| $({}^i\omega_i)_z$ | 1 | 3 |
+| $({}^i\dot\omega_i)_z$ | 1 | 2 |
+| $({}^i\dot v_i)_{xy}$ | (4.905, 8.496) | (10.176, 1.366) |
+| $({}^i\dot v_{C_i})_{xy}$ | (4.405, 8.996) | (6.576, 2.166) |
+| $({}^iF_i)_{xy}$ | (8.810, 17.991) | (7.891, 2.599) |
+| $({}^iN_i)_z$ | 0.080 | 0.100 |
+| $({}^if_i)_{xy}$ | (10.505, 26.125) | (7.891, 2.599) |
+| $({}^in_i)_z$ | 18.349 | 1.140 |
+
+$$
+\tau = \begin{bmatrix} 18.349 \\ 1.140 \end{bmatrix} \mathrm{N\,m}
+$$
+
+{/* TODO: move the closed form below to "Equations of motion" when that lesson is published. */}
 
 For a planar 2R arm (link lengths $l_1, l_2$; COM distances $l_{c1}, l_{c2}$; masses $m_1, m_2$; COM inertias $I_1, I_2$; gravity $g$), the recursion collapses to a closed form:
 

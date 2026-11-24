@@ -63,6 +63,7 @@ Each lesson is listed as `area/slug` — English title.
 
 **5 · Manipulator dynamics** (Craig 6) — slug `manipulator-dynamics`
 
+- `dynamics/rigid-body-inertia` — Rigid bodies and inertia
 - `dynamics/newton-euler` — Newton–Euler dynamics
 - `dynamics/lagrangian-dynamics` — Lagrangian dynamics
 - `dynamics/equations-of-motion` — Equations of motion
