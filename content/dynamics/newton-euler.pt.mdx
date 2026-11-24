@@ -76,6 +76,8 @@ $$
 
 {/* TODO(author): força e momento inerciais de cada elo. */}
 
+![O elo i entre as juntas i e i+1. Na junta i atuam a força f_i e o momento n_i, vindos do elo i−1. Na junta i+1 atuam −f_(i+1) e −n_(i+1), as reações do elo i+1. Em tracejado, no centro de massa C_i, a força inercial F_i e o momento inercial N_i. Os vetores P_(C_i) e P_(i+1) vão da junta i até C_i e até a junta i+1.](/images/dynamics/newton-euler-link.svg)
+
 $$
 {}^{i}F_i = m_i\,{}^{i}\dot v_{C_i}, \qquad {}^{i}N_i = {}^{C_i}I_i\,{}^{i}\dot\omega_i + {}^{i}\omega_i \times {}^{C_i}I_i\,{}^{i}\omega_i
 $$
@@ -133,7 +135,7 @@ $$
 
 ## Exemplo resolvido
 
-{/* TODO(author): a recursão no braço 2R planar, passo a passo, com os números abaixo. */}
+{/* TODO(author): apresentar o braço 2R planar e os dados. */}
 
 $$
 l = (1,\ 0.8)\ \mathrm{m}, \quad l_c = (0.5,\ 0.4)\ \mathrm{m}, \quad m = (2,\ 1.2)\ \mathrm{kg}
@@ -146,6 +148,89 @@ $$
 $$
 \theta = (30^\circ,\ 60^\circ), \qquad \dot\theta = (1,\ 2)\ \mathrm{rad/s}, \qquad \ddot\theta = (1,\ 1)\ \mathrm{rad/s^2}, \qquad {}^{0}\dot v_0 = [\,0,\ 9.81,\ 0\,]^{T}
 $$
+
+![O braço 2R planar do exemplo, com θ_1 = 30° e θ_2 = 60°, de modo que o elo 2 fica na vertical. A força f_1, de componentes (10.505, 26.125) N no referencial do elo 1, atua na junta 1; a força f_2, de componentes (7.891, 2.599) N no referencial do elo 2, atua na junta 2. Os torques são τ_1 = 18.349 N·m e τ_2 = 1.140 N·m, ambos no sentido anti-horário.](/images/dynamics/newton-euler-example.svg)
+
+{/* Só as componentes não nulas: x e y nos vetores do plano, z em ω, ω̇, N e n. */}
+
+### Para fora, elo 1
+
+{/* TODO(author): velocidade, aceleração e centro de massa do elo 1. */}
+
+$$
+\omega_1 = \dot\theta_1 = 1, \qquad \dot\omega_1 = \ddot\theta_1 = 1
+$$
+
+$$
+{}^{1}\dot v_1 = \begin{bmatrix} g\sin\theta_1 \\ g\cos\theta_1 \end{bmatrix} = \begin{bmatrix} 4.905 \\ 8.496 \end{bmatrix},
+\qquad
+{}^{1}\dot v_{C_1} = \begin{bmatrix} -\,l_{c1}\,\omega_1^2 \\ l_{c1}\,\dot\omega_1 \end{bmatrix} + {}^{1}\dot v_1 = \begin{bmatrix} 4.405 \\ 8.996 \end{bmatrix}
+$$
+
+### Para fora, elo 2
+
+{/* TODO(author): o mesmo para o elo 2. */}
+
+$$
+\omega_2 = \dot\theta_1 + \dot\theta_2 = 3, \qquad \dot\omega_2 = \ddot\theta_1 + \ddot\theta_2 = 2
+$$
+
+$$
+{}^{2}\dot v_2 = {}^{2}_{1}R\left( \begin{bmatrix} -\,l_1\,\omega_1^2 \\ l_1\,\dot\omega_1 \end{bmatrix} + {}^{1}\dot v_1 \right)
+= \begin{bmatrix} \cos\theta_2 & \sin\theta_2 \\ -\sin\theta_2 & \cos\theta_2 \end{bmatrix} \begin{bmatrix} 3.905 \\ 9.496 \end{bmatrix}
+= \begin{bmatrix} 10.176 \\ 1.366 \end{bmatrix}
+$$
+
+$$
+{}^{2}\dot v_{C_2} = \begin{bmatrix} -\,l_{c2}\,\omega_2^2 \\ l_{c2}\,\dot\omega_2 \end{bmatrix} + {}^{2}\dot v_2
+= \begin{bmatrix} -3.6 \\ 0.8 \end{bmatrix} + \begin{bmatrix} 10.176 \\ 1.366 \end{bmatrix}
+= \begin{bmatrix} 6.576 \\ 2.166 \end{bmatrix}
+$$
+
+### Força e momento inerciais
+
+{/* TODO(author): Newton e Euler em cada elo. */}
+
+$$
+{}^{1}F_1 = 2\begin{bmatrix} 4.405 \\ 8.996 \end{bmatrix} = \begin{bmatrix} 8.810 \\ 17.991 \end{bmatrix},
+\qquad
+{}^{2}F_2 = 1.2\begin{bmatrix} 6.576 \\ 2.166 \end{bmatrix} = \begin{bmatrix} 7.891 \\ 2.599 \end{bmatrix}
+$$
+
+$$
+N_1 = I_1\,\dot\omega_1 = 0.080, \qquad N_2 = I_2\,\dot\omega_2 = 0.100
+$$
+
+### Para dentro, elo 2
+
+{/* TODO(author): a ponta está livre: f_3 = n_3 = 0. */}
+
+$$
+{}^{2}f_2 = {}^{2}F_2 = \begin{bmatrix} 7.891 \\ 2.599 \end{bmatrix},
+\qquad
+n_2 = N_2 + l_{c2}\,({}^{2}F_2)_y = 0.1000 + 0.4\,(2.5992) = 1.1397
+$$
+
+### Para dentro, elo 1
+
+{/* TODO(author): levar f_2 para {1} e somar. */}
+
+$$
+{}^{1}_{2}R\,{}^{2}f_2 = \begin{bmatrix} \cos\theta_2 & -\sin\theta_2 \\ \sin\theta_2 & \cos\theta_2 \end{bmatrix} \begin{bmatrix} 7.891 \\ 2.599 \end{bmatrix} = \begin{bmatrix} 1.695 \\ 8.134 \end{bmatrix},
+\qquad
+{}^{1}f_1 = {}^{1}_{2}R\,{}^{2}f_2 + {}^{1}F_1 = \begin{bmatrix} 10.505 \\ 26.125 \end{bmatrix}
+$$
+
+$$
+\begin{aligned}
+n_1 &= N_1 + n_2 + l_{c1}\,({}^{1}F_1)_y + l_1\,({}^{1}_{2}R\,{}^{2}f_2)_y \\
+&= 0.0800 + 1.1397 + 0.5\,(17.9914) + 1\,(8.1336) = 18.349
+\end{aligned}
+$$
+
+### Resultado
+
+{/* TODO(author): resumo e interpretação dos torques. */}
 
 | | Elo 1 | Elo 2 |
 |---|---|---|
