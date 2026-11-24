@@ -3,23 +3,27 @@ title: "Dinâmica de Newton–Euler"
 area: dynamics
 slug: newton-euler
 order: 1
-summary: ""
+summary: "Calcular os torques das juntas a partir do movimento, com uma passagem de velocidades e acelerações para fora e outra de forças e momentos para dentro"
 ---
 
 import NewtonEulerVizEmbed from "@/components/viz/newtoneuler/NewtonEulerVizEmbed";
-import { Callout } from "@/components/lesson/Callout";
 
-<Callout variant="warning" title="Em construção">
-  Este capítulo está incompleto: várias seções ainda têm apenas equações e visualizações, e o texto está sendo escrito.
-</Callout>
+{/* Rascunho escrito pelo Claude a pedido do autor (nov. 2026), a revisar antes de publicar. */}
 
 ## Intuição
 
-{/* TODO(author): intuição. Pergunta da lição: dado o movimento, qual torque? As duas passagens: cinemática para fora, forças para dentro. */}
+Na lição anterior, vimos quanto custa acelerar **um** corpo rígido. Um manipulador é uma cadeia deles, e cada elo é carregado pelo anterior. A pergunta desta lição é: **dado o movimento que queremos, que torque cada motor precisa fazer?** Esse é o problema da **dinâmica inversa (inverse dynamics)**.
+
+Tente segurar uma mochila com o braço esticado. O ombro sustenta o braço inteiro e a mochila; o cotovelo, só o antebraço e a mochila; o punho, só a mão e a mochila. Cada junta responde por tudo o que vem **depois** dela. Para saber quanto o ombro faz, é mais fácil começar pela mão e somar as cargas no caminho de volta.
+
+Se o braço também se move, cada elo precisa ainda de força para acelerar. A aceleração da mão depende do que o ombro e o cotovelo estão fazendo, ou seja, de tudo o que vem **antes** dela. Isso sugere dividir a conta em duas passagens pela cadeia:
+
+1. **Para fora, da base à ponta:** propagamos velocidades e acelerações até saber como o centro de massa de cada elo acelera.
+2. **Para dentro, da ponta à base:** sabendo a força e o momento que cada elo exige, somamos as cargas até chegar ao torque de cada motor.
 
 ## Definição formal
 
-{/* TODO(author): os parâmetros de cada elo: massa, centro de massa e tensor de inércia (lição de corpo rígido). */}
+Para cada elo $i$, precisamos de três propriedades, todas descritas em referenciais presos ao próprio elo e, por isso, constantes: a **massa** $m_i$, a posição do **centro de massa (center of mass)** em $\{i\}$, e o **tensor de inércia (inertia tensor)** em um referencial $\{C_i\}$, com origem no centro de massa e a mesma orientação de $\{i\}$.
 
 $$
 m_i, \qquad {}^{i}P_{C_i}, \qquad {}^{C_i}I_i
@@ -27,27 +31,37 @@ $$
 
 ### Um corpo rígido (revisão)
 
+Para um único elo, as equações de Newton e de Euler, vistas em [Corpo rígido e inércia](/lessons/dynamics/rigid-body-inertia), dão a força e o momento resultantes que produzem um certo movimento:
+
 $$
 F = m\,\dot v_{C}, \qquad N = {}^{C}I\,\dot\omega + \omega \times {}^{C}I\,\omega
 $$
 
 ### O algoritmo recursivo de Newton–Euler
 
-{/* TODO(author): apresentar as duas passagens. */}
+Para usar essas duas equações em cada elo de um robô, faltam duas coisas: saber $\dot v_{C_i}$, $\omega_i$ e $\dot\omega_i$ de cada elo, e descobrir quanto da força resultante vem de cada junta. A primeira é um problema de cinemática, resolvido na passagem para fora. A segunda é um problema de equilíbrio, resolvido na passagem para dentro.
+
+Todas as grandezas do elo $i$ são escritas no referencial $\{i\}$. Assim, $m_i$, ${}^{i}P_{C_i}$ e ${}^{C_i}I_i$ são números fixos, e as rotações ${}^{i+1}_{i}R$ aparecem só na passagem de um elo ao seguinte.
 
 ### Passagem para fora (base → ponta)
 
-{/* TODO(author): como velocidades e acelerações se propagam. */}
+A propagação de velocidades é a mesma da [cinemática de velocidade](/lessons/kinematics/velocity-kinematics). A novidade é propagar também as acelerações, com as fórmulas de aceleração da lição anterior. Partimos da base, onde o movimento é conhecido, e em cada elo somamos o que a junta acrescenta.
 
 #### Junta rotacional
+
+A junta $i+1$ acrescenta uma rotação em torno de $\hat Z_{i+1}$:
 
 $$
 {}^{i+1}\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\omega_i + \dot\theta_{i+1}\,{}^{i+1}\hat Z_{i+1}
 $$
 
+Derivando, além das duas acelerações angulares surge um produto vetorial. Ele existe porque o eixo $\hat Z_{i+1}$ é carregado pelo elo $i$: mesmo com $\dot\theta_{i+1}$ constante, a velocidade angular da junta muda de direção. Em um braço planar, os eixos são paralelos e esse termo é nulo.
+
 $$
 {}^{i+1}\dot\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\dot\omega_i + {}^{i+1}_{i}R\,{}^{i}\omega_i \times \dot\theta_{i+1}\,{}^{i+1}\hat Z_{i+1} + \ddot\theta_{i+1}\,{}^{i+1}\hat Z_{i+1}
 $$
+
+A origem de $\{i+1\}$ é um ponto fixo no elo $i$. Sua aceleração tem, portanto, as parcelas tangencial e centrípeta, somadas à aceleração da origem de $\{i\}$:
 
 $$
 {}^{i+1}\dot v_{i+1} = {}^{i+1}_{i}R\left( {}^{i}\dot\omega_i \times {}^{i}P_{i+1} + {}^{i}\omega_i \times \left( {}^{i}\omega_i \times {}^{i}P_{i+1} \right) + {}^{i}\dot v_i \right)
@@ -55,9 +69,13 @@ $$
 
 #### Junta prismática
 
+Uma junta prismática não gira o elo, então $\omega$ e $\dot\omega$ apenas mudam de referencial:
+
 $$
 {}^{i+1}\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\omega_i, \qquad {}^{i+1}\dot\omega_{i+1} = {}^{i+1}_{i}R\,{}^{i}\dot\omega_i
 $$
+
+Já a origem de $\{i+1\}$ desliza em relação ao elo $i$. Aparecem a aceleração do deslizamento e o termo de Coriolis:
 
 $$
 \begin{aligned}
@@ -68,27 +86,33 @@ $$
 
 #### Centro de massa do elo
 
+O centro de massa é um ponto fixo em $\{i\}$, qualquer que seja o tipo da junta:
+
 $$
 {}^{i}\dot v_{C_i} = {}^{i}\dot\omega_i \times {}^{i}P_{C_i} + {}^{i}\omega_i \times \left( {}^{i}\omega_i \times {}^{i}P_{C_i} \right) + {}^{i}\dot v_i
 $$
 
 ### Passagem para dentro (ponta → base)
 
-{/* TODO(author): força e momento inerciais de cada elo. */}
-
-![O elo i entre as juntas i e i+1. Na junta i atuam a força f_i e o momento n_i, vindos do elo i−1. Na junta i+1 atuam −f_(i+1) e −n_(i+1), as reações do elo i+1. Em tracejado, no centro de massa C_i, a força inercial F_i e o momento inercial N_i. Os vetores P_(C_i) e P_(i+1) vão da junta i até C_i e até a junta i+1.](/images/dynamics/newton-euler-link.svg)
+Com as acelerações conhecidas, as equações de Newton e de Euler dizem quais devem ser a força resultante $F_i$ e o momento resultante $N_i$ em cada elo. São a **força inercial** e o **momento inercial** do elo:
 
 $$
 {}^{i}F_i = m_i\,{}^{i}\dot v_{C_i}, \qquad {}^{i}N_i = {}^{C_i}I_i\,{}^{i}\dot\omega_i + {}^{i}\omega_i \times {}^{C_i}I_i\,{}^{i}\omega_i
 $$
 
+![O elo i entre as juntas i e i+1. Na junta i atuam a força f_i e o momento n_i, vindos do elo i−1. Na junta i+1 atuam −f_(i+1) e −n_(i+1), as reações do elo i+1. Em tracejado, no centro de massa C_i, a força inercial F_i e o momento inercial N_i. Os vetores P_(C_i) e P_(i+1) vão da junta i até C_i e até a junta i+1.](/images/dynamics/newton-euler-link.svg)
+
+Essa resultante vem dos vizinhos do elo (o peso entra mais adiante, com as condições de contorno). Chamamos de $f_i$ a força e de $n_i$ o momento que o elo $i-1$ aplica no elo $i$, com $n_i$ tomado em torno da origem de $\{i\}$. Pela terceira lei de Newton, o elo $i+1$ devolve $-f_{i+1}$ e $-n_{i+1}$ ao elo $i$. Na figura, as setas tracejadas são a resultante das setas cheias, e não cargas a mais.
+
 #### Caso estático
 
-{/* TODO(author): robô parado, sem gravidade, com uma força na ponta: F_i = N_i = 0. O resultado deve coincidir com a dualidade da Jacobiana. F é a força que o robô aplica no ambiente. */}
+Comecemos pelo caso mais simples: o robô parado, sem gravidade, com uma força na ponta. Nada acelera, então $F_i = N_i = 0$, e cada elo só transmite a carga que recebe. A força muda apenas de referencial. O momento ganha a parcela $P_{i+1} \times f_{i+1}$, porque a força em $i+1$ tem um braço de alavanca até a junta $i$:
 
 $$
 {}^{i}f_i = {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}, \qquad {}^{i}n_i = {}^{i}_{i+1}R\,{}^{i+1}n_{i+1} + {}^{i}P_{i+1} \times {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}
 $$
+
+Das três componentes de $n_i$, o motor de uma junta rotacional faz apenas a que está ao longo do seu eixo; a estrutura suporta as outras. Se a ponta aplica $F$ no ambiente (a força e o momento, com seis componentes), essa recursão tem de dar o mesmo resultado da dualidade da [Jacobiana](/lessons/kinematics/jacobians):
 
 $$
 \tau_i = {}^{i}n_i^{T}\,{}^{i}\hat Z_i
@@ -98,15 +122,28 @@ $$
 
 #### Elos em movimento
 
-{/* TODO(author): como forças e momentos se propagam; o que muda em relação ao caso estático. */}
+Com os elos em movimento, a soma das forças no elo $i$ não é mais zero: é $F_i$. O balanço de forças é ${}^{i}F_i = {}^{i}f_i - {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}$, ou seja, a junta $i$ transmite a carga que vem depois e ainda acelera o próprio elo:
 
 $$
 {}^{i}f_i = {}^{i}_{i+1}R\,{}^{i+1}f_{i+1} + {}^{i}F_i
 $$
 
+O balanço de momentos é feito em torno do centro de massa, onde vale a equação de Euler:
+
+$$
+\begin{aligned}
+{}^{i}N_i ={}& {}^{i}n_i - {}^{i}_{i+1}R\,{}^{i+1}n_{i+1} - {}^{i}P_{C_i} \times {}^{i}f_i \\
+&- \left( {}^{i}P_{i+1} - {}^{i}P_{C_i} \right) \times {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}
+\end{aligned}
+$$
+
+Substituindo $f_i$ pela equação anterior, os termos $P_{C_i} \times f_{i+1}$ se cancelam, e isolamos $n_i$:
+
 $$
 {}^{i}n_i = {}^{i}N_i + {}^{i}_{i+1}R\,{}^{i+1}n_{i+1} + {}^{i}P_{C_i} \times {}^{i}F_i + {}^{i}P_{i+1} \times {}^{i}_{i+1}R\,{}^{i+1}f_{i+1}
 $$
+
+Em relação ao caso estático, há duas parcelas novas: $N_i$, para girar o elo em torno do seu centro de massa, e $P_{C_i} \times F_i$, o momento da força inercial em torno da junta. Por fim, o atuador faz a componente ao longo do eixo da junta:
 
 $$
 \tau_i = {}^{i}n_i^{T}\,{}^{i}\hat Z_i \ \text{(rotacional)}, \qquad \tau_i = {}^{i}f_i^{T}\,{}^{i}\hat Z_i \ \text{(prismática)}
@@ -114,13 +151,15 @@ $$
 
 ### Condições de contorno
 
-{/* TODO(author): condições na base e na ponta; o truque da gravidade (gravity trick). */}
+Falta dizer por onde cada passagem começa. A base está parada, então $\omega_0$ e $\dot\omega_0$ são nulas. Se a ponta se move livre, sem tocar em nada, a carga depois do último elo é zero. Se ela empurra o ambiente, $f_{n+1}$ e $n_{n+1}$ são a força e o momento que o robô aplica nele.
+
+E a gravidade? Em vez de somar o peso de cada elo, usamos o **truque da gravidade (gravity trick)**: fingimos que a base acelera com $-\mathbf{g}$, isto é, para cima. Quem está em um elevador que arranca para cima se sente mais pesado, e o efeito é o mesmo do peso. A aceleração fictícia se propaga para todos os elos e cada $F_i$ já inclui a força que sustenta o peso do elo. Aqui, $\mathbf{g}$ é o vetor da gravidade, que aponta para baixo:
 
 $$
 {}^{0}\omega_0 = {}^{0}\dot\omega_0 = 0, \qquad {}^{0}\dot v_0 = -\,\mathbf{g}, \qquad {}^{n+1}f_{n+1} = {}^{n+1}n_{n+1} = 0
 $$
 
-{/* TODO(author): gancho: o conjunto dos torques tem esta forma, estudada em Equações de movimento. */}
+O algoritmo é numérico: com números nas juntas, saem números nos motores, e o custo cresce linearmente com o número de juntas. Se, em vez de números, levarmos símbolos pelas duas passagens, os torques se organizam sempre na mesma forma, o assunto da lição Equações de movimento:
 
 $$
 M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q) = \tau
@@ -128,14 +167,21 @@ $$
 
 ## Visualização
 
-{/* TODO(author): o que as duas passagens calculam e como ler as setas.
-    A seta a_c é a aceleração real, com o peso desenhado à parte; a recursão acima põe a gravidade na base. f, n e τ são os mesmos. */}
+Ajuste as posições, velocidades e acelerações das juntas e percorra as etapas com os botões. Na passagem para fora aparecem, em cada elo, $\omega$, $\dot\omega$ (indicada por $\alpha$) e a seta laranja da aceleração do centro de massa. Na passagem para dentro, a seta vermelha é a força na junta e o arco azul é o torque.
+
+Um detalhe de leitura: a seta laranja é a aceleração **real**, e o peso (cinza) é desenhado à parte. Na recursão acima, a gravidade entra pela base, e $\dot v_{C_i}$ inclui a aceleração fictícia. Os dois caminhos dão os mesmos $f$, $n$ e $\tau$.
+
+Experimente:
+
+- **Zere velocidades e acelerações.** Com a gravidade ligada, sobram só os torques que sustentam o braço. Desligue-a, e tudo vai a zero.
+- **Aponte o braço para cima** ($\theta_1 \approx 90^\circ$, $\theta_2 \approx 0$), ainda parado. As forças continuam, mas os torques quase somem: a estrutura carrega o peso.
+- **Sem gravidade, mude só $\dot\theta_1$**, com $\theta_2 \neq 0$ e as outras velocidades e acelerações zeradas. Surge um torque na junta 2 sem que ela se mova: é o efeito centrífugo.
 
 <NewtonEulerVizEmbed />
 
 ## Exemplo resolvido
 
-{/* TODO(author): apresentar o braço 2R planar e os dados. */}
+Vamos percorrer a recursão no braço 2R planar, com duas juntas rotacionais e gravidade ao longo de $-Y_0$. Os comprimentos são $l$, as distâncias da junta ao centro de massa são $l_c$, e $I$ é o momento de inércia de cada elo em torno do eixo $Z$ que passa pelo seu centro de massa:
 
 $$
 l = (1,\ 0.8)\ \mathrm{m}, \quad l_c = (0.5,\ 0.4)\ \mathrm{m}, \quad m = (2,\ 1.2)\ \mathrm{kg}
@@ -151,11 +197,11 @@ $$
 
 ![O braço 2R planar do exemplo, com θ_1 = 30° e θ_2 = 60°, de modo que o elo 2 fica na vertical. A força f_1, de componentes (10.505, 26.125) N no referencial do elo 1, atua na junta 1; a força f_2, de componentes (7.891, 2.599) N no referencial do elo 2, atua na junta 2. Os torques são τ_1 = 18.349 N·m e τ_2 = 1.140 N·m, ambos no sentido anti-horário.](/images/dynamics/newton-euler-example.svg)
 
-{/* Só as componentes não nulas: x e y nos vetores do plano, z em ω, ω̇, N e n. */}
+Como o movimento é no plano, escrevemos só as componentes que podem ser não nulas: $x$ e $y$ nos vetores lineares e $z$ em $\omega$, $\dot\omega$, $N$ e $n$. Os eixos são paralelos, então os produtos vetoriais de $\dot\omega_{i+1}$ e $N_i$ se anulam. Os números são arredondados a três casas, com quatro nas somas em que o arredondamento apareceria.
 
 ### Para fora, elo 1
 
-{/* TODO(author): velocidade, aceleração e centro de massa do elo 1. */}
+A junta 1 está na origem de $\{0\}$, então ${}^{1}\dot v_1$ é só a aceleração fictícia da base, escrita em $\{1\}$. O centro de massa, a $l_{c1}$ da junta, soma a parcela centrípeta, ao longo de $-X_1$, e a tangencial, ao longo de $Y_1$:
 
 $$
 \omega_1 = \dot\theta_1 = 1, \qquad \dot\omega_1 = \ddot\theta_1 = 1
@@ -169,7 +215,7 @@ $$
 
 ### Para fora, elo 2
 
-{/* TODO(author): o mesmo para o elo 2. */}
+A junta 2 está a $l_1$ da junta 1. Calculamos a sua aceleração em $\{1\}$ e a levamos para $\{2\}$:
 
 $$
 \omega_2 = \dot\theta_1 + \dot\theta_2 = 3, \qquad \dot\omega_2 = \ddot\theta_1 + \ddot\theta_2 = 2
@@ -189,7 +235,7 @@ $$
 
 ### Força e momento inerciais
 
-{/* TODO(author): Newton e Euler em cada elo. */}
+Multiplicamos cada aceleração pela massa, e cada aceleração angular pelo momento de inércia:
 
 $$
 {}^{1}F_1 = 2\begin{bmatrix} 4.405 \\ 8.996 \end{bmatrix} = \begin{bmatrix} 8.810 \\ 17.991 \end{bmatrix},
@@ -203,7 +249,7 @@ $$
 
 ### Para dentro, elo 2
 
-{/* TODO(author): a ponta está livre: f_3 = n_3 = 0. */}
+A ponta está livre, então $f_3 = n_3 = 0$, e a junta 2 só responde pelo próprio elo 2. Como $P_{C_2}$ está ao longo de $X_2$, apenas a componente $y$ de $F_2$ tem momento em torno da junta:
 
 $$
 {}^{2}f_2 = {}^{2}F_2 = \begin{bmatrix} 7.891 \\ 2.599 \end{bmatrix},
@@ -213,7 +259,7 @@ $$
 
 ### Para dentro, elo 1
 
-{/* TODO(author): levar f_2 para {1} e somar. */}
+A junta 1 recebe a carga do elo 2. Escrevemos $f_2$ em $\{1\}$, somamos $F_1$ e depois os quatro momentos:
 
 $$
 {}^{1}_{2}R\,{}^{2}f_2 = \begin{bmatrix} \cos\theta_2 & -\sin\theta_2 \\ \sin\theta_2 & \cos\theta_2 \end{bmatrix} \begin{bmatrix} 7.891 \\ 2.599 \end{bmatrix} = \begin{bmatrix} 1.695 \\ 8.134 \end{bmatrix},
@@ -230,7 +276,9 @@ $$
 
 ### Resultado
 
-{/* TODO(author): resumo e interpretação dos torques. */}
+As duas juntas são rotacionais em torno de $Z$, então $\tau_i$ é a componente $z$ de $n_i$.
+
+Quase todo o torque da junta 1 sustenta o peso do braço: parado nessa pose, ele exigiria $18.691\ \mathrm{N\,m}$. O movimento muda pouco esse valor, porque as parcelas de aceleração, $+2.984$, e de velocidade, $-3.326$, quase se cancelam. Na junta 2, o peso não contribui, já que o elo 2 está na vertical: o torque vem só do movimento ($0.724 + 0.416$).
 
 | | Elo 1 | Elo 2 |
 |---|---|---|
@@ -249,7 +297,11 @@ $$
 
 ## Erros comuns
 
-{/* TODO(author): sinal de v̇₀; somar vetores de referenciais diferentes; esquecer P_C × F; contar a gravidade duas vezes. */}
+1. **Trocar o sinal de ${}^{0}\dot v_0$:** a gravidade aponta para baixo, mas a aceleração fictícia da base aponta para **cima**. Com $Y_0$ vertical, ${}^{0}\dot v_0 = [0,\ +9.81,\ 0]^T$.
+2. **Contar a gravidade duas vezes:** com o truque da gravidade, $F_i$ já inclui o peso. Não some $m_i\,\mathbf{g}$ de novo nas forças.
+3. **Somar vetores de referenciais diferentes:** $f_{i+1}$ e $n_{i+1}$ estão em $\{i+1\}$. Leve-os para $\{i\}$ com ${}^{i}_{i+1}R$ antes de somar.
+4. **Esquecer $P_{C_i} \times F_i$:** $N_i$ é um momento em torno do centro de massa, e $n_i$, em torno da junta. Essa parcela faz a passagem de um ponto ao outro.
+5. **Usar a inércia em torno da junta em $N_i$:** o tensor da equação de Euler é o do centro de massa. Com o da junta, parte de $P_{C_i} \times F_i$ seria contada duas vezes.
 
 ## Exercícios
 
@@ -257,4 +309,7 @@ $$
 
 ## Leituras adicionais
 
-{/* TODO(author): Craig, cap. 6 (conferir as seções na sua edição). */}
+1. Craig, cap. 6, seções 6.4 (equações de Newton e de Euler), 6.5 (formulação iterativa) e 6.7 (o braço 2R em forma fechada).
+2. Craig, cap. 5, seções 5.9 e 5.10 (forças estáticas e Jacobianas no domínio das forças).
+
+{/* TODO(author): conferir as seções na sua edição do Craig. */}
