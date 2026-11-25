@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { Viz2D } from "@/components/viz/Viz2D";
 import { VizFrame } from "@/components/viz/VizFrame";
+import { useLocale } from "@/lib/i18n/LocaleProvider";
 import {
   neSolve,
   massMatrix,
@@ -13,6 +14,7 @@ import {
   type NEState,
   type Vec2,
 } from "./newtonEulerMath";
+import { newtonEulerStrings } from "./strings";
 
 const ARM = DEFAULT_ARM;
 const deg = (r: number) => Math.round((r * 180) / Math.PI);
@@ -24,15 +26,8 @@ const FORCE_PX_PER = 0.018; // × scale, per N (shared by forces + weights so th
 const TAU_REF = 45; // N·m → full-size torque arc
 const MAX_ARROW_FRAC = 1.05; // clamp arrow length to this × scale
 
-// Reveal stages: how far through the two-pass recursion to draw.
-const STEPS = [
-  "Configuration",
-  "Outward · link 1 (ω, a_c)",
-  "Outward · link 2 (ω, a_c)",
-  "Inward · link 2 (f, τ₂)",
-  "Inward · link 1 (f, τ₁)",
-] as const;
-const LAST = STEPS.length - 1;
+// Reveal stages: how far through the two-pass recursion to draw (named in strings.ts).
+const LAST = newtonEulerStrings.en.steps.length - 1;
 
 function Canvas2D({
   width,
@@ -263,13 +258,15 @@ const btn =
 const INIT: NEState = { th1: 0.6, th2: 0.9, d1: 0.8, d2: -0.5, dd1: 1.2, dd2: 0.6 };
 
 export default function NewtonEulerViz() {
+  const { locale } = useLocale();
+  const s = newtonEulerStrings[locale];
   const [st, setSt] = useState<NEState>(INIT);
   const [step, setStep] = useState<number>(LAST);
   const [gravity, setGravity] = useState(true);
 
   const arm = { ...ARM, g: gravity ? ARM.g : 0 };
   const tr = neSolve(arm, st);
-  const set = (k: keyof NEState, v: number) => setSt((s) => ({ ...s, [k]: v }));
+  const set = (k: keyof NEState, v: number) => setSt((prev) => ({ ...prev, [k]: v }));
 
   // τ = M q̈ + C q̇ + g  (closed-form decomposition, cross-checks the recursion)
   const M = massMatrix(arm, st.th2);
@@ -278,33 +275,36 @@ export default function NewtonEulerViz() {
   const Cqd = coriolisTorque(arm, st);
   const gq = gravityTorque(arm, st);
 
-  const description =
-    `A planar 2-link (RR) arm at θ = (${deg(st.th1)}°, ${deg(st.th2)}°), ` +
-    `q̇ = (${fmt(st.d1)}, ${fmt(st.d2)}) rad/s, q̈ = (${fmt(st.dd1)}, ${fmt(st.dd2)}) rad/s², ` +
-    `gravity ${gravity ? "on" : "off"}. The recursive Newton–Euler algorithm runs in two sweeps. ` +
-    `Outward (base→tip) it propagates each link's angular velocity ω, angular acceleration α, and ` +
-    `centre-of-mass linear acceleration a_c (orange). Inward (tip→base) it propagates the joint ` +
-    `force f (red) and moment, giving the actuator torques τ₁ = ${fmt(tr.tau[0])} N·m and ` +
-    `τ₂ = ${fmt(tr.tau[1])} N·m (blue arcs). These equal M(q)q̈ + C(q,q̇)q̇ + g(q): ` +
-    `M q̈ = (${fmt(Mqdd[0])}, ${fmt(Mqdd[1])}), C q̇ = (${fmt(Cqd[0])}, ${fmt(Cqd[1])}), ` +
-    `g = (${fmt(gq[0])}, ${fmt(gq[1])}) N·m. Current reveal stage: ${STEPS[step]}.`;
+  const pair = (a: number, b: number) => `${fmt(a)}, ${fmt(b)}`;
+  const description = s.description({
+    theta: `${deg(st.th1)}°, ${deg(st.th2)}°`,
+    qd: pair(st.d1, st.d2),
+    qdd: pair(st.dd1, st.dd2),
+    gravity,
+    tau1: fmt(tr.tau[0]),
+    tau2: fmt(tr.tau[1]),
+    Mqdd: pair(Mqdd[0], Mqdd[1]),
+    Cqd: pair(Cqd[0], Cqd[1]),
+    g: pair(gq[0], gq[1]),
+    step: s.steps[step],
+  });
 
   return (
     <VizFrame
-      title="Recursive Newton–Euler: two sweeps"
-      caption="A planar 2R arm. Set the joint positions, velocities and accelerations, then walk the recursion: the outward sweep propagates ω, α and the COM acceleration a_c (orange) from base to tip; the inward sweep propagates the joint force f (red) and moment from tip to base, ending in the actuator torques τ (blue arcs). The torques equal M q̈ + C q̇ + g."
+      title={s.title}
+      caption={s.caption}
       textAlternative={description}
       controls={
         <div className="flex w-full flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <button type="button" className={btn} onClick={() => setStep((s) => Math.max(0, s - 1))} disabled={step === 0}>
-              ◀ prev sweep
+            <button type="button" className={btn} onClick={() => setStep((n) => Math.max(0, n - 1))} disabled={step === 0}>
+              ◀ {s.previous}
             </button>
             <span className="min-w-[13rem] text-center text-xs font-medium tabular-nums text-foreground">
-              {step + 1}/{STEPS.length} · {STEPS[step]}
+              {step + 1}/{s.steps.length} · {s.steps[step]}
             </span>
-            <button type="button" className={btn} onClick={() => setStep((s) => Math.min(LAST, s + 1))} disabled={step === LAST}>
-              next sweep ▶
+            <button type="button" className={btn} onClick={() => setStep((n) => Math.min(LAST, n + 1))} disabled={step === LAST}>
+              {s.next} ▶
             </button>
             <button
               type="button"
@@ -314,10 +314,10 @@ export default function NewtonEulerViz() {
                 gravity ? "border-success bg-success/15 text-success" : "border-border bg-surface text-foreground hover:bg-surface-2"
               }`}
             >
-              gravity {gravity ? "on" : "off"}
+              {gravity ? s.gravityOn : s.gravityOff}
             </button>
             <button type="button" className={btn} onClick={() => { setSt(INIT); setStep(LAST); setGravity(true); }}>
-              Reset
+              {s.reset}
             </button>
           </div>
           <div className="grid grid-cols-1 gap-x-6 gap-y-1.5 sm:grid-cols-2 lg:grid-cols-3">
@@ -343,7 +343,7 @@ export default function NewtonEulerViz() {
           <span>M q̈ = ({fmt(Mqdd[0])}, {fmt(Mqdd[1])})</span>
           <span>+ C q̇ = ({fmt(Cqd[0])}, {fmt(Cqd[1])})</span>
           <span>+ g = ({fmt(gq[0])}, {fmt(gq[1])})</span>
-          <span className="text-faint">(N·m — equals τ above)</span>
+          <span className="text-faint">(N·m — {s.equalsTau})</span>
         </div>
       </div>
     </VizFrame>
