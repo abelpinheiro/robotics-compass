@@ -1,14 +1,49 @@
 // Exercises for the "forward-kinematics" lesson. DRAFTS written by Claude for
 // the author's review (status "draft": shown only on the dev server). Expected
 // values come from the shared kinematics kernel and are cross-checked by
-// `verifyCase`, which the exercise tests run for every case; the tests also
-// run the Python reference in Pyodide.
+// `verifyCase`/`evaluate`, which the exercise tests run for every case; the
+// tests also run the Python reference in Pyodide.
 
 import { defineExercises, exercise } from "@/lib/exercises/types";
-import { modifiedDH } from "@/lib/kinematics/dh";
-import { chain, rotX, rotZ, transX, transZ } from "@/lib/kinematics/mat4";
+import { modifiedDH, type ModifiedDHRow } from "@/lib/kinematics/dh";
+import { chain, origin, rotX, rotZ, transX, transZ } from "@/lib/kinematics/mat4";
+
+// The lesson's planar 2R arm in modified (Craig) DH (see modeling-manipulators).
+const planar2R = (L1: number, L2: number, t1: number, t2: number): ModifiedDHRow[] => [
+  { alpha: 0, a: 0, d: 0, theta: t1 },
+  { alpha: 0, a: L1, d: 0, theta: t2 },
+  { alpha: 0, a: L2, d: 0, theta: 0 },
+];
 
 export default defineExercises("forward-kinematics", [
+  exercise({
+    id: "forward-kinematics-2r-tip-x",
+    status: "draft",
+    level: 1,
+    kind: "symbolic",
+    params: (rng) => ({ L1: rng.int(4, 12) / 10, L2: rng.int(3, 10) / 10 }),
+    statement: {
+      en: "For a planar 2R arm with $L_1 = {{L1}}$ and $L_2 = {{L2}}$, write the $x$ coordinate of the tip as a function of the joint angles. Type `t1` for $\\theta_1$ and `t2` for $\\theta_2$ (in radians); `cos`, `sin`, `+`, `*` and parentheses are available, with a decimal point (`0.5`).",
+      pt: "Para um braço planar 2R com $L_1 = {{L1}}$ e $L_2 = {{L2}}$, escreva a coordenada $x$ da ponta em função dos ângulos das juntas (cinemática direta, forward kinematics). Digite `t1` para $\\theta_1$ e `t2` para $\\theta_2$ (em radianos); `cos`, `sin`, `+`, `*` e parênteses estão disponíveis, com ponto decimal (`0.5`, não `0,5`).",
+    },
+    hints: [
+      { en: "The first link contributes $L_1 \\cos\\theta_1$.", pt: "O primeiro elo contribui com $L_1 \\cos\\theta_1$." },
+      {
+        en: "The second link points at the absolute angle $\\theta_1 + \\theta_2$.",
+        pt: "O segundo elo aponta no ângulo absoluto $\\theta_1 + \\theta_2$.",
+      },
+    ],
+    solution: {
+      en: "$$x = L_1 \\cos\\theta_1 + L_2 \\cos(\\theta_1 + \\theta_2) = {{L1}} \\cos\\theta_1 + {{L2}} \\cos(\\theta_1 + \\theta_2)$$",
+      pt: "$$x = L_1 \\cos\\theta_1 + L_2 \\cos(\\theta_1 + \\theta_2) = {{L1}} \\cos\\theta_1 + {{L2}} \\cos(\\theta_1 + \\theta_2)$$",
+    },
+    variables: ["t1", "t2"],
+    domain: { t1: [-Math.PI, Math.PI], t2: [-Math.PI, Math.PI] },
+    tolerance: { abs: 1e-6 },
+    solve: ({ L1, L2 }) => `${L1}*cos(t1) + ${L2}*cos(t1 + t2)`,
+    evaluate: ({ L1, L2 }, { t1, t2 }) => origin(chain(...planar2R(L1, L2, t1, t2).map(modifiedDH)))[0],
+  }),
+
   exercise({
     id: "forward-kinematics-link-transform",
     status: "draft",

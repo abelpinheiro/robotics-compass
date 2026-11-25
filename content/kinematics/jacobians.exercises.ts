@@ -42,7 +42,8 @@ export default defineExercises("jacobians", [
     params: (rng) => ({
       ...lengths(rng),
       t1: rng.int(-9, 9) * 10,
-      t2: rng.pick([15, 30, 45, 60, 75, 105, 120, 135, 150, 165]),
+      // both signs, so that a lost sign shows
+      t2: rng.pick([1, -1]) * rng.pick([15, 30, 45, 60, 75, 105, 120, 135, 150, 165]),
     }),
     statement: {
       en: "A planar 2R arm has link lengths $L_1 = {{L1}}\\,\\mathrm{m}$ and $L_2 = {{L2}}\\,\\mathrm{m}$ and is at $\\theta_1 = {{t1}}^\\circ$, $\\theta_2 = {{t2}}^\\circ$. Compute the determinant of its $2\\times2$ Jacobian (tip position $x, y$ with respect to $\\theta_1, \\theta_2$).",
@@ -59,8 +60,8 @@ export default defineExercises("jacobians", [
       },
     ],
     solution: {
-      en: "$$\\det J = L_1 L_2 \\sin\\theta_2 = {{L1}} \\cdot {{L2}} \\cdot \\sin {{t2}}^\\circ \\approx {{answer:4}}\\ \\mathrm{m}^2$$\n\nThe result does not depend on $\\theta_1$: rotating the whole arm does not change its shape.",
-      pt: "$$\\det J = L_1 L_2 \\sin\\theta_2 = {{L1}} \\cdot {{L2}} \\cdot \\sin {{t2}}^\\circ \\approx {{answer:4}}\\ \\mathrm{m}^2$$\n\nO resultado não depende de $\\theta_1$: girar o braço inteiro não muda a sua forma.",
+      en: "$$\\det J = L_1 L_2 \\sin\\theta_2 = {{L1}} \\cdot {{L2}} \\cdot \\sin({{t2}}^\\circ) \\approx {{answer:4}}\\ \\mathrm{m}^2$$\n\nThe result does not depend on $\\theta_1$: rotating the whole arm does not change its shape.",
+      pt: "$$\\det J = L_1 L_2 \\sin\\theta_2 = {{L1}} \\cdot {{L2}} \\cdot \\sin({{t2}}^\\circ) \\approx {{answer:4}}\\ \\mathrm{m}^2$$\n\nO resultado não depende de $\\theta_1$: girar o braço inteiro não muda a sua forma.",
     },
     unit: "\\mathrm{m}^2",
     tolerance: { rel: 0.01, abs: 0.001 },
@@ -78,7 +79,7 @@ export default defineExercises("jacobians", [
     kind: "mcq",
     statement: {
       en: "When is a planar 2R arm (both links of nonzero length) at a singular configuration?",
-      pt: "Quando um braço planar 2R (com os dois elos de comprimento não nulo) está numa configuração singular (singularity)?",
+      pt: "Quando um braço planar 2R (com os dois elos de comprimento não nulo) está numa configuração singular (singular configuration)?",
     },
     options: [
       {
@@ -132,34 +133,6 @@ export default defineExercises("jacobians", [
         if (Math.abs(det2(kernel2R(L1, L2, 0, deg(60)).J)) < 0.1) throw new Error("θ1 = 0 should not be singular");
       }
     },
-  }),
-
-  exercise({
-    id: "jacobians-2r-tip-x",
-    status: "draft",
-    level: 2,
-    kind: "symbolic",
-    params: (rng) => lengths(rng),
-    statement: {
-      en: "For a planar 2R arm with $L_1 = {{L1}}$ and $L_2 = {{L2}}$, write the $x$ coordinate of the tip as a function of the joint angles. Type `t1` for $\\theta_1$ and `t2` for $\\theta_2$ (in radians); `cos`, `sin`, `+`, `*` and parentheses are available.",
-      pt: "Para um braço planar 2R com $L_1 = {{L1}}$ e $L_2 = {{L2}}$, escreva a coordenada $x$ da ponta em função dos ângulos das juntas (cinemática direta, forward kinematics). Digite `t1` para $\\theta_1$ e `t2` para $\\theta_2$ (em radianos); `cos`, `sin`, `+`, `*` e parênteses estão disponíveis.",
-    },
-    hints: [
-      { en: "The first link contributes $L_1 \\cos\\theta_1$.", pt: "O primeiro elo contribui com $L_1 \\cos\\theta_1$." },
-      {
-        en: "The second link points at the absolute angle $\\theta_1 + \\theta_2$.",
-        pt: "O segundo elo aponta no ângulo absoluto $\\theta_1 + \\theta_2$.",
-      },
-    ],
-    solution: {
-      en: "$$x = L_1 \\cos\\theta_1 + L_2 \\cos(\\theta_1 + \\theta_2) = {{L1}} \\cos\\theta_1 + {{L2}} \\cos(\\theta_1 + \\theta_2)$$",
-      pt: "$$x = L_1 \\cos\\theta_1 + L_2 \\cos(\\theta_1 + \\theta_2) = {{L1}} \\cos\\theta_1 + {{L2}} \\cos(\\theta_1 + \\theta_2)$$",
-    },
-    variables: ["t1", "t2"],
-    domain: { t1: [-Math.PI, Math.PI], t2: [-Math.PI, Math.PI] },
-    tolerance: { abs: 1e-6 },
-    solve: ({ L1, L2 }) => `${L1}*cos(t1) + ${L2}*cos(t1 + t2)`,
-    evaluate: ({ L1, L2 }, { t1, t2 }) => origin(kernel2R(L1, L2, t1, t2).fT)[0],
   }),
 
   exercise({
@@ -302,10 +275,17 @@ export default defineExercises("jacobians", [
     status: "draft",
     level: 2,
     kind: "gaps",
-    params: (rng) => ({ ...lengths(rng), t1: rng.int(-6, 6) * 10, t2: rng.pick([20, 35, 50, 70, 110, 140]) }),
+    params: (rng) => {
+      for (;;) {
+        const t1 = rng.pick([1, -1]) * rng.int(1, 6) * 10;
+        const t2 = rng.pick([20, 35, 50, 70, 110, 140]);
+        // θ1 ≠ 0, so that taking P₁ for P₂ changes the answer; θ1 + θ2 away from 0° and 180°, where it vanishes
+        if (Math.abs(Math.sin(deg(t1 + t2))) > 0.2) return { ...lengths(rng), t1, t2 };
+      }
+    },
     statement: {
-      en: "In modified (Craig) DH, column $i$ of the geometric Jacobian of a revolute joint is $J_i = \\begin{bmatrix} Z_i \\times (P_T - P_i) \\\\ Z_i \\end{bmatrix}$. Take the planar 2R arm with $L_1 = {{L1}}$, $L_2 = {{L2}}$, $\\theta_1 = {{t1}}^\\circ$ and $\\theta_2 = {{t2}}^\\circ$.",
-      pt: "Na DH modificada (Craig), a coluna $i$ da Jacobiana geométrica (geometric Jacobian) de uma junta rotacional é $J_i = \\begin{bmatrix} Z_i \\times (P_T - P_i) \\\\ Z_i \\end{bmatrix}$. Considere o braço planar 2R com $L_1 = {{L1}}$, $L_2 = {{L2}}$, $\\theta_1 = {{t1}}^\\circ$ e $\\theta_2 = {{t2}}^\\circ$.",
+      en: "In modified (Craig) DH, column $i$ of the geometric Jacobian of a revolute joint is $J_i = \\begin{bmatrix} Z_i \\times (P_T - P_i) \\\\ Z_i \\end{bmatrix}$. Take the planar 2R arm with $L_1 = {{L1}}\\,\\mathrm{m}$, $L_2 = {{L2}}\\,\\mathrm{m}$, $\\theta_1 = {{t1}}^\\circ$ and $\\theta_2 = {{t2}}^\\circ$.",
+      pt: "Na DH modificada (Craig), a coluna $i$ da Jacobiana geométrica (geometric Jacobian) de uma junta rotacional é $J_i = \\begin{bmatrix} Z_i \\times (P_T - P_i) \\\\ Z_i \\end{bmatrix}$. Considere o braço planar 2R com $L_1 = {{L1}}\\,\\mathrm{m}$, $L_2 = {{L2}}\\,\\mathrm{m}$, $\\theta_1 = {{t1}}^\\circ$ e $\\theta_2 = {{t2}}^\\circ$.",
     },
     template: {
       en: "Column 2 uses the origin [[origin]], and the $x$ component of its linear part is [[jx]].",
@@ -320,7 +300,7 @@ export default defineExercises("jacobians", [
       jx: {
         kind: "numeric",
         solve: ({ L2, t1, t2 }) => -L2 * Math.sin(deg(t1 + t2)),
-        tolerance: { abs: 0.005, rel: 0.01 },
+        tolerance: { abs: 0.002, rel: 0.01 },
         unit: "\\mathrm{m}",
       },
     },
@@ -341,6 +321,8 @@ export default defineExercises("jacobians", [
     verify: ({ L1, L2, t1, t2 }) => {
       const { J, f2 } = kernel2R(L1, L2, deg(t1), deg(t2));
       expectClose(J[0][1], -L2 * Math.sin(deg(t1 + t2)), "kernel column 2, x");
+      // the column through P₁ instead (the usual slip) must not pass for the answer
+      if (Math.abs(J[0][0] - J[0][1]) < 0.02) throw new Error("P1 and P2 give almost the same x component");
       const elbow = origin(f2);
       expectClose(elbow[0], L1 * Math.cos(deg(t1)), "P2 is the elbow (x)");
       expectClose(elbow[1], L1 * Math.sin(deg(t1)), "P2 is the elbow (y)");
@@ -360,7 +342,7 @@ export default defineExercises("jacobians", [
     }),
     statement: {
       en: "The planar 2R arm below has $L_1 = {{L1}}\\,\\mathrm{m}$ and $L_2 = {{L2}}\\,\\mathrm{m}$. Move it into a **singular configuration**, then check.",
-      pt: "O braço planar 2R abaixo tem $L_1 = {{L1}}\\,\\mathrm{m}$ e $L_2 = {{L2}}\\,\\mathrm{m}$. Leve-o a uma **configuração singular (singularity)** e verifique.",
+      pt: "O braço planar 2R abaixo tem $L_1 = {{L1}}\\,\\mathrm{m}$ e $L_2 = {{L2}}\\,\\mathrm{m}$. Leve-o a uma **configuração singular (singular configuration)** e verifique.",
     },
     hints: [
       {
@@ -403,7 +385,7 @@ export default defineExercises("jacobians", [
   exercise({
     id: "jacobians-2r-python",
     status: "draft",
-    level: 3,
+    level: 2,
     kind: "python",
     entry: "jacobian_2r",
     statement: {
