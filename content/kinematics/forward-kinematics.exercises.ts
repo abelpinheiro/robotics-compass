@@ -1,6 +1,5 @@
-// Exercises for the "forward-kinematics" lesson. DRAFTS written by Claude for
-// the author's review (status "draft": shown only on the dev server). Expected
-// values come from the shared kinematics kernel and are cross-checked by
+// Exercises for the "forward-kinematics" lesson. Written by Claude, approved
+// by the author. Expected values come from the shared kinematics kernel and are cross-checked by
 // `verifyCase`/`evaluate`, which the exercise tests run for every case; the
 // tests also run the Python reference in Pyodide.
 
@@ -18,7 +17,7 @@ const planar2R = (L1: number, L2: number, t1: number, t2: number): ModifiedDHRow
 export default defineExercises("forward-kinematics", [
   exercise({
     id: "forward-kinematics-2r-tip-x",
-    status: "draft",
+    status: "published",
     level: 1,
     kind: "symbolic",
     params: (rng) => ({ L1: rng.int(4, 12) / 10, L2: rng.int(3, 10) / 10 }),
@@ -46,7 +45,7 @@ export default defineExercises("forward-kinematics", [
 
   exercise({
     id: "forward-kinematics-link-transform",
-    status: "draft",
+    status: "published",
     level: 2,
     kind: "python",
     entry: "link_transform",

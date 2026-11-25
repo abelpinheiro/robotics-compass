@@ -231,6 +231,16 @@ The determinant is zero when $\sin(\theta_2) = 0$, which means $\theta_2 = 0^\ci
 2. **Singularity Proximity Spikes:** You do not have to be exactly at $\det(J) = 0$ for a physical robot to fail. If you are very close to a singularity, $\det(J)$ is a tiny decimal. When dividing by the determinant, these small values causes the requested joint velocities to spike to massive values, exceeding the motor's safety limits. One way to solve this is using techniques like Damped Least Squares to prevent these velocity spikes.
 3. *(Similar to the Analytical method, if you require a different orientation parameterization to avoid Euler angle singularities, the bottom half of this matrix ($\omega_x, \omega_y, \omega_z$) can be mathematically mapped to Quaternion rates or Rotation Matrix rates using specific transformation matrices.)*
 
+## Exercises
+
+<Exercise id="jacobians-2r-column-gaps" />
+
+<Exercise id="jacobians-2r-det" />
+
+<Exercise id="jacobians-2r-find-singular" />
+
+<Exercise id="jacobians-2r-python" />
+
 ## Further reading
 1. [Robotics Jacobian Matrix Analytical & Geometric (Theory & Physical Interpretation)](https://www.youtube.com/watch?v=wwd7jYw2HUs)
 2. [Jacobian Matrix and Singularities | Robotics | Introduction | Part 1](https://www.youtube.com/watch?v=h2YM0CDzDl4)

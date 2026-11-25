@@ -1,6 +1,6 @@
-// Exercises for the "jacobians" lesson. DRAFTS written by Claude for the
-// author's review (status "draft": shown only on the dev server). Every
-// computed answer is cross-checked against the shared kinematics kernel in
+// Exercises for the "jacobians" lesson. Written by Claude; the author
+// approves each one before it is published (status "draft": shown only on the
+// dev server). Every computed answer is cross-checked against the shared kinematics kernel in
 // `verify`/`evaluate`, which the exercise tests run for every variant.
 
 import { defineExercises, exercise } from "@/lib/exercises/types";
@@ -36,7 +36,7 @@ const lengths = (rng: { int(lo: number, hi: number): number }) => ({
 export default defineExercises("jacobians", [
   exercise({
     id: "jacobians-2r-det",
-    status: "draft",
+    status: "published",
     level: 2,
     kind: "numeric",
     params: (rng) => ({
@@ -272,7 +272,7 @@ export default defineExercises("jacobians", [
 
   exercise({
     id: "jacobians-2r-column-gaps",
-    status: "draft",
+    status: "published",
     level: 2,
     kind: "gaps",
     params: (rng) => {
@@ -331,7 +331,7 @@ export default defineExercises("jacobians", [
 
   exercise({
     id: "jacobians-2r-find-singular",
-    status: "draft",
+    status: "published",
     level: 2,
     kind: "interactive",
     widget: "planar-arm",
@@ -384,7 +384,7 @@ export default defineExercises("jacobians", [
 
   exercise({
     id: "jacobians-2r-python",
-    status: "draft",
+    status: "published",
     level: 2,
     kind: "python",
     entry: "jacobian_2r",

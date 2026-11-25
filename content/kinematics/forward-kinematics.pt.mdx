@@ -124,6 +124,12 @@ Isso corresponde exatamente à geometria que você obteria se simplesmente desen
 1. **A multiplicação de matrizes não é comutativa:** Ao escrever a FK em código (como Python/NumPy), a ordem importa. $T_1 \cdot T_2$ é fundamentalmente diferente de $T_2 \cdot T_1$. Sempre multiplique da base para fora, em direção ao efetuador.
 2. **Acúmulo de erro de ponto flutuante:** Se você encadear 7 matrizes diferentes para um braço de 7 graus de liberdade em código usando `float32` padrão, pequenos erros de arredondamento nas funções trigonométricas vão se acumular a cada passo. Sempre use precisão dupla (`float64`) ao escrever cadeias cinemáticas do zero.
 
+## Exercícios
+
+<Exercise id="forward-kinematics-2r-tip-x" />
+
+<Exercise id="forward-kinematics-link-transform" />
+
 ## Leituras adicionais
 
 Seções 3.5 e 3.6 de *Robotics*, de Craig
