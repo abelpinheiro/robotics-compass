@@ -59,6 +59,18 @@ the curriculum taxonomy, design tokens, or dependencies need explicit sign-off (
 - [x] **Large-screen alignment** — sidebar is now pinned flush-left (full-width shell; the
   reading column is centered within the main area).
 
+### Lyapunov stability and control barrier functions (later — decided 2026-11-25)
+The author will add lessons on both, **not now**. Nothing is in the curriculum yet; the proposal, to
+confirm when the time comes (Golden rule 4):
+- `control/lyapunov-stability` — chapter 9 (nonlinear control), before `computed-torque`;
+  prerequisites `state-space`, `equations-of-motion`.
+- `control/control-lyapunov-functions` and `control/control-barrier-functions` (with the
+  CLF-CBF-QP safety filter) — chapter 14, next to `lqr`; CBFs also need `obstacles-and-collision`.
+- Open: CLFs and CBFs as one lesson or two; chapter 14 or a new safety-critical control chapter
+  (renumbers 15–18); whether to add `path-planning/safe-rl-with-cbfs` to chapter 18.
+- Ideas for visualizations: pendulum phase portrait with level curves of V; a robot avoiding a disc
+  with the nominal and the filtered control side by side (the one-constraint QP has a closed form).
+
 ### Reinforcement learning (research line: path planning via deep RL)
 See the proposal below. **Scaffolding the topics needs taxonomy sign-off (Golden rule 4).**
 
