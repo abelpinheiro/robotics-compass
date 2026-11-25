@@ -14,7 +14,7 @@ describe("lessonLink", () => {
   });
 
   it("keeps a planned lesson's title and status, without a link", () => {
-    expect(lessonLink("lagrangian-dynamics", "en")).toEqual({ label: "Lagrangian dynamics", status: "planned" });
+    expect(lessonLink("contact-and-friction", "en")).toEqual({ label: "Contact and friction", status: "planned" });
   });
 
   it("returns undefined for an unknown slug", () => {

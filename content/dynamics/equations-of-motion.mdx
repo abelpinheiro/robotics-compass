@@ -9,30 +9,169 @@ prerequisites: []
 status: draft
 ---
 
+import { Callout } from "@/components/lesson/Callout";
+
+<Callout variant="warning" title="Work in progress">
+  This chapter is incomplete: several sections still contain only equations and visualizations, and the explanatory text is still being written.
+</Callout>
+
+{/* TODO(author): motivating question (optional), with <MotivatingQuestion answer="#formal-definition">. */}
+
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+{/* TODO(author): intuition. The question: what does the formula say, and given the torque, what is the motion? */}
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+### The equation in joint space
+
+{/* TODO(author): the physical meaning of each term. */}
+
+$$
+\underbrace{M(q)\,\ddot q}_{\text{inertia}} + \underbrace{C(q,\dot q)\,\dot q}_{\text{Coriolis and centrifugal}} + \underbrace{g(q)}_{\text{gravity}} = \tau
+$$
+
+{/* TODO(author): the two previous lessons reach this same equation. */}
+
+### Properties of M and C
+
+{/* TODO(author): what each property guarantees. The second depends on the choice of C (Christoffel). */}
+
+$$
+M(q) = M(q)^{T}, \qquad \dot q^{T} M(q)\,\dot q > 0 \quad \text{for } \dot q \neq 0
+$$
+
+$$
+\left( \dot M - 2C \right)^{T} = -\left( \dot M - 2C \right)
+$$
+
+### Inverse and forward dynamics
+
+{/* TODO(author): inverse dynamics for control; forward dynamics for simulation. */}
+
+$$
+\tau = M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q)
+\qquad\Longleftrightarrow\qquad
+\ddot q = M(q)^{-1}\left( \tau - C(q,\dot q)\,\dot q - g(q) \right)
+$$
+
+{/* TODO(author): M from Newton–Euler, column by column (e_j is the j-th column of the identity). */}
+
+$$
+M(q)\,e_j = \mathrm{RNE}\left( q,\ \dot q = 0,\ \ddot q = e_j,\ \mathbf{g} = 0 \right)
+$$
+
+### Simulation
+
+{/* TODO(author): numerical integration; explicit Euler as the simplest case. */}
+
+$$
+\dot q_{k+1} = \dot q_k + \ddot q_k\,\Delta t, \qquad q_{k+1} = q_k + \dot q_k\,\Delta t
+$$
+
+### The equation in Cartesian space
+
+{/* TODO(author): from joint to Cartesian space; needs J square and away from singularities. */}
+
+$$
+\mathcal{F} = M_x(q)\,\ddot x + V_x(q,\dot q) + G_x(q)
+$$
+
+$$
+M_x = J^{-T} M J^{-1}, \qquad
+V_x = J^{-T}\left( C\,\dot q - M J^{-1}\dot J\,\dot q \right), \qquad
+G_x = J^{-T} g
+$$
+
+<Proof title="From joint to Cartesian space">
+<ProofStep>
+
+$$
+\tau = J^{T}\mathcal{F}
+$$
+
+<Why prereq="jacobians">{/* TODO(author) */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+\dot x = J\,\dot q \quad\Longrightarrow\quad \ddot x = J\,\ddot q + \dot J\,\dot q
+\quad\Longrightarrow\quad \ddot q = J^{-1}\left( \ddot x - \dot J\,\dot q \right)
+$$
+
+<Why>{/* TODO(author) */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+\mathcal{F} = J^{-T}\left[ M J^{-1}\left( \ddot x - \dot J\,\dot q \right) + C\,\dot q + g \right]
+$$
+
+<Why>{/* TODO(author) */}</Why>
+</ProofStep>
+</Proof>
+
+### Contact at the tip and joint friction
+
+{/* TODO(author): F is the force the robot applies on the environment; viscous (v) and Coulomb (c) friction. */}
+
+$$
+\tau = M(q)\,\ddot q + C(q,\dot q)\,\dot q + g(q) + J^{T}F + \tau_{\text{friction}},
+\qquad
+\tau_{\text{friction},\,i} = v_i\,\dot q_i + c_i\,\operatorname{sgn}(\dot q_i)
+$$
 
 ## Visualization
 
-{/* TODO(viz): wire the visualization component here via /new-viz. */}
+{/* TODO(viz): free 2R arm, with a choice of integrator (Euler or RK4) and an energy plot. */}
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+### Closed form of the 2R arm
+
+$$
+M(q) = \begin{bmatrix}
+m_1 l_{c1}^2 + I_1 + m_2\!\left(l_1^2 + l_{c2}^2 + 2 l_1 l_{c2}\cos\theta_2\right) + I_2 & m_2\!\left(l_{c2}^2 + l_1 l_{c2}\cos\theta_2\right) + I_2 \\
+m_2\!\left(l_{c2}^2 + l_1 l_{c2}\cos\theta_2\right) + I_2 & m_2 l_{c2}^2 + I_2
+\end{bmatrix}
+$$
+
+$$
+h = m_2 l_1 l_{c2}\sin\theta_2, \qquad
+C(q,\dot q) = \begin{bmatrix} -h\,\dot\theta_2 & -h\,(\dot\theta_1+\dot\theta_2) \\ h\,\dot\theta_1 & 0 \end{bmatrix}
+$$
+
+$$
+g(q) = \begin{bmatrix} (m_1 l_{c1} + m_2 l_1)\,g\cos\theta_1 + m_2 l_{c2}\,g\cos(\theta_1+\theta_2) \\ m_2 l_{c2}\,g\cos(\theta_1+\theta_2) \end{bmatrix}
+$$
+
+### With the numbers of the chapter
+
+{/* TODO(author): same state as the Newton–Euler lesson; g₂ = 0 because link 2 is vertical. */}
+
+| | Joint 1 (N·m) | Joint 2 (N·m) |
+|---|---|---|
+| $M\ddot q$ | 2.984 | 0.724 |
+| $C\dot q$ | −3.326 | 0.416 |
+| $g$ | 18.691 | 0 |
+| $\tau$ | **18.349** | **1.140** |
+
+### The inertia depends on the posture
+
+{/* TODO(author): folded arm (θ₂ = 180°): 1.062; stretched (θ₂ = 0): 2.982. */}
+
+$$
+M_{11}(\theta_2) = 2.022 + 0.96\cos\theta_2 \quad (\mathrm{kg\,m^2})
+$$
 
 ## Common pitfalls
 
-{/* TODO(author): list common pitfalls. */}
+{/* TODO(author): C is not unique (another C with the same Cq̇ can break the skew symmetry); inverting M instead of solving the system; Cartesian form near a singularity; trusting Euler with a large step. */}
 
 ## Exercises
 
-{/* TODO(author): add exercises. */}
+{/* TODO(exercises): exercise blocks. */}
 
 ## Further reading
 
-{/* TODO(author): add references and further reading. */}
+{/* TODO(author): Craig, ch. 6 (check the sections in your edition). */}

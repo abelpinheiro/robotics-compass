@@ -103,10 +103,10 @@ describe("course map (curriculum.ts)", () => {
       next: { slug: "rigid-body-inertia" },
     });
     expect(getAdjacentLessons("dynamics", "newton-euler").prev?.slug).toBe("rigid-body-inertia");
-    // newton-euler → (planned chapters skipped) → mdps → ur20
-    expect(getAdjacentLessons("dynamics", "newton-euler").next?.slug).toBe("mdps");
+    // equations-of-motion → (planned chapters skipped) → mdps → ur20
+    expect(getAdjacentLessons("dynamics", "equations-of-motion").next?.slug).toBe("mdps");
     expect(getAdjacentLessons("reinforcement-learning", "mdps").next?.slug).toBe("ur20");
-    expect(getAdjacentLessons("dynamics", "lagrangian-dynamics")).toEqual({});
+    expect(getAdjacentLessons("dynamics", "contact-and-friction")).toEqual({});
   });
 
   it("shows a chapter as planned until one of its lessons is visible", () => {

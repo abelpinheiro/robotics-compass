@@ -9,30 +9,150 @@ prerequisites: []
 status: draft
 ---
 
+import { Callout } from "@/components/lesson/Callout";
+
+<Callout variant="warning" title="Work in progress">
+  This chapter is incomplete: several sections still contain only equations and visualizations, and the explanatory text is still being written.
+</Callout>
+
+{/* TODO(author): motivating question (optional), with <MotivatingQuestion answer="#formal-definition">. */}
+
 ## Intuition
 
-{/* TODO(author): write the intuition for this topic. */}
+{/* TODO(author): intuition. The question: can we reach the same torque without computing the internal forces? */}
 
 ## Formal definition
 
-{/* TODO(author): write the formal definition. */}
+### Kinetic and potential energy of a link
+
+{/* TODO(author): the kinetic energy comes from the rigid-body lesson; g is the gravity vector in the base frame. */}
+
+$$
+T_i = \tfrac12\,m_i\,v_{C_i}^{T}v_{C_i} + \tfrac12\,{}^{i}\omega_i^{T}\,{}^{C_i}I_i\,{}^{i}\omega_i,
+\qquad
+U_i = -\,m_i\,\mathbf{g}^{T}\,{}^{0}P_{C_i}
+$$
+
+### Kinetic energy of the manipulator
+
+{/* TODO(author): Jacobians of the center of mass of each link. */}
+
+$$
+v_{C_i} = J_{v_i}(q)\,\dot q, \qquad \omega_i = J_{\omega_i}(q)\,\dot q
+$$
+
+$$
+T = \tfrac12\,\dot q^{T} M(q)\,\dot q,
+\qquad
+M(q) = \sum_{i=1}^{n} \left( m_i\,J_{v_i}^{T}J_{v_i} + J_{\omega_i}^{T}\;{}^{0}_{i}R\;{}^{C_i}I_i\;{}^{0}_{i}R^{T}\,J_{\omega_i} \right)
+$$
+
+### The Lagrangian and the Euler–Lagrange equations
+
+{/* TODO(author): L is a difference, not a balance; τ gathers the torques that do not come from U. */}
+
+$$
+\mathcal{L}(q,\dot q) = T(q,\dot q) - U(q),
+\qquad
+\frac{d}{dt}\frac{\partial \mathcal{L}}{\partial \dot q_k} - \frac{\partial \mathcal{L}}{\partial q_k} = \tau_k
+$$
+
+### General form for the manipulator
+
+<Proof title="From Euler–Lagrange to the matrix form">
+<ProofStep>
+
+$$
+\frac{\partial \mathcal{L}}{\partial \dot q_k} = \sum_j M_{kj}\,\dot q_j
+$$
+
+<Why>{/* TODO(author): U does not depend on q̇; M is symmetric. */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+\frac{d}{dt}\frac{\partial \mathcal{L}}{\partial \dot q_k} = \sum_j M_{kj}\,\ddot q_j + \sum_{i,j} \frac{\partial M_{kj}}{\partial q_i}\,\dot q_i\,\dot q_j
+$$
+
+<Why>{/* TODO(author): M depends on q, which depends on time. */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+\frac{\partial \mathcal{L}}{\partial q_k} = \tfrac12 \sum_{i,j} \frac{\partial M_{ij}}{\partial q_k}\,\dot q_i\,\dot q_j - \frac{\partial U}{\partial q_k}
+$$
+
+<Why>{/* TODO(author) */}</Why>
+</ProofStep>
+<ProofStep>
+
+$$
+\sum_j M_{kj}\,\ddot q_j + \sum_{i,j} c_{ijk}\,\dot q_i\,\dot q_j + \frac{\partial U}{\partial q_k} = \tau_k,
+\qquad
+c_{ijk} = \tfrac12\left( \frac{\partial M_{kj}}{\partial q_i} + \frac{\partial M_{ki}}{\partial q_j} - \frac{\partial M_{ij}}{\partial q_k} \right)
+$$
+
+<Why>{/* TODO(author): symmetrize the sum in i and j (Christoffel symbols). */}</Why>
+</ProofStep>
+</Proof>
+
+$$
+C_{kj}(q,\dot q) = \sum_i c_{ijk}\,\dot q_i, \qquad g_k(q) = \frac{\partial U}{\partial q_k}
+$$
+
+### Total energy and work of the motors
+
+{/* TODO(author): this one is an energy balance; it serves to check the result. */}
+
+$$
+E = T + U, \qquad \dot E = \dot q^{T}\tau
+$$
 
 ## Visualization
 
-{/* TODO(viz): wire the visualization component here via /new-viz. */}
+{/* TODO(viz): moving 2R arm, with bars for T, U and E. */}
 
 ## Worked example
 
-{/* TODO(author): write a worked example. */}
+### One link
+
+{/* TODO(author): θ measured from the horizontal. */}
+
+$$
+\mathcal{L} = \tfrac12\,(m\,l_c^2 + I)\,\dot\theta^2 - m\,g\,l_c\sin\theta
+\quad\Longrightarrow\quad
+\tau = (m\,l_c^2 + I)\,\ddot\theta + m\,g\,l_c\cos\theta
+$$
+
+### The 2R arm
+
+{/* TODO(author): energies, derivatives and torques. */}
+
+$$
+\begin{aligned}
+T ={}& \tfrac12 (m_1 l_{c1}^2 + I_1)\,\dot\theta_1^2 + \tfrac12 I_2 (\dot\theta_1+\dot\theta_2)^2 \\
+&+ \tfrac12 m_2 \left[ l_1^2\dot\theta_1^2 + l_{c2}^2(\dot\theta_1+\dot\theta_2)^2 + 2\,l_1 l_{c2}\cos\theta_2\,\dot\theta_1(\dot\theta_1+\dot\theta_2) \right]
+\end{aligned}
+$$
+
+$$
+U = m_1\,g\,l_{c1}\sin\theta_1 + m_2\,g\left( l_1\sin\theta_1 + l_{c2}\sin(\theta_1+\theta_2) \right)
+$$
+
+{/* TODO(author): with the numbers of the Newton–Euler lesson, the result is the same. */}
+
+$$
+\tau = \begin{bmatrix} 18.349 \\ 1.140 \end{bmatrix} \mathrm{N\,m}
+$$
 
 ## Common pitfalls
 
-{/* TODO(author): list common pitfalls. */}
+{/* TODO(author): the angular velocity of link 2 is θ̇₁ + θ̇₂; forgetting that M varies in time; sign and reference of U; ω and the tensor in different frames. */}
 
 ## Exercises
 
-{/* TODO(author): add exercises. */}
+{/* TODO(exercises): exercise blocks. */}
 
 ## Further reading
 
-{/* TODO(author): add references and further reading. */}
+{/* TODO(author): Craig, ch. 6 (check the sections in your edition). */}

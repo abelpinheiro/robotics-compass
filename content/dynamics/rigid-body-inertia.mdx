@@ -3,26 +3,141 @@ title: "Rigid bodies and inertia"
 area: dynamics
 slug: rigid-body-inertia
 order: 0
-summary: ""
+summary: "How the mass of a link, and the way it is distributed, set the force and moment needed to accelerate it"
 ---
 
 import RodInertiaVizEmbed from "@/components/viz/inertia/RodInertiaVizEmbed";
 import BoxInertiaVizEmbed from "@/components/viz/inertia/BoxInertiaVizEmbed";
-import { Callout } from "@/components/lesson/Callout";
 
-<Callout variant="warning" title="Work in progress">
-  This chapter is incomplete: several sections still contain only equations and visualizations, and the explanatory text is still being written.
-</Callout>
-
-{/* The first draft is being written in rigid-body-inertia.pt.mdx. */}
+{/* TODO(author): motivating question (optional), with <MotivatingQuestion answer="#formal-definition">. */}
 
 ## Intuition
+So far, we have studied motion in a purely kinematic way: joint angles turned into positions and velocities at the tool tip, regardless of whether the arm was made of light plastic or solid steel. In real life, however, moving a link has an energetic and mechanical cost.
 
-{/* TODO(author): write the intuition for this topic. */}
+**How much does it cost to accelerate a link?** The answer depends on two things: **how much matter** it has and **how that matter is distributed** relative to the axis of rotation.
+
+Pushing an object in a straight line means overcoming its **mass** ($m$). Making it spin means overcoming its **moment of inertia** ($I$). To picture these concepts, compare the effort of spinning a broom while holding it by the middle with that of spinning it while holding it by the end of the handle. The mass is the same, but in the second case there is more matter far from the axis of rotation, and the resistance to spinning is greater.
+In a robotic manipulator with several links, each motor has to overcome not only the inertia of its own link, but also all the mass and inertial distribution of the links that come after it.
 
 ## Formal definition
+To connect the kinematic concept discussed earlier with the forces and torques of the actuators, we differentiate the velocity equations with respect to time to obtain **accelerations**, and then multiply those accelerations by the inertial properties of the rigid body to obtain **forces and moments**.
 
-{/* TODO(author): write the formal definition. */}
+### Acceleration of a point
+To compute, in general form, the acceleration of a point $Q$ observed from a frame $\{A\}$, we differentiate the general velocity equation of a vector ${}^{B}Q$ with respect to time and obtain:
+
+$$
+\begin{aligned}
+{}^{A}\dot V_{Q} ={}&
+\underbrace{{}^{A}\dot V_{B\text{ORG}}}_{\text{origin}}
++ \underbrace{{}^{A}_{B}R\,{}^{B}\dot V_{Q}}_{\text{motion in }\{B\}}
++ \underbrace{2\,{}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}V_{Q}}_{\text{Coriolis}}\\[4pt]
+&+ \underbrace{{}^{A}\dot\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q}_{\text{tangential}}
++ \underbrace{{}^{A}\Omega_{B} \times \left({}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q\right)}_{\text{centripetal}}
+\end{aligned}
+$$
+
+When the link is rigid and $\{B\}$ is attached to it, a point $Q$ of the link is fixed in $\{B\}$. This means that the vector ${}^{B}Q$ is constant in time, so its velocity (${}^{B}V_{Q}$) and acceleration (${}^{B}\dot V_{Q}$) are zero. The relative-motion and Coriolis terms vanish, which simplifies the expression to:
+
+$$
+{}^{A}\dot V_{Q} = {}^{A}\dot V_{B\text{ORG}} + {}^{A}\dot\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q + {}^{A}\Omega_{B} \times \left({}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}Q\right)
+$$
+
+
+### Angular acceleration
+
+We saw that angular velocities add directly when expressed in the same frame: ${}^{A}\Omega_{C} = {}^{A}\Omega_{B} + {}^{A}_{B}R\,{}^{B}\Omega_{C}$. When we differentiate this equation with respect to time to find the angular acceleration, we apply the product rule to the second term. Since the rotation matrix ${}^{A}_{B}R$ also varies in time ($\dot R = S({}^{A}\Omega_{B})\,R$), an extra cross-product term appears:
+
+$$
+{}^{A}\dot\Omega_{C} = {}^{A}\dot\Omega_{B} + {}^{A}_{B}R\,{}^{B}\dot\Omega_{C} + {}^{A}\Omega_{B} \times {}^{A}_{B}R\,{}^{B}\Omega_{C}
+$$
+
+### Mass and center of mass
+
+**Mass** ($m$) is a property that measures the amount of matter in a body and its resistance to linear acceleration. It should not be confused with **weight** ($W = m\,g$), which is the gravitational force exerted on that mass.
+
+For a continuous body of density $\rho$ and volume $V$, the total mass and the position of its **center of mass** (${}^{A}P_{C}$) are given by:
+
+$$
+m = \int_{V} \rho\,dv, \qquad {}^{A}P_{C} = \frac{1}{m}\int_{V} {}^{A}P\,\rho\,dv
+$$
+
+### Moment of inertia about an axis
+
+When rotating about a single fixed axis, the **scalar moment of inertia** ($I_{\text{axis}}$) measures how much the mass of the body resists angular acceleration about that specific axis.
+
+$$
+I_{\text{axis}} = \int_{V} r^{2}\,\rho\,dv
+$$
+
+### Inertia tensor
+
+In 3D, a rigid body can spin about any combination of the $X$, $Y$ and $Z$ axes. Moreover, if the mass is not distributed symmetrically about the $X$ axis, spinning it about that axis can produce reaction torques about the $Y$ and $Z$ axes. We therefore replace the scalar with a symmetric $3 \times 3$ matrix called the **inertia tensor** (${}^{A}I$):
+
+$$
+{}^{A}I = \begin{bmatrix}
+I_{xx} & -I_{xy} & -I_{xz} \\
+-I_{xy} & I_{yy} & -I_{yz} \\
+-I_{xz} & -I_{yz} & I_{zz}
+\end{bmatrix}
+= \int_{V} \left( P^{T}P\,\mathbf{1}_3 - P\,P^{T} \right)\rho\,dv
+$$
+
+where $\mathbf{1}_3$ is the $3 \times 3$ identity matrix and $P = [x, y, z]^T$ is the position of each volume element in $\{A\}$. The terms on the main diagonal are the **mass moments of inertia**, which measure the resistance to spinning about each axis:
+
+$$
+I_{xx} = \int_{V} (y^2+z^2)\,\rho\,dv, \qquad
+I_{yy} = \int_{V} (x^2+z^2)\,\rho\,dv, \qquad
+I_{zz} = \int_{V} (x^2+y^2)\,\rho\,dv
+$$
+
+The off-diagonal terms, called **products of inertia**, measure the mass imbalance between pairs of axes:
+
+$$
+I_{xy} = \int_{V} xy\,\rho\,dv, \qquad
+I_{xz} = \int_{V} xz\,\rho\,dv, \qquad
+I_{yz} = \int_{V} yz\,\rho\,dv
+$$
+
+With the tensor ${}^{A}I$ in hand, we can recover the scalar moment of inertia about any axis that passes through the origin of $\{A\}$ and has unit direction $\hat n$:
+
+$$
+I_{\text{axis}} = \hat n^{T}\,{}^{A}I\,\hat n
+$$
+
+### Parallel-axis theorem
+
+Instead of constantly computing the integrals above for each joint of the robot, we can simplify the calculations by using the inertia tensor in the frame $\{C\}$ centered at the link's **center of mass** (${}^{C}I$) and transporting it to a frame $\{A\}$ at the joint, which has the same orientation as $\{C\}$ but is offset by a vector $P_C = [x_c, y_c, z_c]^T$. The **parallel-axis theorem** performs this translation:
+
+$$
+{}^{A}I = {}^{C}I + m\left( P_C^{T}P_C\,\mathbf{1}_3 - P_C\,P_C^{T} \right),
+\qquad
+{}^{A}I_{zz} = {}^{C}I_{zz} + m\,(x_c^2 + y_c^2)
+$$
+
+### Change of orientation and principal axes
+
+When two frames $\{A\}$ and $\{B\}$ share the same origin but have different orientations, related by the matrix ${}^{A}_{B}R$, we transform the tensor by congruence. Moreover, since ${}^{A}I$ is real and symmetric, there is always an orientation in which the products of inertia vanish and the tensor becomes diagonal. The directions of these axes, the eigenvectors of ${}^{A}I$, are the **principal axes of inertia**, and the eigenvalues $I_{1}, I_{2}, I_{3}$ are the principal moments:
+
+$$
+{}^{A}I = {}^{A}_{B}R\;{}^{B}I\;{}^{A}_{B}R^{T},
+\qquad
+{}^{A}I = R\,\operatorname{diag}(I_1, I_2, I_3)\,R^{T}
+$$
+
+### Newton's and Euler's equations
+With the acceleration kinematics and the inertial properties defined, we write the two fundamental laws that govern the motion of a rigid link. **Newton's equation** relates the net force $F$ applied to the body to the linear acceleration of its center of mass ($\dot v_C$), while **Euler's equation** relates the net moment $N$ about the center of mass to the angular velocity and acceleration:
+
+$$
+F = m\,\dot v_{C}, \qquad N = {}^{C}I\,\dot\omega + \omega \times {}^{C}I\,\omega
+$$
+
+### Kinetic energy of a rigid body
+
+While the Newton–Euler formulation works directly with vector forces and accelerations, the **Lagrangian** formulation (which we will see later) obtains the equations of motion by differentiating the energies of the system. By König's theorem, the total kinetic energy $T$ of a rigid link splits exactly into the translational energy of the center of mass plus the rotational energy about it:
+
+$$
+T = \tfrac12\,m\,v_C^{T}v_C + \tfrac12\,\omega^{T}\,{}^{C}I\,\omega
+$$
 
 ## Visualization
 
@@ -31,17 +146,44 @@ import { Callout } from "@/components/lesson/Callout";
 <BoxInertiaVizEmbed />
 
 ## Worked example
+**1. Uniform thin rod (center vs. end):**
+Consider a rod of mass $m$ and length $L$ aligned with the $X$ axis. At the center of mass $\{C\}$, the linear density is $\lambda = m/L$, and the integral over $[-L/2, L/2]$ gives the moment about $Z$. Using the parallel-axis theorem to move the axis of rotation to the end $\{A\}$ ($x_c = L/2$, $y_c = 0$), the inertia quadruples:
 
-{/* TODO(author): write a worked example. */}
+$$
+{}^{C}I_{zz} = \frac{m}{L}\int_{-L/2}^{L/2} x^2\,dx = \frac{mL^2}{12},
+\qquad
+{}^{A}I_{zz} = \frac{mL^2}{12} + m\left(\frac{L}{2}\right)^{2} = \frac{mL^2}{3}
+$$
+
+![A uniform thin rod of mass m and length L along the X axis, in two panels. On the left, the axis of rotation Z passes through the center of mass {C}: an element of length dx lies at distance x from the axis, with x from minus L/2 to L/2, and the moment of inertia is m L squared over 12. On the right, the axis passes through the end {A}: the vector P_C, of length L/2, goes from {A} to {C}, and the moment of inertia is m L squared over 3, four times larger.](/images/dynamics/rigid-body-inertia-rod.svg)
+
+**2. Cuboid (uniform box) at the center of mass:**
+For a link modeled as a box of mass $m$ and sides $a$ (along $X$), $b$ (along $Y$) and $c$ (along $Z$), the symmetry about the three coordinate planes makes all the products of inertia zero, which gives a purely diagonal tensor:
+
+$$
+{}^{C}I = \frac{m}{12}\begin{bmatrix}
+b^2+c^2 & 0 & 0 \\
+0 & a^2+c^2 & 0 \\
+0 & 0 & a^2+b^2
+\end{bmatrix}
+$$
+
+![A uniform box of mass m with the frame {C} at its center. Side a lies along X, side b along Y and side c along Z. The three coordinate planes of {C} cut the box in half and are symmetry planes, so the products of inertia are zero.](/images/dynamics/rigid-body-inertia-box.svg)
+
+**3. Link 1 of a planar manipulator about joint 1:**
+Suppose that link 1 has mass $m_1 = 2\ \mathrm{kg}$, a center of mass located at $l_{c1} = 0.5\ \mathrm{m}$ from the axis of joint 1, and a centroidal moment of inertia $I_1 = {}^{C}I_{zz1} = 0.08\ \mathrm{kg\,m^2}$. The effective inertia that the motor of joint 1 sees when it accelerates this link is:
+
+$$
+I_1 + m_1 l_{c1}^2 = 0.08 + 2\,(0.5)^2 = 0.58\ \mathrm{kg\,m^2}
+$$
+
+![Link 1 of a planar manipulator, attached to the base by joint 1. The center of mass C_1, with mass m_1 = 2 kg and moment of inertia I_1 = 0.08 kg m² about the Z axis through it, lies l_c1 = 0.5 m from the axis of joint 1. Below, a bar shows the sum that the motor of joint 1 sees: 0.08 from I_1 plus 0.50 from m_1 l_c1 squared, a total of 0.58 kg m².](/images/dynamics/rigid-body-inertia-link1.svg)
 
 ## Common pitfalls
 
-{/* TODO(author): list common pitfalls. */}
-
-## Exercises
-
-{/* TODO(exercises): place exercise blocks here. */}
+1. **Applying the parallel-axis theorem between any two axes:** The formula ${}^{A}I = {}^{C}I + m(P_C^T P_C \mathbf{1}_3 - P_C P_C^T)$ only holds when one of the frames ($\{C\}$) is **exactly at the center of mass**. To go from an arbitrary axis $\{A\}$ to another arbitrary axis $\{B\}$, you must first go back to the center of mass $\{C\}$ (subtracting the translation term) and then go to $\{B\}$.
+2. **Getting the sign of the products of inertia wrong:** We define $I_{xy} = \int xy\,\rho\,dv$ with a positive sign, but when the tensor matrix ${}^{A}I$ is assembled, the off-diagonal elements enter as **$-I_{xy}, -I_{xz}, -I_{yz}$**.
+3. **Assuming that the inertia tensor is constant in the base:** Although the tensor ${}^{C}I$ is constant in the frame attached to the link, seen from the base $\{0\}$ it changes continuously as the robot moves (${}^{0}I(q) = R(q)\,{}^{C}I\,R(q)^T$). Forgetting this angular dependence eliminates the $\omega \times I\omega$ term from the equations of dynamics.
 
 ## Further reading
-
-{/* TODO(author): add references and further reading. */}
+1. Craig, ch. 6, sections 6.2 and 6.3
