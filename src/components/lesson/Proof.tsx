@@ -36,14 +36,14 @@ export function Proof({ title, children }: { title?: string; children: ReactNode
   };
 
   return (
-    <section aria-label={title ?? s.proof} className="my-6 rounded-card border border-border px-4 py-3">
+    <section aria-label={title ?? s.proof} className="group my-6 rounded-card border border-border px-4 py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="!my-0 font-serif font-semibold text-foreground">{title ?? s.proof}</p>
         <button
           type="button"
           onClick={toggleAll}
           aria-pressed={allOpen}
-          className="rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted hover:bg-surface-2 hover:text-foreground"
+          className="hidden rounded-md border border-border px-2.5 py-1 text-xs font-medium text-muted group-has-[[data-why]]:block hover:bg-surface-2 hover:text-foreground"
         >
           {allOpen ? s.collapseAll : s.expandAll}
         </button>
@@ -67,13 +67,15 @@ export function ProofStep({ children }: { children: ReactNode }) {
 /**
  * The justification of a step, behind a "Why?" toggle. `prereq` (a lesson
  * slug) adds a "Review:" link to the lesson the step relies on; a planned
- * lesson shows its title and status without a link.
+ * lesson shows its title and status without a link. Renders nothing while it
+ * is only a TODO(author) comment.
  */
 export function Why({ prereq, children }: { prereq?: string; children: ReactNode }) {
   const { locale } = useLocale();
   const s = lessonUiStrings[locale];
   const t = getDictionary(locale);
   const link = prereq ? lessonLink(prereq, locale) : undefined;
+  if (!children && !link) return null;
 
   return (
     <details data-why className="mt-1">
